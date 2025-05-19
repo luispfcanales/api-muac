@@ -1,0 +1,28 @@
+# Carpeta temporal de Air
+tmp/
+
+# Archivos binarios compilados
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Archivos de prueba
+*.test
+
+# Archivos de cobertura
+*.out
+
+# Archivos de dependencias
+vendor/
+
+# Archivos del sistema
+.DS_Store
+.env
+
+# Archivos de IDE y editores
+.idea/
+.vscode/
+*.swp
+*.swo
