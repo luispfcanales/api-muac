@@ -1,0 +1,149 @@
+-- Creación de la base de datos MUAC
+-- Tabla ROLE (Roles de usuario)
+CREATE TABLE ROLE (
+    ID UUID PRIMARY KEY,
+    NAME VARCHAR(100) NOT NULL,
+    DESCRIPTION TEXT
+);
+
+-- Tabla LOCALITY (Localidades)
+CREATE TABLE LOCALITY (
+    ID UUID PRIMARY KEY,
+    NAME VARCHAR(100) NOT NULL,
+    LOCATION VARCHAR(255) NOT NULL,
+    DESCRIPTION TEXT,
+    CREATE_AT DATE NOT NULL,
+    UPDATE_AT DATE
+);
+
+-- Tabla PATIENT (Pacientes)
+CREATE TABLE PATIENT (
+    ID UUID PRIMARY KEY,
+    NAME VARCHAR(100) NOT NULL,
+    LASTNAME VARCHAR(100) NOT NULL,
+    GENDER VARCHAR(50),
+    AGE INT,
+    BIRTH_DATE VARCHAR(20),
+    ARM_SIZE VARCHAR(50),
+    WEIGHT VARCHAR(50),
+    SIZE VARCHAR(50),
+    CONSENT_GIVEN BOOLEAN DEFAULT TRUE,
+    CONSENT_DATE DATE,
+    DESCRIPTION TEXT,
+    CREATE_AT DATE NOT NULL,
+    UPDATE_AT DATE
+);
+
+-- Tabla TAG (Etiquetas para mediciones)
+CREATE TABLE TAG (
+    ID UUID PRIMARY KEY,
+    NAME VARCHAR(100) NOT NULL,
+    DESCRIPTION TEXT
+);
+
+-- Tabla USER (Usuarios del sistema)
+CREATE TABLE "USER" (
+    ID UUID PRIMARY KEY,
+    NAME VARCHAR(100) NOT NULL,
+    LASTNAME VARCHAR(100) NOT NULL,
+    USER VARCHAR(50) NOT NULL,
+    EMAIL VARCHAR(255) NOT NULL,
+    DNI INT,
+    PHONE VARCHAR(20),
+    PASSWORD_HASH VARCHAR(255) NOT NULL,
+    CREATE_AT DATE NOT NULL,
+    UPDATE_AT DATE,
+    ROLE_ID UUID,
+    FOREIGN KEY (ROLE_ID) REFERENCES ROLE(ID)
+);
+
+-- Tabla FATHER (Usuarios con rol superior o administrador)
+CREATE TABLE FATHER (
+    ID UUID PRIMARY KEY,
+    NAME VARCHAR(100) NOT NULL,
+    LASTNAME VARCHAR(100) NOT NULL,
+    EMAIL VARCHAR(255) NOT NULL,
+    DNI INT,
+    PHONE VARCHAR(20),
+    PASSWORD_HASH VARCHAR(255) NOT NULL,
+    ACTIVE BOOLEAN DEFAULT TRUE,
+    CREATE_AT DATE NOT NULL,
+    UPDATE_AT DATE,
+    ROLE_ID UUID,
+    LOCALITY_ID UUID,
+    PATIENT_ID UUID,
+    FOREIGN KEY (ROLE_ID) REFERENCES ROLE(ID),
+    FOREIGN KEY (LOCALITY_ID) REFERENCES LOCALITY(ID),
+    FOREIGN KEY (PATIENT_ID) REFERENCES PATIENT(ID)
+);
+
+-- Tabla RECOMMENDATION (Recomendaciones médicas)
+CREATE TABLE RECOMMENDATION (
+    ID UUID PRIMARY KEY,
+    NAME VARCHAR(100) NOT NULL,
+    DESCRIPTION TEXT,
+    RECOMMENDATION_UMBRAL VARCHAR(255)
+);
+
+-- Tabla MEASUREMENT (Mediciones de pacientes)
+CREATE TABLE MEASUREMENT (
+    ID UUID PRIMARY KEY,
+    MUAC_VALUE DECIMAL(10,2) NOT NULL,
+    DESCRIPTION TEXT,
+    LOCATION VARCHAR(255),
+    TIMESTAMP DATE NOT NULL,
+    PATIENT_ID UUID NOT NULL,
+    USER_ID UUID NOT NULL,
+    TAG_ID UUID,
+    RECOMMENDATION_ID UUID,
+    FOREIGN KEY (PATIENT_ID) REFERENCES PATIENT(ID),
+    FOREIGN KEY (USER_ID) REFERENCES "USER"(ID),
+    FOREIGN KEY (TAG_ID) REFERENCES TAG(ID),
+    FOREIGN KEY (RECOMMENDATION_ID) REFERENCES RECOMMENDATION(ID)
+);
+
+-- Tabla NOTIFICATION (Notificaciones del sistema)
+CREATE TABLE NOTIFICATION (
+    ID UUID PRIMARY KEY,
+    TITLE VARCHAR(255) NOT NULL,
+    BODY TEXT,
+    VISIBLE BOOLEAN DEFAULT FALSE,
+    CREATE_AT DATE NOT NULL
+);
+
+-- Tabla FAQ (Preguntas frecuentes)
+CREATE TABLE FAQ (
+    ID UUID PRIMARY KEY,
+    QUESTION TEXT NOT NULL,
+    ANSWER TEXT NOT NULL
+);
+
+-- Índices para mejorar rendimiento
+CREATE INDEX idx_patient_id ON MEASUREMENT(PATIENT_ID);
+CREATE INDEX idx_user_email ON "USER"(EMAIL);
+CREATE INDEX idx_measurement_timestamp ON MEASUREMENT(TIMESTAMP);
+CREATE INDEX idx_father_locality ON FATHER(LOCALITY_ID);
+
+
+-- Insertar datos de ejemplo en las tablas
+-- Roles
+INSERT INTO ROLE (ID, NAME, DESCRIPTION) VALUES 
+(uuid_generate_v4(), 'Administrador', 'Acceso completo al sistema'),
+(uuid_generate_v4(), 'Médico', 'Acceso a pacientes y mediciones'),
+(uuid_generate_v4(), 'Enfermero', 'Registro de mediciones');
+
+-- Localidades
+INSERT INTO LOCALITY (ID, NAME, LOCATION, DESCRIPTION, CREATE_AT) VALUES 
+(uuid_generate_v4(), 'Hospital Central', 'Ciudad Capital', 'Hospital principal', CURRENT_DATE),
+(uuid_generate_v4(), 'Clínica Norte', 'Zona Norte', 'Clínica comunitaria', CURRENT_DATE);
+
+-- Tags
+INSERT INTO TAG (ID, NAME, DESCRIPTION) VALUES 
+(uuid_generate_v4(), 'Urgente', 'Requiere atención inmediata'),
+(uuid_generate_v4(), 'Control', 'Medición de control rutinaria');
+
+-- Recomendaciones
+INSERT INTO RECOMMENDATION (ID, NAME, DESCRIPTION, RECOMMENDATION_UMBRAL) VALUES 
+(uuid_generate_v4(), 'Desnutrición severa', 'Requiere hospitalización', '<11.5cm'),
+(uuid_generate_v4(), 'Desnutrición moderada', 'Suplementación nutricional', '11.5-12.5cm'),
+(uuid_generate_v4(), 'Normal', 'Sin intervención requerida', '>12.5cm');
