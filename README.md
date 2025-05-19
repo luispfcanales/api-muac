@@ -6,15 +6,6 @@ API MUAC es una API REST desarrollada en Go que implementa la arquitectura hexag
 - Go 1.16 o superior
 - Git
 
-## Configuración del Entorno de Desarrollo
-
-### Instalación de Air (Hot Reload)
-
-Air es una herramienta que permite la recarga en caliente de aplicaciones Go durante el desarrollo. Para instalar Air, sigue estos pasos:
-
-1. Instala Air globalmente ejecutando:
-```bash
-go install github.com/cosmtrek/air@latest
 
 ## Arquitectura
 La API está implementada siguiendo la arquitectura hexagonal (también conocida como puertos y adaptadores), que separa claramente:
@@ -31,3 +22,13 @@ La API está implementada siguiendo la arquitectura hexagonal (también conocida
 ### Infraestructura
 - Configuración : Gestión de variables de entorno y conexión a la base de datos
 - Servidor : Configuración y gestión del servidor HTTP
+
+## Configuración del Entorno de Desarrollo
+
+### Instalación de Air (Hot Reload)
+
+Air es una herramienta que permite la recarga en caliente de aplicaciones Go durante el desarrollo. Para instalar Air, sigue estos pasos:
+
+1. Instala Air globalmente ejecutando:
+```bash
+go install github.com/air-verse/air@latest
