@@ -35,46 +35,15 @@ type UpdateRoleRequest struct {
 
 // RegisterRoutes registra las rutas del manejador
 func (h *RoleHandler) RegisterRoutes(mux *http.ServeMux) {
-	mux.HandleFunc("/api/roles", h.handleRoles)
-	mux.HandleFunc("/api/roles/", h.handleRoleByID)
+	mux.HandleFunc("GET /api/roles", h.GetAllRoles)
+	mux.HandleFunc("POST /api/roles", h.CreateRole)
+	mux.HandleFunc("GET /api/roles/{id}", h.GetRoleByID)
+	mux.HandleFunc("PUT /api/roles/{id}", h.UpdateRole)
+	mux.HandleFunc("DELETE /api/roles/{id}", h.DeleteRole)
 }
 
-// handleRoles maneja las peticiones GET y POST a /api/roles
-func (h *RoleHandler) handleRoles(w http.ResponseWriter, r *http.Request) {
-	switch r.Method {
-	case http.MethodGet:
-		h.getAllRoles(w, r)
-	case http.MethodPost:
-		h.createRole(w, r)
-	default:
-		http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
-	}
-}
-
-// handleRoleByID maneja las peticiones GET, PUT y DELETE a /api/roles/{id}
-func (h *RoleHandler) handleRoleByID(w http.ResponseWriter, r *http.Request) {
-	// Extraer ID del path
-	idStr := r.URL.Path[len("/api/roles/"):]
-	id, err := uuid.Parse(idStr)
-	if err != nil {
-		http.Error(w, "ID inválido", http.StatusBadRequest)
-		return
-	}
-
-	switch r.Method {
-	case http.MethodGet:
-		h.getRoleByID(w, r, id)
-	case http.MethodPut:
-		h.updateRole(w, r, id)
-	case http.MethodDelete:
-		h.deleteRole(w, r, id)
-	default:
-		http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
-	}
-}
-
-// getAllRoles obtiene todos los roles
-func (h *RoleHandler) getAllRoles(w http.ResponseWriter, r *http.Request) {
+// GetAllRoles obtiene todos los roles
+func (h *RoleHandler) GetAllRoles(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	roles, err := h.roleService.GetAllRoles(ctx)
@@ -87,9 +56,21 @@ func (h *RoleHandler) getAllRoles(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(roles)
 }
 
-// getRoleByID obtiene un rol por su ID
-func (h *RoleHandler) getRoleByID(w http.ResponseWriter, r *http.Request, id uuid.UUID) {
+// GetRoleByID obtiene un rol por su ID
+func (h *RoleHandler) GetRoleByID(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
+
+	idStr := r.PathValue("id")
+	if idStr == "" {
+		http.Error(w, "ID de rol no proporcionado", http.StatusBadRequest)
+		return
+	}
+
+	id, err := uuid.Parse(idStr)
+	if err != nil {
+		http.Error(w, "ID inválido", http.StatusBadRequest)
+		return
+	}
 
 	role, err := h.roleService.GetRoleByID(ctx, id)
 	if err != nil {
@@ -105,8 +86,8 @@ func (h *RoleHandler) getRoleByID(w http.ResponseWriter, r *http.Request, id uui
 	json.NewEncoder(w).Encode(role)
 }
 
-// createRole crea un nuevo rol
-func (h *RoleHandler) createRole(w http.ResponseWriter, r *http.Request) {
+// CreateRole crea un nuevo rol
+func (h *RoleHandler) CreateRole(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	var req CreateRoleRequest
@@ -130,12 +111,24 @@ func (h *RoleHandler) createRole(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(role)
 }
 
-// updateRole actualiza un rol existente
-func (h *RoleHandler) updateRole(w http.ResponseWriter, r *http.Request, id uuid.UUID) {
+// UpdateRole actualiza un rol existente
+func (h *RoleHandler) UpdateRole(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
+	idStr := r.PathValue("id")
+	if idStr == "" {
+		http.Error(w, "ID de rol no proporcionado", http.StatusBadRequest)
+		return
+	}
+
+	id, err := uuid.Parse(idStr)
+	if err != nil {
+		http.Error(w, "ID inválido", http.StatusBadRequest)
+		return
+	}
+
 	var req UpdateRoleRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+	if err = json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, "Solicitud inválida", http.StatusBadRequest)
 		return
 	}
@@ -158,11 +151,23 @@ func (h *RoleHandler) updateRole(w http.ResponseWriter, r *http.Request, id uuid
 	json.NewEncoder(w).Encode(role)
 }
 
-// deleteRole elimina un rol por su ID
-func (h *RoleHandler) deleteRole(w http.ResponseWriter, r *http.Request, id uuid.UUID) {
+// DeleteRole elimina un rol por su ID
+func (h *RoleHandler) DeleteRole(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	err := h.roleService.DeleteRole(ctx, id)
+	idStr := r.PathValue("id")
+	if idStr == "" {
+		http.Error(w, "ID de rol no proporcionado", http.StatusBadRequest)
+		return
+	}
+
+	id, err := uuid.Parse(idStr)
+	if err != nil {
+		http.Error(w, "ID inválido", http.StatusBadRequest)
+		return
+	}
+
+	err = h.roleService.DeleteRole(ctx, id)
 	if err != nil {
 		if err == domain.ErrRoleNotFound {
 			http.Error(w, "Rol no encontrado", http.StatusNotFound)
