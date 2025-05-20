@@ -1,7 +1,6 @@
 package config
 
 import (
-	"database/sql"
 	"fmt"
 	"os"
 	"strconv"
@@ -10,6 +9,11 @@ import (
 	_ "github.com/go-sql-driver/mysql" // Driver para MySQL
 	_ "github.com/lib/pq"              // Driver para PostgreSQL
 	_ "github.com/mattn/go-sqlite3"    // Driver para SQLite
+	"gorm.io/driver/mysql"
+	"gorm.io/driver/postgres"
+	"gorm.io/driver/sqlite"
+	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 )
 
 // DBType representa el tipo de base de datos
@@ -68,109 +72,18 @@ func getEnv(key, defaultValue string) string {
 	return value
 }
 
-// NewDBConnection crea una nueva conexión a la base de datos
-func NewDBConnection(config *Config) (*sql.DB, error) {
-	var dsn string
-	var driverName string
-
-	switch config.DBType {
-	case PostgreSQL:
-		driverName = "postgres"
-		dsn = fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
-			config.DBHost, config.DBPort, config.DBUser, config.DBPassword, config.DBName)
-	case MySQL:
-		driverName = "mysql"
-		dsn = fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?parseTime=true",
-			config.DBUser, config.DBPassword, config.DBHost, config.DBPort, config.DBName)
-	case SQLite:
-		driverName = "sqlite3"
-		dsn = config.DBPath
-	default:
-		return nil, fmt.Errorf("tipo de base de datos no soportado: %s", config.DBType)
-	}
-
-	db, err := sql.Open(driverName, dsn)
-	if err != nil {
-		return nil, err
-	}
-
-	if err := db.Ping(); err != nil {
-		return nil, err
-	}
-
-	// Si es SQLite, inicializar la base de datos si es necesario
-	if config.DBType == SQLite {
-		if err := InitializeSQLiteDBFromFile(db, config.SQLFilePath); err != nil {
-			return nil, fmt.Errorf("error al inicializar la base de datos SQLite: %w", err)
-		}
-	}
-
-	return db, nil
-}
-
-// InitializeSQLiteDBFromFile inicializa la base de datos SQLite con las tablas y datos del archivo SQL
-func InitializeSQLiteDBFromFile(db *sql.DB, sqlFilePath string) error {
-	// Verificar si las tablas ya existen
-	var tableCount int
-	err := db.QueryRow("SELECT count(*) FROM sqlite_master WHERE type='table' AND name='ROLE'").Scan(&tableCount)
-	if err != nil {
-		return err
-	}
-
-	// Si la tabla ROLE ya existe, asumimos que la base de datos ya está inicializada
-	if tableCount > 0 {
-		return nil
-	}
-
-	// Leer el archivo SQL
-	sqlBytes, err := os.ReadFile(sqlFilePath)
-	if err != nil {
-		return fmt.Errorf("error al leer el archivo SQL: %w", err)
-	}
-
-	sqlContent := string(sqlBytes)
-
-	// Adaptar el SQL para SQLite
-	sqlContent = adaptSQLForSQLite(sqlContent)
-
-	// Dividir el contenido en sentencias SQL individuales
-	statements := splitSQLStatements(sqlContent)
-
-	// Iniciar una transacción para ejecutar todas las sentencias
-	tx, err := db.Begin()
-	if err != nil {
-		return err
-	}
-	defer func() {
-		if err != nil {
-			tx.Rollback()
-		}
-	}()
-
-	// Ejecutar cada sentencia SQL
-	for _, stmt := range statements {
-		stmt = strings.TrimSpace(stmt)
-		if stmt == "" {
-			continue
-		}
-
-		_, err = tx.Exec(stmt)
-		if err != nil {
-			return fmt.Errorf("error al ejecutar sentencia SQL: %s, error: %w", stmt, err)
-		}
-	}
-
-	// Confirmar la transacción
-	return tx.Commit()
-}
-
 // adaptSQLForSQLite adapta el SQL para que sea compatible con SQLite
 func adaptSQLForSQLite(sql string) string {
 	// Reemplazar UUID por TEXT
 	sql = strings.ReplaceAll(sql, "UUID PRIMARY KEY", "TEXT PRIMARY KEY")
 
 	// Reemplazar funciones específicas de PostgreSQL
-	sql = strings.ReplaceAll(sql, "uuid_generate_v4()", "lower(hex(randomblob(16)))")
+	sql = strings.ReplaceAll(sql, "uuid_generate_v4()",
+		"substr(lower(hex(randomblob(4))),1,8) || '-' || "+
+			"substr(lower(hex(randomblob(2))),1,4) || '-' || "+
+			"substr(lower(hex(randomblob(2))),1,4) || '-' || "+
+			"substr(lower(hex(randomblob(2))),1,4) || '-' || "+
+			"substr(lower(hex(randomblob(6))),1,12)")
 	sql = strings.ReplaceAll(sql, "CURRENT_DATE", "date('now')")
 
 	// Eliminar comandos específicos de PostgreSQL/MySQL
@@ -198,66 +111,131 @@ func removeLines(input, contains string) string {
 func splitSQLStatements(sql string) []string {
 	// Dividir por punto y coma, pero ignorar los que están dentro de comillas
 	var statements []string
-	var currentStmt strings.Builder
-	inQuote := false
-	inLineComment := false
-	inBlockComment := false
 
-	for i := 0; i < len(sql); i++ {
-		char := sql[i]
+	// Primero, eliminar todos los comentarios de línea
+	lines := strings.Split(sql, "\n")
+	var cleanedLines []string
 
-		// Manejar comentarios de línea
-		if i < len(sql)-1 && char == '-' && sql[i+1] == '-' && !inQuote && !inBlockComment {
-			inLineComment = true
-			currentStmt.WriteByte(char)
+	for _, line := range lines {
+		trimmedLine := strings.TrimSpace(line)
+		// Ignorar líneas de comentario completas
+		if strings.HasPrefix(trimmedLine, "--") {
 			continue
 		}
-
-		// Manejar fin de comentarios de línea
-		if (char == '\n' || char == '\r') && inLineComment {
-			inLineComment = false
-			currentStmt.WriteByte(char)
-			continue
+		// Para líneas con comentarios parciales, mantener solo la parte antes del comentario
+		commentIndex := strings.Index(line, "--")
+		if commentIndex >= 0 {
+			line = line[:commentIndex]
 		}
-
-		// Manejar comentarios de bloque
-		if i < len(sql)-1 && char == '/' && sql[i+1] == '*' && !inQuote && !inLineComment {
-			inBlockComment = true
-			currentStmt.WriteByte(char)
-			continue
+		if len(strings.TrimSpace(line)) > 0 {
+			cleanedLines = append(cleanedLines, line)
 		}
-
-		// Manejar fin de comentarios de bloque
-		if i < len(sql)-1 && char == '*' && sql[i+1] == '/' && inBlockComment {
-			inBlockComment = false
-			currentStmt.WriteByte(char)
-			currentStmt.WriteByte(sql[i+1])
-			i++
-			continue
-		}
-
-		// Manejar comillas
-		if char == '\'' && !inLineComment && !inBlockComment {
-			inQuote = !inQuote
-		}
-
-		// Manejar punto y coma fuera de comillas y comentarios
-		if char == ';' && !inQuote && !inLineComment && !inBlockComment {
-			currentStmt.WriteByte(char)
-			statements = append(statements, currentStmt.String())
-			currentStmt.Reset()
-			continue
-		}
-
-		// Agregar el carácter actual a la sentencia
-		currentStmt.WriteByte(char)
 	}
 
-	// Agregar la última sentencia si no está vacía
-	lastStmt := strings.TrimSpace(currentStmt.String())
-	if lastStmt != "" {
-		statements = append(statements, lastStmt)
+	// Reconstruir el SQL sin comentarios de línea
+	cleanedSQL := strings.Join(cleanedLines, " ")
+
+	// Eliminar comentarios de bloque
+	for {
+		startIdx := strings.Index(cleanedSQL, "/*")
+		if startIdx == -1 {
+			break
+		}
+
+		endIdx := strings.Index(cleanedSQL[startIdx:], "*/")
+		if endIdx == -1 {
+			break
+		}
+
+		cleanedSQL = cleanedSQL[:startIdx] + " " + cleanedSQL[startIdx+endIdx+2:]
+	}
+
+	// Normalizar espacios en blanco
+	cleanedSQL = strings.Join(strings.Fields(cleanedSQL), " ")
+
+	// Dividir por punto y coma
+	rawStatements := strings.Split(cleanedSQL, ";")
+
+	// Filtrar sentencias vacías
+	for _, stmt := range rawStatements {
+		stmt = strings.TrimSpace(stmt)
+		if stmt != "" {
+			statements = append(statements, stmt)
+		}
 	}
 
 	return statements
+}
+
+// NewGormDBConnection crea una nueva conexión a la base de datos usando GORM
+func NewGormDBConnection(config *Config) (*gorm.DB, error) {
+	var db *gorm.DB
+	var err error
+
+	switch config.DBType {
+	case PostgreSQL:
+		dsn := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
+			config.DBHost, config.DBPort, config.DBUser, config.DBPassword, config.DBName)
+		db, err = gorm.Open(postgres.Open(dsn), &gorm.Config{
+			Logger: logger.Default.LogMode(logger.Info),
+		})
+	case MySQL:
+		dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=Local",
+			config.DBUser, config.DBPassword, config.DBHost, config.DBPort, config.DBName)
+		db, err = gorm.Open(mysql.Open(dsn), &gorm.Config{
+			Logger: logger.Default.LogMode(logger.Info),
+		})
+	case SQLite:
+		db, err = gorm.Open(sqlite.Open(config.DBPath), &gorm.Config{
+			Logger: logger.Default.LogMode(logger.Info),
+		})
+	default:
+		return nil, fmt.Errorf("tipo de base de datos no soportado: %s", config.DBType)
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	// Si es SQLite y el archivo no existe, inicializar la base de datos
+	if config.DBType == SQLite {
+		if _, err := os.Stat(config.DBPath); os.IsNotExist(err) {
+			if err := InitializeGormDBFromFile(db, config.SQLFilePath); err != nil {
+				return nil, fmt.Errorf("error al inicializar la base de datos SQLite: %w", err)
+			}
+		}
+	}
+
+	return db, nil
+}
+
+// InitializeGormDBFromFile inicializa la base de datos con GORM
+func InitializeGormDBFromFile(db *gorm.DB, sqlFilePath string) error {
+	// Leer el archivo SQL
+	sqlBytes, err := os.ReadFile(sqlFilePath)
+	if err != nil {
+		return fmt.Errorf("error al leer el archivo SQL: %w", err)
+	}
+
+	sqlContent := string(sqlBytes)
+
+	// Adaptar el SQL para SQLite si es necesario
+	sqlContent = adaptSQLForSQLite(sqlContent)
+
+	// Dividir el contenido en sentencias SQL individuales
+	statements := splitSQLStatements(sqlContent)
+
+	// Ejecutar cada sentencia SQL
+	for _, stmt := range statements {
+		stmt = strings.TrimSpace(stmt)
+		if stmt == "" {
+			continue
+		}
+
+		if err := db.Exec(stmt).Error; err != nil {
+			return fmt.Errorf("error al ejecutar sentencia SQL: %s, error: %w", stmt, err)
+		}
+	}
+
+	return nil
 }

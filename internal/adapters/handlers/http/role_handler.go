@@ -128,7 +128,7 @@ func (h *RoleHandler) UpdateRole(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var req UpdateRoleRequest
-	if err = json.NewDecoder(r.Body).Decode(&req); err != nil {
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, "Solicitud inválida", http.StatusBadRequest)
 		return
 	}

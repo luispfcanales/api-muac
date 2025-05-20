@@ -1,12 +1,13 @@
 package domain
 
 import (
-	"github.com/google/uuid"
 	"time"
+
+	"github.com/google/uuid"
 )
 
-// Role representa la entidad de rol en el dominio
-type Role struct {
+// Tag representa la entidad de etiqueta en el dominio
+type Tag struct {
 	ID          uuid.UUID `json:"id" gorm:"type:uuid;primaryKey"`
 	Name        string    `json:"name" gorm:"column:NAME;type:varchar(100);not null"`
 	Description string    `json:"description" gorm:"column:DESCRIPTION;type:text"`
@@ -15,13 +16,13 @@ type Role struct {
 }
 
 // TableName especifica el nombre de la tabla para GORM
-func (Role) TableName() string {
-	return "ROLE"
+func (Tag) TableName() string {
+	return "TAG"
 }
 
-// NewRole crea una nueva instancia de Role
-func NewRole(name, description string) *Role {
-	return &Role{
+// NewTag crea una nueva instancia de Tag
+func NewTag(name, description string) *Tag {
+	return &Tag{
 		ID:          uuid.New(),
 		Name:        name,
 		Description: description,
@@ -29,17 +30,17 @@ func NewRole(name, description string) *Role {
 	}
 }
 
-// Validate valida que el rol tenga los campos requeridos
-func (r *Role) Validate() error {
-	if r.Name == "" {
-		return ErrEmptyRoleName
+// Validate valida que la etiqueta tenga los campos requeridos
+func (t *Tag) Validate() error {
+	if t.Name == "" {
+		return ErrEmptyTagName
 	}
 	return nil
 }
 
-// Update actualiza los campos del rol
-func (r *Role) Update(name, description string) {
-	r.Name = name
-	r.Description = description
-	r.UpdatedAt = time.Now()
+// Update actualiza los campos de la etiqueta
+func (t *Tag) Update(name, description string) {
+	t.Name = name
+	t.Description = description
+	t.UpdatedAt = time.Now()
 }

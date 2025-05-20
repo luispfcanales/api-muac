@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/google/uuid"
 	"github.com/luispfcanales/api-muac/internal/core/domain"
@@ -37,7 +38,12 @@ func (s *roleService) CreateRole(ctx context.Context, name, description string) 
 
 // GetRoleByID obtiene un rol por su ID
 func (s *roleService) GetRoleByID(ctx context.Context, id uuid.UUID) (*domain.Role, error) {
-	return s.roleRepo.GetByID(ctx, id)
+	fmt.Printf("Buscando rol con ID: %s\n", id.String())
+	role, err := s.roleRepo.GetByID(ctx, id)
+	if err != nil {
+		fmt.Printf("Error al buscar rol: %v\n", err)
+	}
+	return role, err
 }
 
 // GetAllRoles obtiene todos los roles

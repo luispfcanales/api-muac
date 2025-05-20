@@ -3,9 +3,11 @@ package main
 import (
 	"log"
 	stdhttp "net/http"
+	"reflect"
 
 	"github.com/luispfcanales/api-muac/internal/adapters/handlers/http"
 	"github.com/luispfcanales/api-muac/internal/adapters/repositories/postgres"
+	"github.com/luispfcanales/api-muac/internal/core/domain"
 	"github.com/luispfcanales/api-muac/internal/core/services"
 	"github.com/luispfcanales/api-muac/internal/infrastructure/config"
 	"github.com/luispfcanales/api-muac/internal/infrastructure/server"
@@ -15,12 +17,37 @@ func main() {
 	// Cargar configuración
 	cfg := config.LoadConfig()
 
-	// Conectar a la base de datos
-	db, err := config.NewDBConnection(cfg)
+	// Conectar a la base de datos con GORM
+	db, err := config.NewGormDBConnection(cfg)
 	if err != nil {
 		log.Fatalf("Error al conectar a la base de datos: %v", err)
 	}
-	defer db.Close()
+
+	// Lista de modelos a migrar
+	modelos := []interface{}{
+		&domain.Role{},
+		&domain.Locality{},
+		&domain.Patient{},
+		&domain.Tag{},
+		&domain.User{},
+		&domain.Father{},
+		&domain.Recommendation{},
+		&domain.Measurement{},
+		&domain.Notification{},
+		&domain.FAQ{},
+	}
+
+	// Migrar cada modelo y registrar en el log
+	log.Println("Iniciando migración de modelos...")
+	for _, modelo := range modelos {
+		nombreModelo := reflect.TypeOf(modelo).Elem().Name()
+		log.Printf("Migrando modelo: %s", nombreModelo)
+		if err := db.AutoMigrate(modelo); err != nil {
+			log.Fatalf("Error al migrar modelo %s: %v", nombreModelo, err)
+		}
+		log.Printf("Modelo %s migrado exitosamente", nombreModelo)
+	}
+	log.Println("Migración completada exitosamente")
 
 	// Crear repositorios
 	roleRepo := postgres.NewRoleRepository(db)
