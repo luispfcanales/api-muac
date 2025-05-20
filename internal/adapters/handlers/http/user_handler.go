@@ -7,6 +7,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/luispfcanales/api-muac/internal/core/domain"
 	"github.com/luispfcanales/api-muac/internal/core/services"
+	"golang.org/x/crypto/bcrypt"
 )
 
 // UserHandler maneja las peticiones HTTP relacionadas con usuarios
@@ -90,8 +91,13 @@ func (h *UserHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// En un caso real, aquí se debería hashear la contraseña
-	//passwordHash := userDTO.Password // Simplificado para el ejemplo
+	// Hashear la contraseña usando bcrypt
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(userDTO.Password), bcrypt.DefaultCost)
+	if err != nil {
+		http.Error(w, "Error al hashear la contraseña", http.StatusInternalServerError)
+		return
+	}
+	passwordHash := string(hashedPassword)
 
 	user := domain.NewUser(
 		userDTO.Name,
@@ -100,7 +106,7 @@ func (h *UserHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 		userDTO.DNI,
 		userDTO.Phone,
 		userDTO.Email,
-		userDTO.Password,
+		passwordHash,
 		userDTO.RoleID,
 	)
 
@@ -221,8 +227,13 @@ func (h *UserHandler) UpdatePassword(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// En un caso real, aquí se debería hashear la contraseña
-	passwordHash := passwordDTO.Password // Simplificado para el ejemplo
+	// Hashear la nueva contraseña
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(passwordDTO.Password), bcrypt.DefaultCost)
+	if err != nil {
+		http.Error(w, "Error al hashear la contraseña", http.StatusInternalServerError)
+		return
+	}
+	passwordHash := string(hashedPassword)
 
 	if err := h.userService.UpdatePassword(r.Context(), id, passwordHash); err != nil {
 		if err == domain.ErrUserNotFound {
