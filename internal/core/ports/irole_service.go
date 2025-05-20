@@ -7,8 +7,8 @@ import (
 	"github.com/luispfcanales/api-muac/internal/core/domain"
 )
 
-// RoleService define las operaciones que debe implementar un servicio de roles
-type RoleService interface {
+// IRoleService define las operaciones que debe implementar un servicio de roles
+type IRoleService interface {
 	CreateRole(ctx context.Context, name, description string) (*domain.Role, error)
 	GetRoleByID(ctx context.Context, id uuid.UUID) (*domain.Role, error)
 	GetAllRoles(ctx context.Context) ([]*domain.Role, error)

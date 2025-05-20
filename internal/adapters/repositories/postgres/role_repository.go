@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/luispfcanales/api-muac/internal/core/domain"
+	"github.com/luispfcanales/api-muac/internal/core/ports"
 	"gorm.io/gorm"
 )
 
@@ -16,7 +17,7 @@ type roleRepository struct {
 }
 
 // NewRoleRepository crea una nueva instancia de RoleRepository
-func NewRoleRepository(db *gorm.DB) *roleRepository {
+func NewRoleRepository(db *gorm.DB) ports.IRoleRepository {
 	return &roleRepository{
 		db: db,
 	}

@@ -7,8 +7,8 @@ import (
 	"github.com/luispfcanales/api-muac/internal/core/domain"
 )
 
-// UserRepository define las operaciones para el repositorio de usuarios
-type UserRepository interface {
+// IUserRepository define las operaciones para el repositorio de usuarios
+type IUserRepository interface {
 	Create(ctx context.Context, user *domain.User) error
 	GetByID(ctx context.Context, id uuid.UUID) (*domain.User, error)
 	GetByEmail(ctx context.Context, email string) (*domain.User, error)

@@ -11,11 +11,11 @@ import (
 
 // RoleHandler maneja las peticiones HTTP relacionadas con roles
 type RoleHandler struct {
-	roleService ports.RoleService
+	roleService ports.IRoleService
 }
 
 // NewRoleHandler crea una nueva instancia de RoleHandler
-func NewRoleHandler(roleService ports.RoleService) *RoleHandler {
+func NewRoleHandler(roleService ports.IRoleService) *RoleHandler {
 	return &RoleHandler{
 		roleService: roleService,
 	}

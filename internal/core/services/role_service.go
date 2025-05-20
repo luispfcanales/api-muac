@@ -11,11 +11,11 @@ import (
 
 // roleService implementa la interfaz RoleService
 type roleService struct {
-	roleRepo ports.RoleRepository
+	roleRepo ports.IRoleRepository
 }
 
 // NewRoleService crea una nueva instancia de RoleService
-func NewRoleService(roleRepo ports.RoleRepository) ports.RoleService {
+func NewRoleService(roleRepo ports.IRoleRepository) ports.IRoleService {
 	return &roleService{
 		roleRepo: roleRepo,
 	}

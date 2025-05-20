@@ -9,19 +9,19 @@ import (
 )
 
 // UserService implementa la lógica de negocio para usuarios
-type UserService struct {
-	userRepo ports.UserRepository
+type userService struct {
+	userRepo ports.IUserRepository
 }
 
 // NewUserService crea una nueva instancia de UserService
-func NewUserService(userRepo ports.UserRepository) *UserService {
-	return &UserService{
+func NewUserService(userRepo ports.IUserRepository) ports.IUserService {
+	return &userService{
 		userRepo: userRepo,
 	}
 }
 
 // Create crea un nuevo usuario
-func (s *UserService) Create(ctx context.Context, user *domain.User) error {
+func (s *userService) Create(ctx context.Context, user *domain.User) error {
 	if err := user.Validate(); err != nil {
 		return err
 	}
@@ -29,22 +29,22 @@ func (s *UserService) Create(ctx context.Context, user *domain.User) error {
 }
 
 // GetByID obtiene un usuario por su ID
-func (s *UserService) GetByID(ctx context.Context, id uuid.UUID) (*domain.User, error) {
+func (s *userService) GetByID(ctx context.Context, id uuid.UUID) (*domain.User, error) {
 	return s.userRepo.GetByID(ctx, id)
 }
 
 // GetByEmail obtiene un usuario por su email
-func (s *UserService) GetByEmail(ctx context.Context, email string) (*domain.User, error) {
+func (s *userService) GetByEmail(ctx context.Context, email string) (*domain.User, error) {
 	return s.userRepo.GetByEmail(ctx, email)
 }
 
 // GetAll obtiene todos los usuarios
-func (s *UserService) GetAll(ctx context.Context) ([]*domain.User, error) {
+func (s *userService) GetAll(ctx context.Context) ([]*domain.User, error) {
 	return s.userRepo.GetAll(ctx)
 }
 
 // Update actualiza un usuario existente
-func (s *UserService) Update(ctx context.Context, user *domain.User) error {
+func (s *userService) Update(ctx context.Context, user *domain.User) error {
 	if err := user.Validate(); err != nil {
 		return err
 	}
@@ -52,12 +52,12 @@ func (s *UserService) Update(ctx context.Context, user *domain.User) error {
 }
 
 // Delete elimina un usuario por su ID
-func (s *UserService) Delete(ctx context.Context, id uuid.UUID) error {
+func (s *userService) Delete(ctx context.Context, id uuid.UUID) error {
 	return s.userRepo.Delete(ctx, id)
 }
 
 // UpdatePassword actualiza la contraseña de un usuario
-func (s *UserService) UpdatePassword(ctx context.Context, id uuid.UUID, passwordHash string) error {
+func (s *userService) UpdatePassword(ctx context.Context, id uuid.UUID, passwordHash string) error {
 	user, err := s.userRepo.GetByID(ctx, id)
 	if err != nil {
 		return err
@@ -67,7 +67,7 @@ func (s *UserService) UpdatePassword(ctx context.Context, id uuid.UUID, password
 }
 
 // UpdateRole actualiza el rol de un usuario
-func (s *UserService) UpdateRole(ctx context.Context, id uuid.UUID, roleID uuid.UUID) error {
+func (s *userService) UpdateRole(ctx context.Context, id uuid.UUID, roleID uuid.UUID) error {
 	user, err := s.userRepo.GetByID(ctx, id)
 	if err != nil {
 		return err

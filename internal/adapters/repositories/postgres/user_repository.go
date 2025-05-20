@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/luispfcanales/api-muac/internal/core/domain"
+	"github.com/luispfcanales/api-muac/internal/core/ports"
 	"gorm.io/gorm"
 )
 
@@ -16,7 +17,7 @@ type userRepository struct {
 }
 
 // NewUserRepository crea una nueva instancia de UserRepository
-func NewUserRepository(db *gorm.DB) *userRepository {
+func NewUserRepository(db *gorm.DB) ports.IUserRepository {
 	return &userRepository{
 		db: db,
 	}

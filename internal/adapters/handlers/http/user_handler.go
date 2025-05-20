@@ -6,17 +6,17 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/luispfcanales/api-muac/internal/core/domain"
-	"github.com/luispfcanales/api-muac/internal/core/services"
+	"github.com/luispfcanales/api-muac/internal/core/ports"
 	"golang.org/x/crypto/bcrypt"
 )
 
 // UserHandler maneja las peticiones HTTP relacionadas con usuarios
 type UserHandler struct {
-	userService *services.UserService
+	userService ports.IUserService
 }
 
 // NewUserHandler crea una nueva instancia de UserHandler
-func NewUserHandler(userService *services.UserService) *UserHandler {
+func NewUserHandler(userService ports.IUserService) *UserHandler {
 	return &UserHandler{
 		userService: userService,
 	}

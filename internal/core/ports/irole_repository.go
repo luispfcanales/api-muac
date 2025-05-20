@@ -7,8 +7,8 @@ import (
 	"github.com/luispfcanales/api-muac/internal/core/domain"
 )
 
-// RoleRepository define las operaciones que debe implementar un repositorio de roles
-type RoleRepository interface {
+// IRoleRepository define las operaciones que debe implementar un repositorio de roles
+type IRoleRepository interface {
 	Create(ctx context.Context, role *domain.Role) error
 	GetByID(ctx context.Context, id uuid.UUID) (*domain.Role, error)
 	GetAll(ctx context.Context) ([]*domain.Role, error)
