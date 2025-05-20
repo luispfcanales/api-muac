@@ -222,7 +222,7 @@ func (h *UserHandler) UpdatePassword(w http.ResponseWriter, r *http.Request) {
 		Password string `json:"password"`
 	}
 
-	if err := json.NewDecoder(r.Body).Decode(&passwordDTO); err != nil {
+	if err = json.NewDecoder(r.Body).Decode(&passwordDTO); err != nil {
 		http.Error(w, "Error al decodificar el cuerpo de la petición", http.StatusBadRequest)
 		return
 	}
