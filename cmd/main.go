@@ -49,6 +49,10 @@ func main() {
 	}
 	log.Println("Migración completada exitosamente")
 
+	// Sembrar datos iniciales
+	if err := config.SeedDatabase(db); err != nil {
+		log.Fatalf("Error al sembrar datos iniciales: %v", err)
+	}
 	// Crear repositorios
 	roleRepo := postgres.NewRoleRepository(db)
 
