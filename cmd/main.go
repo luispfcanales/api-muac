@@ -57,22 +57,26 @@ func main() {
 	roleRepo := postgres.NewRoleRepository(db)
 	userRepo := postgres.NewUserRepository(db)
 	notificationRepo := postgres.NewNotificationRepository(db)
+	patientRepo := postgres.NewPatientRepository(db)
 
 	// Crear servicios
 	roleService := services.NewRoleService(roleRepo)
 	userService := services.NewUserService(userRepo)
 	notificationService := services.NewNotificationService(notificationRepo)
+	patientService := services.NewPatientService(patientRepo)
 
 	// Crear manejadores HTTP
 	roleHandler := http.NewRoleHandler(roleService)
 	userHandler := http.NewUserHandler(userService)
 	notificationHandler := http.NewNotificationHandler(notificationService)
+	patientHandler := http.NewPatientHandler(patientService)
 
 	// Configurar rutas
 	mux := stdhttp.NewServeMux()
 	roleHandler.RegisterRoutes(mux)
 	userHandler.RegisterRoutes(mux)
 	notificationHandler.RegisterRoutes(mux)
+	patientHandler.RegisterRoutes(mux)
 
 	// Crear y iniciar servidor
 	srv := server.NewServer(cfg, mux)
