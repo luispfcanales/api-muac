@@ -10,13 +10,15 @@ import (
 
 // patientService implementa la lógica de negocio para pacientes
 type patientService struct {
-	patientRepo ports.IPatientRepository
+	patientRepo     ports.IPatientRepository
+	measurementRepo ports.IMeasurementRepository
 }
 
 // NewPatientService crea una nueva instancia de PatientService
-func NewPatientService(patientRepo ports.IPatientRepository) ports.IPatientService {
+func NewPatientService(patientRepo ports.IPatientRepository, measurementRepo ports.IMeasurementRepository) ports.IPatientService {
 	return &patientService{
-		patientRepo: patientRepo,
+		patientRepo:     patientRepo,
+		measurementRepo: measurementRepo,
 	}
 }
 
@@ -82,8 +84,6 @@ func (s *patientService) AddMeasurement(ctx context.Context, patientID uuid.UUID
 		return err
 	}
 
-	// Aquí normalmente llamaríamos a un repositorio de mediciones para guardar la medición
-	// Pero como no tenemos acceso a ese repositorio en este servicio, asumimos que
-	// la medición se guarda a través de otro servicio después de esta validación
-	return nil
+	// Guardar la medición en la base de datos usando el repositorio de mediciones
+	return s.measurementRepo.Create(ctx, measurement)
 }

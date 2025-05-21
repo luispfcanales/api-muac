@@ -61,6 +61,8 @@ func main() {
 	localityRepo := postgres.NewLocalityRepository(db)
 	recommendationRepo := postgres.NewRecommendationRepository(db)
 	tagRepo := postgres.NewTagRepository(db)
+	measurementRepo := postgres.NewMeasurementRepository(db)
+	//fatherRepo := postgres.NewFatherRepository(db)
 	patientRepo := postgres.NewPatientRepository(db)
 
 	// Crear servicios
@@ -71,7 +73,8 @@ func main() {
 	localityService := services.NewLocalityService(localityRepo)
 	recommendationService := services.NewRecommendationService(recommendationRepo)
 	tagService := services.NewTagService(tagRepo)
-	patientService := services.NewPatientService(patientRepo)
+	measurementService := services.NewMeasurementService(measurementRepo, tagRepo, recommendationRepo)
+	patientService := services.NewPatientService(patientRepo, measurementRepo)
 
 	// Crear manejadores HTTP
 	roleHandler := http.NewRoleHandler(roleService)
@@ -81,6 +84,7 @@ func main() {
 	localityHandler := http.NewLocalityHandler(localityService)
 	recommendationHandler := http.NewRecommendationHandler(recommendationService)
 	tagHandler := http.NewTagHandler(tagService)
+	measurementHandler := http.NewMeasurementHandler(measurementService)
 	patientHandler := http.NewPatientHandler(patientService)
 
 	// Configurar rutas
@@ -92,6 +96,7 @@ func main() {
 	localityHandler.RegisterRoutes(mux)
 	recommendationHandler.RegisterRoutes(mux)
 	tagHandler.RegisterRoutes(mux)
+	measurementHandler.RegisterRoutes(mux)
 	patientHandler.RegisterRoutes(mux)
 
 	// Crear y iniciar servidor
