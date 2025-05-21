@@ -38,7 +38,15 @@ func (h *MeasurementHandler) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("PUT /api/measurements/{id}/recommendation/{recommendationId}", h.AssignRecommendation)
 }
 
-// GetAllMeasurements obtiene todas las mediciones
+// GetAllMeasurements godoc
+// @Summary Obtener todas las mediciones
+// @Description Obtiene una lista de todas las mediciones registradas en el sistema
+// @Tags mediciones
+// @Accept json
+// @Produce json
+// @Success 200 {array} domain.Measurement
+// @Failure 500 {object} map[string]string "Error interno del servidor"
+// @Router /api/measurements [get]
 func (h *MeasurementHandler) GetAllMeasurements(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
@@ -52,7 +60,18 @@ func (h *MeasurementHandler) GetAllMeasurements(w http.ResponseWriter, r *http.R
 	json.NewEncoder(w).Encode(measurements)
 }
 
-// GetMeasurementByID obtiene una medición por su ID
+// GetMeasurementByID godoc
+// @Summary Obtener una medición por ID
+// @Description Obtiene una medición específica por su ID
+// @Tags mediciones
+// @Accept json
+// @Produce json
+// @Param id path string true "ID de la medición"
+// @Success 200 {object} domain.Measurement
+// @Failure 400 {object} map[string]string "ID inválido o no proporcionado"
+// @Failure 404 {object} map[string]string "Medición no encontrada"
+// @Failure 500 {object} map[string]string "Error interno del servidor"
+// @Router /api/measurements/{id} [get]
 func (h *MeasurementHandler) GetMeasurementByID(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
@@ -82,7 +101,17 @@ func (h *MeasurementHandler) GetMeasurementByID(w http.ResponseWriter, r *http.R
 	json.NewEncoder(w).Encode(measurement)
 }
 
-// GetMeasurementsByPatientID obtiene mediciones por ID de paciente
+// GetMeasurementsByPatientID godoc
+// @Summary Obtener mediciones por ID de paciente
+// @Description Obtiene todas las mediciones asociadas a un paciente específico
+// @Tags mediciones
+// @Accept json
+// @Produce json
+// @Param patientId path string true "ID del paciente"
+// @Success 200 {array} domain.Measurement
+// @Failure 400 {object} map[string]string "ID de paciente inválido o no proporcionado"
+// @Failure 500 {object} map[string]string "Error interno del servidor"
+// @Router /api/measurements/patient/{patientId} [get]
 func (h *MeasurementHandler) GetMeasurementsByPatientID(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
@@ -108,7 +137,17 @@ func (h *MeasurementHandler) GetMeasurementsByPatientID(w http.ResponseWriter, r
 	json.NewEncoder(w).Encode(measurements)
 }
 
-// GetMeasurementsByUserID obtiene mediciones por ID de usuario
+// GetMeasurementsByUserID godoc
+// @Summary Obtener mediciones por ID de usuario
+// @Description Obtiene todas las mediciones asociadas a un usuario específico
+// @Tags mediciones
+// @Accept json
+// @Produce json
+// @Param userId path string true "ID del usuario"
+// @Success 200 {array} domain.Measurement
+// @Failure 400 {object} map[string]string "ID de usuario inválido o no proporcionado"
+// @Failure 500 {object} map[string]string "Error interno del servidor"
+// @Router /api/measurements/user/{userId} [get]
 func (h *MeasurementHandler) GetMeasurementsByUserID(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
@@ -134,7 +173,17 @@ func (h *MeasurementHandler) GetMeasurementsByUserID(w http.ResponseWriter, r *h
 	json.NewEncoder(w).Encode(measurements)
 }
 
-// GetMeasurementsByTagID obtiene mediciones por ID de etiqueta
+// GetMeasurementsByTagID godoc
+// @Summary Obtener mediciones por ID de etiqueta
+// @Description Obtiene todas las mediciones asociadas a una etiqueta específica
+// @Tags mediciones
+// @Accept json
+// @Produce json
+// @Param tagId path string true "ID de la etiqueta"
+// @Success 200 {array} domain.Measurement
+// @Failure 400 {object} map[string]string "ID de etiqueta inválido o no proporcionado"
+// @Failure 500 {object} map[string]string "Error interno del servidor"
+// @Router /api/measurements/tag/{tagId} [get]
 func (h *MeasurementHandler) GetMeasurementsByTagID(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
@@ -160,7 +209,17 @@ func (h *MeasurementHandler) GetMeasurementsByTagID(w http.ResponseWriter, r *ht
 	json.NewEncoder(w).Encode(measurements)
 }
 
-// GetMeasurementsByRecommendationID obtiene mediciones por ID de recomendación
+// GetMeasurementsByRecommendationID godoc
+// @Summary Obtener mediciones por ID de recomendación
+// @Description Obtiene todas las mediciones asociadas a una recomendación específica
+// @Tags mediciones
+// @Accept json
+// @Produce json
+// @Param recommendationId path string true "ID de la recomendación"
+// @Success 200 {array} domain.Measurement
+// @Failure 400 {object} map[string]string "ID de recomendación inválido o no proporcionado"
+// @Failure 500 {object} map[string]string "Error interno del servidor"
+// @Router /api/measurements/recommendation/{recommendationId} [get]
 func (h *MeasurementHandler) GetMeasurementsByRecommendationID(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
@@ -186,7 +245,18 @@ func (h *MeasurementHandler) GetMeasurementsByRecommendationID(w http.ResponseWr
 	json.NewEncoder(w).Encode(measurements)
 }
 
-// GetMeasurementsByDateRange obtiene mediciones dentro de un rango de fechas
+// GetMeasurementsByDateRange godoc
+// @Summary Obtener mediciones por rango de fechas
+// @Description Obtiene todas las mediciones dentro de un rango de fechas específico
+// @Tags mediciones
+// @Accept json
+// @Produce json
+// @Param start_date query string true "Fecha de inicio (formato RFC3339)"
+// @Param end_date query string true "Fecha de fin (formato RFC3339)"
+// @Success 200 {array} domain.Measurement
+// @Failure 400 {object} map[string]string "Fechas inválidas o no proporcionadas"
+// @Failure 500 {object} map[string]string "Error interno del servidor"
+// @Router /api/measurements/date-range [get]
 func (h *MeasurementHandler) GetMeasurementsByDateRange(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
@@ -266,7 +336,7 @@ func (h *MeasurementHandler) CreateMeasurement(w http.ResponseWriter, r *http.Re
 	json.NewEncoder(w).Encode(measurement)
 }
 
-// UpdateMeasurement actualiza una medición existente
+// UpdateMeasurement actualiza una medición
 func (h *MeasurementHandler) UpdateMeasurement(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 

@@ -30,7 +30,15 @@ func (h *FAQHandler) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("DELETE /api/faqs/{id}", h.DeleteFAQ)
 }
 
-// GetAllFAQs obtiene todas las preguntas frecuentes
+// GetAllFAQs godoc
+// @Summary Obtener todas las preguntas frecuentes
+// @Description Obtiene una lista de todas las preguntas frecuentes registradas
+// @Tags faqs
+// @Accept json
+// @Produce json
+// @Success 200 {array} domain.FAQ
+// @Failure 500 {object} map[string]string "Error interno del servidor"
+// @Router /api/faqs [get]
 func (h *FAQHandler) GetAllFAQs(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
@@ -44,7 +52,18 @@ func (h *FAQHandler) GetAllFAQs(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(faqs)
 }
 
-// GetFAQByID obtiene una pregunta frecuente por su ID
+// GetFAQByID godoc
+// @Summary Obtener una pregunta frecuente por ID
+// @Description Obtiene una pregunta frecuente específica por su ID
+// @Tags faqs
+// @Accept json
+// @Produce json
+// @Param id path string true "ID de la pregunta frecuente"
+// @Success 200 {object} domain.FAQ
+// @Failure 400 {object} map[string]string "ID inválido o no proporcionado"
+// @Failure 404 {object} map[string]string "Pregunta frecuente no encontrada"
+// @Failure 500 {object} map[string]string "Error interno del servidor"
+// @Router /api/faqs/{id} [get]
 func (h *FAQHandler) GetFAQByID(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
@@ -74,7 +93,17 @@ func (h *FAQHandler) GetFAQByID(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(faq)
 }
 
-// CreateFAQ crea una nueva pregunta frecuente
+// CreateFAQ godoc
+// @Summary Crear una nueva pregunta frecuente
+// @Description Crea una nueva pregunta frecuente con la información proporcionada
+// @Tags faqs
+// @Accept json
+// @Produce json
+// @Param faq body object true "Datos de la pregunta frecuente"
+// @Success 201 {object} domain.FAQ
+// @Failure 400 {object} map[string]string "Solicitud inválida"
+// @Failure 500 {object} map[string]string "Error interno del servidor"
+// @Router /api/faqs [post]
 func (h *FAQHandler) CreateFAQ(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
@@ -100,7 +129,19 @@ func (h *FAQHandler) CreateFAQ(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(faq)
 }
 
-// UpdateFAQ actualiza una pregunta frecuente existente
+// UpdateFAQ godoc
+// @Summary Actualizar una pregunta frecuente
+// @Description Actualiza una pregunta frecuente existente con la información proporcionada
+// @Tags faqs
+// @Accept json
+// @Produce json
+// @Param id path string true "ID de la pregunta frecuente"
+// @Param faq body object true "Datos actualizados de la pregunta frecuente"
+// @Success 200 {object} domain.FAQ
+// @Failure 400 {object} map[string]string "ID inválido o solicitud inválida"
+// @Failure 404 {object} map[string]string "Pregunta frecuente no encontrada"
+// @Failure 500 {object} map[string]string "Error interno del servidor"
+// @Router /api/faqs/{id} [put]
 func (h *FAQHandler) UpdateFAQ(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
@@ -147,7 +188,18 @@ func (h *FAQHandler) UpdateFAQ(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(faq)
 }
 
-// DeleteFAQ elimina una pregunta frecuente por su ID
+// DeleteFAQ godoc
+// @Summary Eliminar una pregunta frecuente
+// @Description Elimina una pregunta frecuente por su ID
+// @Tags faqs
+// @Accept json
+// @Produce json
+// @Param id path string true "ID de la pregunta frecuente"
+// @Success 204 "No Content"
+// @Failure 400 {object} map[string]string "ID inválido o no proporcionado"
+// @Failure 404 {object} map[string]string "Pregunta frecuente no encontrada"
+// @Failure 500 {object} map[string]string "Error interno del servidor"
+// @Router /api/faqs/{id} [delete]
 func (h *FAQHandler) DeleteFAQ(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 

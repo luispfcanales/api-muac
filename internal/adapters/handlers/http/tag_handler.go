@@ -31,7 +31,15 @@ func (h *TagHandler) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /api/tags/name/{name}", h.GetTagByName)
 }
 
-// GetAllTags obtiene todas las etiquetas
+// GetAllTags godoc
+// @Summary Obtener todas las etiquetas
+// @Description Obtiene una lista de todas las etiquetas registradas en el sistema
+// @Tags etiquetas
+// @Accept json
+// @Produce json
+// @Success 200 {array} domain.Tag
+// @Failure 500 {object} map[string]string "Error interno del servidor"
+// @Router /api/tags [get]
 func (h *TagHandler) GetAllTags(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
@@ -45,7 +53,18 @@ func (h *TagHandler) GetAllTags(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(tags)
 }
 
-// GetTagByID obtiene una etiqueta por su ID
+// GetTagByID godoc
+// @Summary Obtener una etiqueta por ID
+// @Description Obtiene una etiqueta específica por su ID
+// @Tags etiquetas
+// @Accept json
+// @Produce json
+// @Param id path string true "ID de la etiqueta"
+// @Success 200 {object} domain.Tag
+// @Failure 400 {object} map[string]string "ID inválido o no proporcionado"
+// @Failure 404 {object} map[string]string "Etiqueta no encontrada"
+// @Failure 500 {object} map[string]string "Error interno del servidor"
+// @Router /api/tags/{id} [get]
 func (h *TagHandler) GetTagByID(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
@@ -75,7 +94,18 @@ func (h *TagHandler) GetTagByID(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(tag)
 }
 
-// GetTagByName obtiene una etiqueta por su nombre
+// GetTagByName godoc
+// @Summary Obtener una etiqueta por nombre
+// @Description Obtiene una etiqueta específica por su nombre
+// @Tags etiquetas
+// @Accept json
+// @Produce json
+// @Param name path string true "Nombre de la etiqueta"
+// @Success 200 {object} domain.Tag
+// @Failure 400 {object} map[string]string "Nombre no proporcionado"
+// @Failure 404 {object} map[string]string "Etiqueta no encontrada"
+// @Failure 500 {object} map[string]string "Error interno del servidor"
+// @Router /api/tags/name/{name} [get]
 func (h *TagHandler) GetTagByName(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
@@ -99,7 +129,17 @@ func (h *TagHandler) GetTagByName(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(tag)
 }
 
-// CreateTag crea una nueva etiqueta
+// CreateTag godoc
+// @Summary Crear una nueva etiqueta
+// @Description Crea una nueva etiqueta con la información proporcionada
+// @Tags etiquetas
+// @Accept json
+// @Produce json
+// @Param tag body object true "Datos de la etiqueta"
+// @Success 201 {object} domain.Tag
+// @Failure 400 {object} map[string]string "Solicitud inválida"
+// @Failure 500 {object} map[string]string "Error interno del servidor"
+// @Router /api/tags [post]
 func (h *TagHandler) CreateTag(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
@@ -125,7 +165,19 @@ func (h *TagHandler) CreateTag(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(tag)
 }
 
-// UpdateTag actualiza una etiqueta existente
+// UpdateTag godoc
+// @Summary Actualizar una etiqueta
+// @Description Actualiza una etiqueta existente con la información proporcionada
+// @Tags etiquetas
+// @Accept json
+// @Produce json
+// @Param id path string true "ID de la etiqueta"
+// @Param tag body object true "Datos actualizados de la etiqueta"
+// @Success 200 {object} domain.Tag
+// @Failure 400 {object} map[string]string "ID inválido o solicitud inválida"
+// @Failure 404 {object} map[string]string "Etiqueta no encontrada"
+// @Failure 500 {object} map[string]string "Error interno del servidor"
+// @Router /api/tags/{id} [put]
 func (h *TagHandler) UpdateTag(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
@@ -172,7 +224,18 @@ func (h *TagHandler) UpdateTag(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(tag)
 }
 
-// DeleteTag elimina una etiqueta por su ID
+// DeleteTag godoc
+// @Summary Eliminar una etiqueta
+// @Description Elimina una etiqueta por su ID
+// @Tags etiquetas
+// @Accept json
+// @Produce json
+// @Param id path string true "ID de la etiqueta"
+// @Success 204 "No Content"
+// @Failure 400 {object} map[string]string "ID inválido o no proporcionado"
+// @Failure 404 {object} map[string]string "Etiqueta no encontrada"
+// @Failure 500 {object} map[string]string "Error interno del servidor"
+// @Router /api/tags/{id} [delete]
 func (h *TagHandler) DeleteTag(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 

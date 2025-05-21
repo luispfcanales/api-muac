@@ -31,7 +31,15 @@ func (h *LocalityHandler) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /api/localities/name/{name}", h.GetLocalityByName)
 }
 
-// GetAllLocalities obtiene todas las localidades
+// GetAllLocalities godoc
+// @Summary Obtener todas las localidades
+// @Description Obtiene una lista de todas las localidades registradas en el sistema
+// @Tags localidades
+// @Accept json
+// @Produce json
+// @Success 200 {array} domain.Locality
+// @Failure 500 {object} map[string]string "Error interno del servidor"
+// @Router /api/localities [get]
 func (h *LocalityHandler) GetAllLocalities(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
@@ -45,7 +53,55 @@ func (h *LocalityHandler) GetAllLocalities(w http.ResponseWriter, r *http.Reques
 	json.NewEncoder(w).Encode(localities)
 }
 
-// GetLocalityByID obtiene una localidad por su ID
+// CreateLocality godoc
+// @Summary Crear una nueva localidad
+// @Description Crea una nueva localidad con la información proporcionada
+// @Tags localidades
+// @Accept json
+// @Produce json
+// @Param locality body object true "Datos de la localidad"
+// @Success 201 {object} domain.Locality
+// @Failure 400 {object} map[string]string "Solicitud inválida"
+// @Failure 500 {object} map[string]string "Error interno del servidor"
+// @Router /api/localities [post]
+func (h *LocalityHandler) CreateLocality(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	var req struct {
+		Name        string `json:"name"`
+		Location    string `json:"location"`
+		Description string `json:"description"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Solicitud inválida", http.StatusBadRequest)
+		return
+	}
+
+	locality := domain.NewLocality(req.Name, req.Location, req.Description)
+
+	if err := h.localityService.Create(ctx, locality); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(locality)
+}
+
+// GetLocalityByID godoc
+// @Summary Obtener una localidad por ID
+// @Description Obtiene una localidad específica por su ID
+// @Tags localidades
+// @Accept json
+// @Produce json
+// @Param id path string true "ID de la localidad"
+// @Success 200 {object} domain.Locality
+// @Failure 400 {object} map[string]string "ID inválido o no proporcionado"
+// @Failure 404 {object} map[string]string "Localidad no encontrada"
+// @Failure 500 {object} map[string]string "Error interno del servidor"
+// @Router /api/localities/{id} [get]
 func (h *LocalityHandler) GetLocalityByID(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
@@ -75,58 +131,19 @@ func (h *LocalityHandler) GetLocalityByID(w http.ResponseWriter, r *http.Request
 	json.NewEncoder(w).Encode(locality)
 }
 
-// GetLocalityByName obtiene una localidad por su nombre
-func (h *LocalityHandler) GetLocalityByName(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-
-	name := r.PathValue("name")
-	if name == "" {
-		http.Error(w, "Nombre de localidad no proporcionado", http.StatusBadRequest)
-		return
-	}
-
-	locality, err := h.localityService.GetByName(ctx, name)
-	if err != nil {
-		if err == domain.ErrLocalityNotFound {
-			http.Error(w, "Localidad no encontrada", http.StatusNotFound)
-			return
-		}
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(locality)
-}
-
-// CreateLocality crea una nueva localidad
-func (h *LocalityHandler) CreateLocality(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-
-	var req struct {
-		Name        string `json:"name"`
-		Location    string `json:"location"`
-		Description string `json:"description"`
-	}
-
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, "Solicitud inválida", http.StatusBadRequest)
-		return
-	}
-
-	locality := domain.NewLocality(req.Name, req.Location, req.Description)
-
-	if err := h.localityService.Create(ctx, locality); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(locality)
-}
-
-// UpdateLocality actualiza una localidad existente
+// UpdateLocality godoc
+// @Summary Actualizar una localidad
+// @Description Actualiza una localidad existente con la información proporcionada
+// @Tags localidades
+// @Accept json
+// @Produce json
+// @Param id path string true "ID de la localidad"
+// @Param locality body object true "Datos actualizados de la localidad"
+// @Success 200 {object} domain.Locality
+// @Failure 400 {object} map[string]string "ID inválido o solicitud inválida"
+// @Failure 404 {object} map[string]string "Localidad no encontrada"
+// @Failure 500 {object} map[string]string "Error interno del servidor"
+// @Router /api/localities/{id} [put]
 func (h *LocalityHandler) UpdateLocality(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
@@ -174,7 +191,18 @@ func (h *LocalityHandler) UpdateLocality(w http.ResponseWriter, r *http.Request)
 	json.NewEncoder(w).Encode(locality)
 }
 
-// DeleteLocality elimina una localidad por su ID
+// DeleteLocality godoc
+// @Summary Eliminar una localidad
+// @Description Elimina una localidad por su ID
+// @Tags localidades
+// @Accept json
+// @Produce json
+// @Param id path string true "ID de la localidad"
+// @Success 204 "No Content"
+// @Failure 400 {object} map[string]string "ID inválido o no proporcionado"
+// @Failure 404 {object} map[string]string "Localidad no encontrada"
+// @Failure 500 {object} map[string]string "Error interno del servidor"
+// @Router /api/localities/{id} [delete]
 func (h *LocalityHandler) DeleteLocality(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
@@ -201,4 +229,39 @@ func (h *LocalityHandler) DeleteLocality(w http.ResponseWriter, r *http.Request)
 	}
 
 	w.WriteHeader(http.StatusNoContent)
+}
+
+// GetLocalityByName godoc
+// @Summary Obtener una localidad por nombre
+// @Description Obtiene una localidad específica por su nombre
+// @Tags localidades
+// @Accept json
+// @Produce json
+// @Param name path string true "Nombre de la localidad"
+// @Success 200 {object} domain.Locality
+// @Failure 400 {object} map[string]string "Nombre no proporcionado"
+// @Failure 404 {object} map[string]string "Localidad no encontrada"
+// @Failure 500 {object} map[string]string "Error interno del servidor"
+// @Router /api/localities/name/{name} [get]
+func (h *LocalityHandler) GetLocalityByName(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	name := r.PathValue("name")
+	if name == "" {
+		http.Error(w, "Nombre de localidad no proporcionado", http.StatusBadRequest)
+		return
+	}
+
+	locality, err := h.localityService.GetByName(ctx, name)
+	if err != nil {
+		if err == domain.ErrLocalityNotFound {
+			http.Error(w, "Localidad no encontrada", http.StatusNotFound)
+			return
+		}
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(locality)
 }

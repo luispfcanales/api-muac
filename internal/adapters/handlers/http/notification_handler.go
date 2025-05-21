@@ -31,7 +31,15 @@ func (h *NotificationHandler) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("PUT /api/notifications/{id}/visible", h.SetVisibility)
 }
 
-// GetNotifications obtiene todas las notificaciones
+// GetNotifications godoc
+// @Summary Obtener todas las notificaciones
+// @Description Obtiene una lista de todas las notificaciones registradas en el sistema
+// @Tags notificaciones
+// @Accept json
+// @Produce json
+// @Success 200 {array} domain.Notification
+// @Failure 500 {object} map[string]string "Error interno del servidor"
+// @Router /api/notifications [get]
 func (h *NotificationHandler) GetNotifications(w http.ResponseWriter, r *http.Request) {
 	notifications, err := h.notificationService.GetAll(r.Context())
 	if err != nil {
@@ -43,7 +51,18 @@ func (h *NotificationHandler) GetNotifications(w http.ResponseWriter, r *http.Re
 	json.NewEncoder(w).Encode(notifications)
 }
 
-// GetNotificationByID obtiene una notificación por su ID
+// GetNotificationByID godoc
+// @Summary Obtener una notificación por ID
+// @Description Obtiene una notificación específica por su ID
+// @Tags notificaciones
+// @Accept json
+// @Produce json
+// @Param id path string true "ID de la notificación"
+// @Success 200 {object} domain.Notification
+// @Failure 400 {object} map[string]string "ID inválido o no proporcionado"
+// @Failure 404 {object} map[string]string "Notificación no encontrada"
+// @Failure 500 {object} map[string]string "Error interno del servidor"
+// @Router /api/notifications/{id} [get]
 func (h *NotificationHandler) GetNotificationByID(w http.ResponseWriter, r *http.Request) {
 	idStr := r.PathValue("id")
 	if idStr == "" {
@@ -71,7 +90,17 @@ func (h *NotificationHandler) GetNotificationByID(w http.ResponseWriter, r *http
 	json.NewEncoder(w).Encode(notification)
 }
 
-// CreateNotification crea una nueva notificación
+// CreateNotification godoc
+// @Summary Crear una nueva notificación
+// @Description Crea una nueva notificación con la información proporcionada
+// @Tags notificaciones
+// @Accept json
+// @Produce json
+// @Param notification body object true "Datos de la notificación"
+// @Success 201 {object} domain.Notification
+// @Failure 400 {object} map[string]string "Solicitud inválida"
+// @Failure 500 {object} map[string]string "Error interno del servidor"
+// @Router /api/notifications [post]
 func (h *NotificationHandler) CreateNotification(w http.ResponseWriter, r *http.Request) {
 	var notificationDTO struct {
 		Title   string `json:"title"`
@@ -105,7 +134,19 @@ func (h *NotificationHandler) CreateNotification(w http.ResponseWriter, r *http.
 	json.NewEncoder(w).Encode(notification)
 }
 
-// UpdateNotification actualiza una notificación existente
+// UpdateNotification godoc
+// @Summary Actualizar una notificación
+// @Description Actualiza una notificación existente con la información proporcionada
+// @Tags notificaciones
+// @Accept json
+// @Produce json
+// @Param id path string true "ID de la notificación"
+// @Param notification body object true "Datos actualizados de la notificación"
+// @Success 200 {object} domain.Notification
+// @Failure 400 {object} map[string]string "ID inválido o solicitud inválida"
+// @Failure 404 {object} map[string]string "Notificación no encontrada"
+// @Failure 500 {object} map[string]string "Error interno del servidor"
+// @Router /api/notifications/{id} [put]
 func (h *NotificationHandler) UpdateNotification(w http.ResponseWriter, r *http.Request) {
 	idStr := r.PathValue("id")
 	if idStr == "" {
@@ -160,7 +201,18 @@ func (h *NotificationHandler) UpdateNotification(w http.ResponseWriter, r *http.
 	json.NewEncoder(w).Encode(notification)
 }
 
-// DeleteNotification elimina una notificación
+// DeleteNotification godoc
+// @Summary Eliminar una notificación
+// @Description Elimina una notificación por su ID
+// @Tags notificaciones
+// @Accept json
+// @Produce json
+// @Param id path string true "ID de la notificación"
+// @Success 204 "No Content"
+// @Failure 400 {object} map[string]string "ID inválido o no proporcionado"
+// @Failure 404 {object} map[string]string "Notificación no encontrada"
+// @Failure 500 {object} map[string]string "Error interno del servidor"
+// @Router /api/notifications/{id} [delete]
 func (h *NotificationHandler) DeleteNotification(w http.ResponseWriter, r *http.Request) {
 	idStr := r.PathValue("id")
 	if idStr == "" {
@@ -186,7 +238,19 @@ func (h *NotificationHandler) DeleteNotification(w http.ResponseWriter, r *http.
 	w.WriteHeader(http.StatusNoContent)
 }
 
-// SetVisibility actualiza la visibilidad de una notificación
+// SetVisibility godoc
+// @Summary Actualizar visibilidad de una notificación
+// @Description Actualiza el estado de visibilidad de una notificación específica
+// @Tags notificaciones
+// @Accept json
+// @Produce json
+// @Param id path string true "ID de la notificación"
+// @Param visibility body object true "Estado de visibilidad" 
+// @Success 200 {object} domain.Notification
+// @Failure 400 {object} map[string]string "ID inválido o solicitud inválida"
+// @Failure 404 {object} map[string]string "Notificación no encontrada"
+// @Failure 500 {object} map[string]string "Error interno del servidor"
+// @Router /api/notifications/{id}/visible [put]
 func (h *NotificationHandler) SetVisibility(w http.ResponseWriter, r *http.Request) {
 	idStr := r.PathValue("id")
 	if idStr == "" {

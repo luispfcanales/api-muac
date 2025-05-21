@@ -37,7 +37,15 @@ func (h *FatherHandler) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("PUT /api/fathers/{id}/active", h.UpdateActive)
 }
 
-// GetAllFathers obtiene todos los padres
+// GetAllFathers godoc
+// @Summary Obtener todos los padres
+// @Description Obtiene una lista de todos los padres registrados en el sistema
+// @Tags padres
+// @Accept json
+// @Produce json
+// @Success 200 {array} domain.Father
+// @Failure 500 {object} map[string]string "Error interno del servidor"
+// @Router /api/fathers [get]
 func (h *FatherHandler) GetAllFathers(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
@@ -51,7 +59,18 @@ func (h *FatherHandler) GetAllFathers(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(fathers)
 }
 
-// GetFatherByID obtiene un padre por su ID
+// GetFatherByID godoc
+// @Summary Obtener un padre por ID
+// @Description Obtiene un padre específico por su ID
+// @Tags padres
+// @Accept json
+// @Produce json
+// @Param id path string true "ID del padre"
+// @Success 200 {object} domain.Father
+// @Failure 400 {object} map[string]string "ID inválido o no proporcionado"
+// @Failure 404 {object} map[string]string "Padre no encontrado"
+// @Failure 500 {object} map[string]string "Error interno del servidor"
+// @Router /api/fathers/{id} [get]
 func (h *FatherHandler) GetFatherByID(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
@@ -81,7 +100,18 @@ func (h *FatherHandler) GetFatherByID(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(father)
 }
 
-// GetFatherByEmail obtiene un padre por su email
+// GetFatherByEmail godoc
+// @Summary Obtener un padre por email
+// @Description Obtiene un padre específico por su dirección de email
+// @Tags padres
+// @Accept json
+// @Produce json
+// @Param email path string true "Email del padre"
+// @Success 200 {object} domain.Father
+// @Failure 400 {object} map[string]string "Email no proporcionado"
+// @Failure 404 {object} map[string]string "Padre no encontrado"
+// @Failure 500 {object} map[string]string "Error interno del servidor"
+// @Router /api/fathers/email/{email} [get]
 func (h *FatherHandler) GetFatherByEmail(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
@@ -105,7 +135,18 @@ func (h *FatherHandler) GetFatherByEmail(w http.ResponseWriter, r *http.Request)
 	json.NewEncoder(w).Encode(father)
 }
 
-// GetFatherByDNI obtiene un padre por su DNI
+// GetFatherByDNI godoc
+// @Summary Obtener un padre por DNI
+// @Description Obtiene un padre específico por su número de DNI
+// @Tags padres
+// @Accept json
+// @Produce json
+// @Param dni path string true "DNI del padre"
+// @Success 200 {object} domain.Father
+// @Failure 400 {object} map[string]string "DNI no proporcionado o inválido"
+// @Failure 404 {object} map[string]string "Padre no encontrado"
+// @Failure 500 {object} map[string]string "Error interno del servidor"
+// @Router /api/fathers/dni/{dni} [get]
 func (h *FatherHandler) GetFatherByDNI(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
@@ -135,7 +176,17 @@ func (h *FatherHandler) GetFatherByDNI(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(father)
 }
 
-// GetFathersByPatientID obtiene padres por ID de paciente
+// GetFathersByPatientID godoc
+// @Summary Obtener padres por ID del paciente
+// @Description Obtiene todos los padres asociados a un paciente específico
+// @Tags padres
+// @Accept json
+// @Produce json
+// @Param patientId path string true "ID del paciente"
+// @Success 200 {array} domain.Father
+// @Failure 400 {object} map[string]string "ID de paciente inválido o no proporcionado"
+// @Failure 500 {object} map[string]string "Error interno del servidor"
+// @Router /api/fathers/patient/{patientId} [get]
 func (h *FatherHandler) GetFathersByPatientID(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
@@ -161,7 +212,17 @@ func (h *FatherHandler) GetFathersByPatientID(w http.ResponseWriter, r *http.Req
 	json.NewEncoder(w).Encode(fathers)
 }
 
-// GetFathersByLocalityID obtiene padres por ID de localidad
+// GetFathersByLocalityID godoc
+// @Summary Obtener padres por ID de localidad
+// @Description Obtiene todos los padres asociados a una localidad específica
+// @Tags padres
+// @Accept json
+// @Produce json
+// @Param localityId path string true "ID de la localidad"
+// @Success 200 {array} domain.Father
+// @Failure 400 {object} map[string]string "ID de localidad inválido o no proporcionado"
+// @Failure 500 {object} map[string]string "Error interno del servidor"
+// @Router /api/fathers/locality/{localityId} [get]
 func (h *FatherHandler) GetFathersByLocalityID(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 

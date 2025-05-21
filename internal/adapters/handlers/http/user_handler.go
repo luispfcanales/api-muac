@@ -33,7 +33,15 @@ func (h *UserHandler) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("PUT /api/users/{id}/role", h.UpdateRole)
 }
 
-// GetUsers obtiene todos los usuarios
+// GetUsers godoc
+// @Summary Obtener todos los usuarios
+// @Description Obtiene una lista de todos los usuarios registrados en el sistema
+// @Tags usuarios
+// @Accept json
+// @Produce json
+// @Success 200 {array} domain.User
+// @Failure 500 {object} map[string]string "Error interno del servidor"
+// @Router /api/users [get]
 func (h *UserHandler) GetUsers(w http.ResponseWriter, r *http.Request) {
 	users, err := h.userService.GetAll(r.Context())
 	if err != nil {
@@ -45,7 +53,18 @@ func (h *UserHandler) GetUsers(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(users)
 }
 
-// GetUserByID obtiene un usuario por su ID
+// GetUserByID godoc
+// @Summary Obtener un usuario por ID
+// @Description Obtiene un usuario específico por su ID
+// @Tags usuarios
+// @Accept json
+// @Produce json
+// @Param id path string true "ID del usuario"
+// @Success 200 {object} domain.User
+// @Failure 400 {object} map[string]string "ID inválido o no proporcionado"
+// @Failure 404 {object} map[string]string "Usuario no encontrado"
+// @Failure 500 {object} map[string]string "Error interno del servidor"
+// @Router /api/users/{id} [get]
 func (h *UserHandler) GetUserByID(w http.ResponseWriter, r *http.Request) {
 	idStr := r.PathValue("id")
 	if idStr == "" {
@@ -73,7 +92,17 @@ func (h *UserHandler) GetUserByID(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(user)
 }
 
-// CreateUser crea un nuevo usuario
+// CreateUser godoc
+// @Summary Crear un nuevo usuario
+// @Description Crea un nuevo usuario con la información proporcionada
+// @Tags usuarios
+// @Accept json
+// @Produce json
+// @Param user body object true "Datos del usuario"
+// @Success 201 {object} domain.User
+// @Failure 400 {object} map[string]string "Solicitud inválida"
+// @Failure 500 {object} map[string]string "Error interno del servidor"
+// @Router /api/users [post]
 func (h *UserHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 	var userDTO struct {
 		Name     string    `json:"name"`
@@ -120,7 +149,19 @@ func (h *UserHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(user)
 }
 
-// UpdateUser actualiza un usuario existente
+// UpdateUser godoc
+// @Summary Actualizar un usuario
+// @Description Actualiza un usuario existente con la información proporcionada
+// @Tags usuarios
+// @Accept json
+// @Produce json
+// @Param id path string true "ID del usuario"
+// @Param user body object true "Datos actualizados del usuario"
+// @Success 200 {object} domain.User
+// @Failure 400 {object} map[string]string "ID inválido o solicitud inválida"
+// @Failure 404 {object} map[string]string "Usuario no encontrado"
+// @Failure 500 {object} map[string]string "Error interno del servidor"
+// @Router /api/users/{id} [put]
 func (h *UserHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	idStr := r.PathValue("id")
 	if idStr == "" {
@@ -178,7 +219,18 @@ func (h *UserHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(user)
 }
 
-// DeleteUser elimina un usuario por su ID
+// DeleteUser godoc
+// @Summary Eliminar un usuario
+// @Description Elimina un usuario por su ID
+// @Tags usuarios
+// @Accept json
+// @Produce json
+// @Param id path string true "ID del usuario"
+// @Success 204 "No Content"
+// @Failure 400 {object} map[string]string "ID inválido o no proporcionado"
+// @Failure 404 {object} map[string]string "Usuario no encontrado"
+// @Failure 500 {object} map[string]string "Error interno del servidor"
+// @Router /api/users/{id} [delete]
 func (h *UserHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 	idStr := r.PathValue("id")
 	if idStr == "" {
@@ -204,7 +256,19 @@ func (h *UserHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
-// UpdatePassword actualiza la contraseña de un usuario
+// UpdatePassword godoc
+// @Summary Actualizar contraseña de un usuario
+// @Description Actualiza la contraseña de un usuario específico
+// @Tags usuarios
+// @Accept json
+// @Produce json
+// @Param id path string true "ID del usuario"
+// @Param password body object true "Nueva contraseña"
+// @Success 204 "No Content"
+// @Failure 400 {object} map[string]string "ID inválido o contraseña no proporcionada"
+// @Failure 404 {object} map[string]string "Usuario no encontrado"
+// @Failure 500 {object} map[string]string "Error interno del servidor"
+// @Router /api/users/{id}/password [put]
 func (h *UserHandler) UpdatePassword(w http.ResponseWriter, r *http.Request) {
 	idStr := r.PathValue("id")
 	if idStr == "" {
@@ -247,7 +311,19 @@ func (h *UserHandler) UpdatePassword(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
-// UpdateRole actualiza el rol de un usuario
+// UpdateRole godoc
+// @Summary Actualizar rol de un usuario
+// @Description Actualiza el rol de un usuario específico
+// @Tags usuarios
+// @Accept json
+// @Produce json
+// @Param id path string true "ID del usuario"
+// @Param role body object true "ID del nuevo rol"
+// @Success 204 "No Content"
+// @Failure 400 {object} map[string]string "ID inválido o rol no proporcionado"
+// @Failure 404 {object} map[string]string "Usuario no encontrado"
+// @Failure 500 {object} map[string]string "Error interno del servidor"
+// @Router /api/users/{id}/role [put]
 func (h *UserHandler) UpdateRole(w http.ResponseWriter, r *http.Request) {
 	idStr := r.PathValue("id")
 	if idStr == "" {

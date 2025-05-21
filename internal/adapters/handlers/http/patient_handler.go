@@ -31,11 +31,19 @@ func (h *PatientHandler) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("DELETE /api/patients/{id}", h.DeletePatient)
 	mux.HandleFunc("GET /api/patients/dni/{dni}", h.GetPatientByDNI)
 	mux.HandleFunc("GET /api/patients/father/{fatherId}", h.GetPatientsByFatherID)
-	mux.HandleFunc("GET /api/patients/{id}/measurements", h.GetPatientMeasurements)
-	mux.HandleFunc("POST /api/patients/{id}/measurements", h.AddPatientMeasurement)
+	mux.HandleFunc("GET /api/patients/measurements/{id}", h.GetPatientMeasurements)
+	mux.HandleFunc("POST /api/patients/measurements/{id}", h.AddPatientMeasurement)
 }
 
-// GetAllPatients obtiene todos los pacientes
+// GetAllPatients godoc
+// @Summary Obtener todos los pacientes
+// @Description Obtiene una lista de todos los pacientes registrados en el sistema
+// @Tags pacientes
+// @Accept json
+// @Produce json
+// @Success 200 {array} domain.Patient
+// @Failure 500 {object} map[string]string "Error interno del servidor"
+// @Router /api/patients [get]
 func (h *PatientHandler) GetAllPatients(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
@@ -49,7 +57,18 @@ func (h *PatientHandler) GetAllPatients(w http.ResponseWriter, r *http.Request) 
 	json.NewEncoder(w).Encode(patients)
 }
 
-// GetPatientByID obtiene un paciente por su ID
+// GetPatientByID godoc
+// @Summary Obtener un paciente por ID
+// @Description Obtiene un paciente específico por su ID
+// @Tags pacientes
+// @Accept json
+// @Produce json
+// @Param id path string true "ID del paciente"
+// @Success 200 {object} domain.Patient
+// @Failure 400 {object} map[string]string "ID inválido o no proporcionado"
+// @Failure 404 {object} map[string]string "Paciente no encontrado"
+// @Failure 500 {object} map[string]string "Error interno del servidor"
+// @Router /api/patients/{id} [get]
 func (h *PatientHandler) GetPatientByID(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
@@ -79,7 +98,18 @@ func (h *PatientHandler) GetPatientByID(w http.ResponseWriter, r *http.Request) 
 	json.NewEncoder(w).Encode(patient)
 }
 
-// GetPatientByDNI obtiene un paciente por su DNI
+// GetPatientByDNI godoc
+// @Summary Obtener un paciente por DNI
+// @Description Obtiene un paciente específico por su número de DNI
+// @Tags pacientes
+// @Accept json
+// @Produce json
+// @Param dni path string true "DNI del paciente"
+// @Success 200 {object} domain.Patient
+// @Failure 400 {object} map[string]string "DNI no proporcionado"
+// @Failure 404 {object} map[string]string "Paciente no encontrado"
+// @Failure 500 {object} map[string]string "Error interno del servidor"
+// @Router /api/patients/dni/{dni} [get]
 func (h *PatientHandler) GetPatientByDNI(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
@@ -103,7 +133,17 @@ func (h *PatientHandler) GetPatientByDNI(w http.ResponseWriter, r *http.Request)
 	json.NewEncoder(w).Encode(patient)
 }
 
-// CreatePatient crea un nuevo paciente
+// CreatePatient godoc
+// @Summary Crear un nuevo paciente
+// @Description Crea un nuevo paciente con la información proporcionada
+// @Tags pacientes
+// @Accept json
+// @Produce json
+// @Param patient body object true "Datos del paciente"
+// @Success 201 {object} domain.Patient
+// @Failure 400 {object} map[string]string "Solicitud inválida"
+// @Failure 500 {object} map[string]string "Error interno del servidor"
+// @Router /api/patients [post]
 func (h *PatientHandler) CreatePatient(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
@@ -143,7 +183,19 @@ func (h *PatientHandler) CreatePatient(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(patient)
 }
 
-// UpdatePatient actualiza un paciente existente
+// UpdatePatient godoc
+// @Summary Actualizar un paciente
+// @Description Actualiza un paciente existente con la información proporcionada
+// @Tags pacientes
+// @Accept json
+// @Produce json
+// @Param id path string true "ID del paciente"
+// @Param patient body object true "Datos actualizados del paciente"
+// @Success 200 {object} domain.Patient
+// @Failure 400 {object} map[string]string "ID inválido o solicitud inválida"
+// @Failure 404 {object} map[string]string "Paciente no encontrado"
+// @Failure 500 {object} map[string]string "Error interno del servidor"
+// @Router /api/patients/{id} [put]
 func (h *PatientHandler) UpdatePatient(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
@@ -209,7 +261,18 @@ func (h *PatientHandler) UpdatePatient(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(patient)
 }
 
-// DeletePatient elimina un paciente por su ID
+// DeletePatient godoc
+// @Summary Eliminar un paciente
+// @Description Elimina un paciente por su ID
+// @Tags pacientes
+// @Accept json
+// @Produce json
+// @Param id path string true "ID del paciente"
+// @Success 204 "No Content"
+// @Failure 400 {object} map[string]string "ID inválido o no proporcionado"
+// @Failure 404 {object} map[string]string "Paciente no encontrado"
+// @Failure 500 {object} map[string]string "Error interno del servidor"
+// @Router /api/patients/{id} [delete]
 func (h *PatientHandler) DeletePatient(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 

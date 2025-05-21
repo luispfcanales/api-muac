@@ -1,0 +1,651 @@
+basePath: /
+definitions:
+  github_com_luispfcanales_api-muac_internal_core_domain.FAQ:
+    properties:
+      answer:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: string
+      question:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  github_com_luispfcanales_api-muac_internal_core_domain.Patient:
+    properties:
+      age:
+        type: integer
+      arm_size:
+        type: string
+      birth_date:
+        type: string
+      consent_date:
+        type: string
+      consent_given:
+        type: boolean
+      created_at:
+        type: string
+      description:
+        type: string
+      gender:
+        type: string
+      id:
+        type: string
+      lastname:
+        type: string
+      name:
+        type: string
+      size:
+        type: string
+      updated_at:
+        type: string
+      weight:
+        type: string
+    type: object
+  github_com_luispfcanales_api-muac_internal_core_domain.Role:
+    properties:
+      created_at:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  internal_adapters_handlers_http.CreateRoleRequest:
+    properties:
+      description:
+        type: string
+      name:
+        type: string
+    type: object
+  internal_adapters_handlers_http.UpdateRoleRequest:
+    properties:
+      description:
+        type: string
+      name:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact:
+    email: tu.email@ejemplo.com
+    name: API Support
+  description: API para el sistema de medición MUAC
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: API MUAC
+  version: "1.0"
+paths:
+  /api/faqs:
+    get:
+      consumes:
+      - application/json
+      description: Obtiene una lista de todas las preguntas frecuentes registradas
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.FAQ'
+            type: array
+        "500":
+          description: Error interno del servidor
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Obtener todas las preguntas frecuentes
+      tags:
+      - faqs
+    post:
+      consumes:
+      - application/json
+      description: Crea una nueva pregunta frecuente con la información proporcionada
+      parameters:
+      - description: Datos de la pregunta frecuente
+        in: body
+        name: faq
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.FAQ'
+        "400":
+          description: Solicitud inválida
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Error interno del servidor
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Crear una nueva pregunta frecuente
+      tags:
+      - faqs
+  /api/faqs/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Elimina una pregunta frecuente por su ID
+      parameters:
+      - description: ID de la pregunta frecuente
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: ID inválido o no proporcionado
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Pregunta frecuente no encontrada
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Error interno del servidor
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Eliminar una pregunta frecuente
+      tags:
+      - faqs
+    get:
+      consumes:
+      - application/json
+      description: Obtiene una pregunta frecuente específica por su ID
+      parameters:
+      - description: ID de la pregunta frecuente
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.FAQ'
+        "400":
+          description: ID inválido o no proporcionado
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Pregunta frecuente no encontrada
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Error interno del servidor
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Obtener una pregunta frecuente por ID
+      tags:
+      - faqs
+    put:
+      consumes:
+      - application/json
+      description: Actualiza una pregunta frecuente existente con la información proporcionada
+      parameters:
+      - description: ID de la pregunta frecuente
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Datos actualizados de la pregunta frecuente
+        in: body
+        name: faq
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.FAQ'
+        "400":
+          description: ID inválido o solicitud inválida
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Pregunta frecuente no encontrada
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Error interno del servidor
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Actualizar una pregunta frecuente
+      tags:
+      - faqs
+  /api/patients:
+    get:
+      consumes:
+      - application/json
+      description: Obtiene una lista de todos los pacientes registrados en el sistema
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Patient'
+            type: array
+        "500":
+          description: Error interno del servidor
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Obtener todos los pacientes
+      tags:
+      - pacientes
+    post:
+      consumes:
+      - application/json
+      description: Crea un nuevo paciente con la información proporcionada
+      parameters:
+      - description: Datos del paciente
+        in: body
+        name: patient
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Patient'
+        "400":
+          description: Solicitud inválida
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Error interno del servidor
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Crear un nuevo paciente
+      tags:
+      - pacientes
+  /api/patients/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Elimina un paciente por su ID
+      parameters:
+      - description: ID del paciente
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: ID inválido o no proporcionado
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Paciente no encontrado
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Error interno del servidor
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Eliminar un paciente
+      tags:
+      - pacientes
+    get:
+      consumes:
+      - application/json
+      description: Obtiene un paciente específico por su ID
+      parameters:
+      - description: ID del paciente
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Patient'
+        "400":
+          description: ID inválido o no proporcionado
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Paciente no encontrado
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Error interno del servidor
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Obtener un paciente por ID
+      tags:
+      - pacientes
+    put:
+      consumes:
+      - application/json
+      description: Actualiza un paciente existente con la información proporcionada
+      parameters:
+      - description: ID del paciente
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Datos actualizados del paciente
+        in: body
+        name: patient
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Patient'
+        "400":
+          description: ID inválido o solicitud inválida
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Paciente no encontrado
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Error interno del servidor
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Actualizar un paciente
+      tags:
+      - pacientes
+  /api/patients/dni/{dni}:
+    get:
+      consumes:
+      - application/json
+      description: Obtiene un paciente específico por su número de DNI
+      parameters:
+      - description: DNI del paciente
+        in: path
+        name: dni
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Patient'
+        "400":
+          description: DNI no proporcionado
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Paciente no encontrado
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Error interno del servidor
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Obtener un paciente por DNI
+      tags:
+      - pacientes
+  /api/roles:
+    get:
+      consumes:
+      - application/json
+      description: Obtiene una lista de todos los roles registrados en el sistema
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Role'
+            type: array
+        "500":
+          description: Error interno del servidor
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Obtener todos los roles
+      tags:
+      - roles
+    post:
+      consumes:
+      - application/json
+      description: Crea un nuevo rol con la información proporcionada
+      parameters:
+      - description: Datos del rol
+        in: body
+        name: role
+        required: true
+        schema:
+          $ref: '#/definitions/internal_adapters_handlers_http.CreateRoleRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Role'
+        "400":
+          description: Solicitud inválida o nombre de rol vacío
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Error interno del servidor
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Crear un nuevo rol
+      tags:
+      - roles
+  /api/roles/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Elimina un rol por su ID
+      parameters:
+      - description: ID del rol
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: ID inválido o no proporcionado
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Rol no encontrado
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Error interno del servidor
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Eliminar un rol
+      tags:
+      - roles
+    get:
+      consumes:
+      - application/json
+      description: Obtiene un rol específico por su ID
+      parameters:
+      - description: ID del rol
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Role'
+        "400":
+          description: ID inválido o no proporcionado
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Rol no encontrado
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Error interno del servidor
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Obtener un rol por ID
+      tags:
+      - roles
+    put:
+      consumes:
+      - application/json
+      description: Actualiza un rol existente con la información proporcionada
+      parameters:
+      - description: ID del rol
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Datos actualizados del rol
+        in: body
+        name: role
+        required: true
+        schema:
+          $ref: '#/definitions/internal_adapters_handlers_http.UpdateRoleRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Role'
+        "400":
+          description: ID inválido, solicitud inválida o nombre de rol vacío
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Rol no encontrado
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Error interno del servidor
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Actualizar un rol
+      tags:
+      - roles
+swagger: "2.0"

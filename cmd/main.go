@@ -5,14 +5,27 @@ import (
 	stdhttp "net/http"
 	"reflect"
 
+	"github.com/luispfcanales/api-muac/docs"
+	_ "github.com/luispfcanales/api-muac/docs" // Importa los docs generados
 	"github.com/luispfcanales/api-muac/internal/adapters/handlers/http"
 	"github.com/luispfcanales/api-muac/internal/adapters/repositories/postgres"
 	"github.com/luispfcanales/api-muac/internal/core/domain"
 	"github.com/luispfcanales/api-muac/internal/core/services"
 	"github.com/luispfcanales/api-muac/internal/infrastructure/config"
 	"github.com/luispfcanales/api-muac/internal/infrastructure/server"
+	httpSwagger "github.com/swaggo/http-swagger"
 )
 
+// @title API MUAC
+// @version 1.0
+// @description API para el sistema de medición MUAC
+// @termsOfService http://swagger.io/terms/
+// @contact.name API Support
+// @contact.email tu.email@ejemplo.com
+// @license.name Apache 2.0
+// @license.url http://www.apache.org/licenses/LICENSE-2.0.html
+// @host localhost:8080
+// @BasePath /
 func main() {
 	// Cargar configuración
 	cfg := config.LoadConfig()
@@ -91,6 +104,22 @@ func main() {
 
 	// Configurar rutas
 	mux := stdhttp.NewServeMux()
+
+	// Servir el archivo swagger.json directamente
+	mux.HandleFunc("GET /swagger/doc.json", func(w stdhttp.ResponseWriter, r *stdhttp.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		// Usar el JSON ya procesado en lugar de la plantilla
+		w.Write([]byte(docs.SwaggerInfo.ReadDoc()))
+	})
+
+	// Agregar documentación Swagger - Modificar esta parte
+	mux.Handle("GET /swagger/", httpSwagger.Handler(
+		httpSwagger.URL("/swagger/doc.json"),
+		httpSwagger.DeepLinking(true),
+		httpSwagger.DocExpansion("none"),
+		httpSwagger.DomID("swagger-ui"),
+	))
+
 	roleHandler.RegisterRoutes(mux)
 	userHandler.RegisterRoutes(mux)
 	notificationHandler.RegisterRoutes(mux)

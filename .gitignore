@@ -20,7 +20,7 @@ vendor/
 # Archivos del sistema
 .DS_Store
 .env
-*.db
+muac.db
 
 # Archivos de IDE y editores
 .idea/
