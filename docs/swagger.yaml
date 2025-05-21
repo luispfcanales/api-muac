@@ -13,6 +13,104 @@ definitions:
       updated_at:
         type: string
     type: object
+  github_com_luispfcanales_api-muac_internal_core_domain.Father:
+    properties:
+      active:
+        type: boolean
+      created_at:
+        type: string
+      dni:
+        type: integer
+      email:
+        type: string
+      id:
+        type: string
+      lastname:
+        type: string
+      locality:
+        $ref: '#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Locality'
+      locality_id:
+        type: string
+      name:
+        type: string
+      password_hash:
+        type: string
+      patient:
+        $ref: '#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Patient'
+      patient_id:
+        type: string
+      phone:
+        type: string
+      role:
+        $ref: '#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Role'
+      role_id:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  github_com_luispfcanales_api-muac_internal_core_domain.Locality:
+    properties:
+      created_at:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      location:
+        type: string
+      name:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  github_com_luispfcanales_api-muac_internal_core_domain.Measurement:
+    properties:
+      created_at:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      location:
+        type: string
+      muac_value:
+        type: number
+      patient:
+        $ref: '#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Patient'
+      patient_id:
+        type: string
+      recommendation:
+        $ref: '#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Recommendation'
+      recommendation_id:
+        type: string
+      tag:
+        $ref: '#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Tag'
+      tag_id:
+        type: string
+      timestamp:
+        type: string
+      updated_at:
+        type: string
+      user:
+        $ref: '#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.User'
+      user_id:
+        type: string
+    type: object
+  github_com_luispfcanales_api-muac_internal_core_domain.Notification:
+    properties:
+      body:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: string
+      title:
+        type: string
+      updated_at:
+        type: string
+      visible:
+        type: boolean
+    type: object
   github_com_luispfcanales_api-muac_internal_core_domain.Patient:
     properties:
       age:
@@ -44,6 +142,21 @@ definitions:
       weight:
         type: string
     type: object
+  github_com_luispfcanales_api-muac_internal_core_domain.Recommendation:
+    properties:
+      created_at:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      recommendation_umbral:
+        type: string
+      updated_at:
+        type: string
+    type: object
   github_com_luispfcanales_api-muac_internal_core_domain.Role:
     properties:
       created_at:
@@ -55,6 +168,46 @@ definitions:
       name:
         type: string
       updated_at:
+        type: string
+    type: object
+  github_com_luispfcanales_api-muac_internal_core_domain.Tag:
+    properties:
+      created_at:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  github_com_luispfcanales_api-muac_internal_core_domain.User:
+    properties:
+      created_at:
+        type: string
+      dni:
+        type: string
+      email:
+        type: string
+      id:
+        type: string
+      lastname:
+        type: string
+      name:
+        type: string
+      password_hash:
+        type: string
+      phone:
+        type: string
+      role:
+        $ref: '#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Role'
+      role_id:
+        type: string
+      updated_at:
+        type: string
+      username:
         type: string
     type: object
   internal_adapters_handlers_http.CreateRoleRequest:
@@ -259,6 +412,893 @@ paths:
       summary: Actualizar una pregunta frecuente
       tags:
       - faqs
+  /api/fathers:
+    get:
+      consumes:
+      - application/json
+      description: Obtiene una lista de todos los padres registrados en el sistema
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Father'
+            type: array
+        "500":
+          description: Error interno del servidor
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Obtener todos los padres
+      tags:
+      - padres
+  /api/fathers/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Obtiene un padre específico por su ID
+      parameters:
+      - description: ID del padre
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Father'
+        "400":
+          description: ID inválido o no proporcionado
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Padre no encontrado
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Error interno del servidor
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Obtener un padre por ID
+      tags:
+      - padres
+  /api/fathers/dni/{dni}:
+    get:
+      consumes:
+      - application/json
+      description: Obtiene un padre específico por su número de DNI
+      parameters:
+      - description: DNI del padre
+        in: path
+        name: dni
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Father'
+        "400":
+          description: DNI no proporcionado o inválido
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Padre no encontrado
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Error interno del servidor
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Obtener un padre por DNI
+      tags:
+      - padres
+  /api/fathers/email/{email}:
+    get:
+      consumes:
+      - application/json
+      description: Obtiene un padre específico por su dirección de email
+      parameters:
+      - description: Email del padre
+        in: path
+        name: email
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Father'
+        "400":
+          description: Email no proporcionado
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Padre no encontrado
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Error interno del servidor
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Obtener un padre por email
+      tags:
+      - padres
+  /api/fathers/locality/{localityId}:
+    get:
+      consumes:
+      - application/json
+      description: Obtiene todos los padres asociados a una localidad específica
+      parameters:
+      - description: ID de la localidad
+        in: path
+        name: localityId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Father'
+            type: array
+        "400":
+          description: ID de localidad inválido o no proporcionado
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Error interno del servidor
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Obtener padres por ID de localidad
+      tags:
+      - padres
+  /api/fathers/patient/{patientId}:
+    get:
+      consumes:
+      - application/json
+      description: Obtiene todos los padres asociados a un paciente específico
+      parameters:
+      - description: ID del paciente
+        in: path
+        name: patientId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Father'
+            type: array
+        "400":
+          description: ID de paciente inválido o no proporcionado
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Error interno del servidor
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Obtener padres por ID del paciente
+      tags:
+      - padres
+  /api/localities:
+    get:
+      consumes:
+      - application/json
+      description: Obtiene una lista de todas las localidades registradas en el sistema
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Locality'
+            type: array
+        "500":
+          description: Error interno del servidor
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Obtener todas las localidades
+      tags:
+      - localidades
+    post:
+      consumes:
+      - application/json
+      description: Crea una nueva localidad con la información proporcionada
+      parameters:
+      - description: Datos de la localidad
+        in: body
+        name: locality
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Locality'
+        "400":
+          description: Solicitud inválida
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Error interno del servidor
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Crear una nueva localidad
+      tags:
+      - localidades
+  /api/localities/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Elimina una localidad por su ID
+      parameters:
+      - description: ID de la localidad
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: ID inválido o no proporcionado
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Localidad no encontrada
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Error interno del servidor
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Eliminar una localidad
+      tags:
+      - localidades
+    get:
+      consumes:
+      - application/json
+      description: Obtiene una localidad específica por su ID
+      parameters:
+      - description: ID de la localidad
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Locality'
+        "400":
+          description: ID inválido o no proporcionado
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Localidad no encontrada
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Error interno del servidor
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Obtener una localidad por ID
+      tags:
+      - localidades
+    put:
+      consumes:
+      - application/json
+      description: Actualiza una localidad existente con la información proporcionada
+      parameters:
+      - description: ID de la localidad
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Datos actualizados de la localidad
+        in: body
+        name: locality
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Locality'
+        "400":
+          description: ID inválido o solicitud inválida
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Localidad no encontrada
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Error interno del servidor
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Actualizar una localidad
+      tags:
+      - localidades
+  /api/localities/name/{name}:
+    get:
+      consumes:
+      - application/json
+      description: Obtiene una localidad específica por su nombre
+      parameters:
+      - description: Nombre de la localidad
+        in: path
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Locality'
+        "400":
+          description: Nombre no proporcionado
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Localidad no encontrada
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Error interno del servidor
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Obtener una localidad por nombre
+      tags:
+      - localidades
+  /api/measurements:
+    get:
+      consumes:
+      - application/json
+      description: Obtiene una lista de todas las mediciones registradas en el sistema
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Measurement'
+            type: array
+        "500":
+          description: Error interno del servidor
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Obtener todas las mediciones
+      tags:
+      - mediciones
+  /api/measurements/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Obtiene una medición específica por su ID
+      parameters:
+      - description: ID de la medición
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Measurement'
+        "400":
+          description: ID inválido o no proporcionado
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Medición no encontrada
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Error interno del servidor
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Obtener una medición por ID
+      tags:
+      - mediciones
+  /api/measurements/date-range:
+    get:
+      consumes:
+      - application/json
+      description: Obtiene todas las mediciones dentro de un rango de fechas específico
+      parameters:
+      - description: Fecha de inicio (formato RFC3339)
+        in: query
+        name: start_date
+        required: true
+        type: string
+      - description: Fecha de fin (formato RFC3339)
+        in: query
+        name: end_date
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Measurement'
+            type: array
+        "400":
+          description: Fechas inválidas o no proporcionadas
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Error interno del servidor
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Obtener mediciones por rango de fechas
+      tags:
+      - mediciones
+  /api/measurements/patient/{patientId}:
+    get:
+      consumes:
+      - application/json
+      description: Obtiene todas las mediciones asociadas a un paciente específico
+      parameters:
+      - description: ID del paciente
+        in: path
+        name: patientId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Measurement'
+            type: array
+        "400":
+          description: ID de paciente inválido o no proporcionado
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Error interno del servidor
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Obtener mediciones por ID de paciente
+      tags:
+      - mediciones
+  /api/measurements/recommendation/{recommendationId}:
+    get:
+      consumes:
+      - application/json
+      description: Obtiene todas las mediciones asociadas a una recomendación específica
+      parameters:
+      - description: ID de la recomendación
+        in: path
+        name: recommendationId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Measurement'
+            type: array
+        "400":
+          description: ID de recomendación inválido o no proporcionado
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Error interno del servidor
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Obtener mediciones por ID de recomendación
+      tags:
+      - mediciones
+  /api/measurements/tag/{tagId}:
+    get:
+      consumes:
+      - application/json
+      description: Obtiene todas las mediciones asociadas a una etiqueta específica
+      parameters:
+      - description: ID de la etiqueta
+        in: path
+        name: tagId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Measurement'
+            type: array
+        "400":
+          description: ID de etiqueta inválido o no proporcionado
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Error interno del servidor
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Obtener mediciones por ID de etiqueta
+      tags:
+      - mediciones
+  /api/measurements/user/{userId}:
+    get:
+      consumes:
+      - application/json
+      description: Obtiene todas las mediciones asociadas a un usuario específico
+      parameters:
+      - description: ID del usuario
+        in: path
+        name: userId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Measurement'
+            type: array
+        "400":
+          description: ID de usuario inválido o no proporcionado
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Error interno del servidor
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Obtener mediciones por ID de usuario
+      tags:
+      - mediciones
+  /api/notifications:
+    get:
+      consumes:
+      - application/json
+      description: Obtiene una lista de todas las notificaciones registradas en el
+        sistema
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Notification'
+            type: array
+        "500":
+          description: Error interno del servidor
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Obtener todas las notificaciones
+      tags:
+      - notificaciones
+    post:
+      consumes:
+      - application/json
+      description: Crea una nueva notificación con la información proporcionada
+      parameters:
+      - description: Datos de la notificación
+        in: body
+        name: notification
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Notification'
+        "400":
+          description: Solicitud inválida
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Error interno del servidor
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Crear una nueva notificación
+      tags:
+      - notificaciones
+  /api/notifications/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Elimina una notificación por su ID
+      parameters:
+      - description: ID de la notificación
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: ID inválido o no proporcionado
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Notificación no encontrada
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Error interno del servidor
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Eliminar una notificación
+      tags:
+      - notificaciones
+    get:
+      consumes:
+      - application/json
+      description: Obtiene una notificación específica por su ID
+      parameters:
+      - description: ID de la notificación
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Notification'
+        "400":
+          description: ID inválido o no proporcionado
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Notificación no encontrada
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Error interno del servidor
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Obtener una notificación por ID
+      tags:
+      - notificaciones
+    put:
+      consumes:
+      - application/json
+      description: Actualiza una notificación existente con la información proporcionada
+      parameters:
+      - description: ID de la notificación
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Datos actualizados de la notificación
+        in: body
+        name: notification
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Notification'
+        "400":
+          description: ID inválido o solicitud inválida
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Notificación no encontrada
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Error interno del servidor
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Actualizar una notificación
+      tags:
+      - notificaciones
+  /api/notifications/{id}/visible:
+    put:
+      consumes:
+      - application/json
+      description: Actualiza el estado de visibilidad de una notificación específica
+      parameters:
+      - description: ID de la notificación
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Estado de visibilidad
+        in: body
+        name: visibility
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Notification'
+        "400":
+          description: ID inválido o solicitud inválida
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Notificación no encontrada
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Error interno del servidor
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Actualizar visibilidad de una notificación
+      tags:
+      - notificaciones
   /api/patients:
     get:
       consumes:
@@ -473,6 +1513,256 @@ paths:
       summary: Obtener un paciente por DNI
       tags:
       - pacientes
+  /api/recommendations:
+    get:
+      consumes:
+      - application/json
+      description: Obtiene una lista de todas las recomendaciones registradas en el
+        sistema
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Recommendation'
+            type: array
+        "500":
+          description: Error interno del servidor
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Obtener todas las recomendaciones
+      tags:
+      - recomendaciones
+    post:
+      consumes:
+      - application/json
+      description: Crea una nueva recomendación con la información proporcionada
+      parameters:
+      - description: Datos de la recomendación
+        in: body
+        name: recommendation
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Recommendation'
+        "400":
+          description: Solicitud inválida
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Error interno del servidor
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Crear una nueva recomendación
+      tags:
+      - recomendaciones
+  /api/recommendations/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Elimina una recomendación por su ID
+      parameters:
+      - description: ID de la recomendación
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: ID inválido o no proporcionado
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Recomendación no encontrada
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Error interno del servidor
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Eliminar una recomendación
+      tags:
+      - recomendaciones
+    get:
+      consumes:
+      - application/json
+      description: Obtiene una recomendación específica por su ID
+      parameters:
+      - description: ID de la recomendación
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Recommendation'
+        "400":
+          description: ID inválido o no proporcionado
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Recomendación no encontrada
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Error interno del servidor
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Obtener una recomendación por ID
+      tags:
+      - recomendaciones
+    put:
+      consumes:
+      - application/json
+      description: Actualiza una recomendación existente con la información proporcionada
+      parameters:
+      - description: ID de la recomendación
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Datos actualizados de la recomendación
+        in: body
+        name: recommendation
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Recommendation'
+        "400":
+          description: ID inválido o solicitud inválida
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Recomendación no encontrada
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Error interno del servidor
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Actualizar una recomendación
+      tags:
+      - recomendaciones
+  /api/recommendations/name/{name}:
+    get:
+      consumes:
+      - application/json
+      description: Obtiene una recomendación específica por su nombre
+      parameters:
+      - description: Nombre de la recomendación
+        in: path
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Recommendation'
+        "400":
+          description: Nombre no proporcionado
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Recomendación no encontrada
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Error interno del servidor
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Obtener una recomendación por nombre
+      tags:
+      - recomendaciones
+  /api/recommendations/umbral/{umbral}:
+    get:
+      consumes:
+      - application/json
+      description: Obtiene todas las recomendaciones que coinciden con un umbral específico
+      parameters:
+      - description: Umbral de la recomendación
+        in: path
+        name: umbral
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Recommendation'
+            type: array
+        "400":
+          description: Umbral no proporcionado
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Error interno del servidor
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Obtener recomendaciones por umbral
+      tags:
+      - recomendaciones
   /api/roles:
     get:
       consumes:
@@ -648,4 +1938,479 @@ paths:
       summary: Actualizar un rol
       tags:
       - roles
+  /api/tags:
+    get:
+      consumes:
+      - application/json
+      description: Obtiene una lista de todas las etiquetas registradas en el sistema
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Tag'
+            type: array
+        "500":
+          description: Error interno del servidor
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Obtener todas las etiquetas
+      tags:
+      - etiquetas
+    post:
+      consumes:
+      - application/json
+      description: Crea una nueva etiqueta con la información proporcionada
+      parameters:
+      - description: Datos de la etiqueta
+        in: body
+        name: tag
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Tag'
+        "400":
+          description: Solicitud inválida
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Error interno del servidor
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Crear una nueva etiqueta
+      tags:
+      - etiquetas
+  /api/tags/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Elimina una etiqueta por su ID
+      parameters:
+      - description: ID de la etiqueta
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: ID inválido o no proporcionado
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Etiqueta no encontrada
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Error interno del servidor
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Eliminar una etiqueta
+      tags:
+      - etiquetas
+    get:
+      consumes:
+      - application/json
+      description: Obtiene una etiqueta específica por su ID
+      parameters:
+      - description: ID de la etiqueta
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Tag'
+        "400":
+          description: ID inválido o no proporcionado
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Etiqueta no encontrada
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Error interno del servidor
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Obtener una etiqueta por ID
+      tags:
+      - etiquetas
+    put:
+      consumes:
+      - application/json
+      description: Actualiza una etiqueta existente con la información proporcionada
+      parameters:
+      - description: ID de la etiqueta
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Datos actualizados de la etiqueta
+        in: body
+        name: tag
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Tag'
+        "400":
+          description: ID inválido o solicitud inválida
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Etiqueta no encontrada
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Error interno del servidor
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Actualizar una etiqueta
+      tags:
+      - etiquetas
+  /api/tags/name/{name}:
+    get:
+      consumes:
+      - application/json
+      description: Obtiene una etiqueta específica por su nombre
+      parameters:
+      - description: Nombre de la etiqueta
+        in: path
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Tag'
+        "400":
+          description: Nombre no proporcionado
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Etiqueta no encontrada
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Error interno del servidor
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Obtener una etiqueta por nombre
+      tags:
+      - etiquetas
+  /api/users:
+    get:
+      consumes:
+      - application/json
+      description: Obtiene una lista de todos los usuarios registrados en el sistema
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.User'
+            type: array
+        "500":
+          description: Error interno del servidor
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Obtener todos los usuarios
+      tags:
+      - usuarios
+    post:
+      consumes:
+      - application/json
+      description: Crea un nuevo usuario con la información proporcionada
+      parameters:
+      - description: Datos del usuario
+        in: body
+        name: user
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.User'
+        "400":
+          description: Solicitud inválida
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Error interno del servidor
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Crear un nuevo usuario
+      tags:
+      - usuarios
+  /api/users/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Elimina un usuario por su ID
+      parameters:
+      - description: ID del usuario
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: ID inválido o no proporcionado
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Usuario no encontrado
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Error interno del servidor
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Eliminar un usuario
+      tags:
+      - usuarios
+    get:
+      consumes:
+      - application/json
+      description: Obtiene un usuario específico por su ID
+      parameters:
+      - description: ID del usuario
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.User'
+        "400":
+          description: ID inválido o no proporcionado
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Usuario no encontrado
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Error interno del servidor
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Obtener un usuario por ID
+      tags:
+      - usuarios
+    put:
+      consumes:
+      - application/json
+      description: Actualiza un usuario existente con la información proporcionada
+      parameters:
+      - description: ID del usuario
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Datos actualizados del usuario
+        in: body
+        name: user
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.User'
+        "400":
+          description: ID inválido o solicitud inválida
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Usuario no encontrado
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Error interno del servidor
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Actualizar un usuario
+      tags:
+      - usuarios
+  /api/users/{id}/password:
+    put:
+      consumes:
+      - application/json
+      description: Actualiza la contraseña de un usuario específico
+      parameters:
+      - description: ID del usuario
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Nueva contraseña
+        in: body
+        name: password
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: ID inválido o contraseña no proporcionada
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Usuario no encontrado
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Error interno del servidor
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Actualizar contraseña de un usuario
+      tags:
+      - usuarios
+  /api/users/{id}/role:
+    put:
+      consumes:
+      - application/json
+      description: Actualiza el rol de un usuario específico
+      parameters:
+      - description: ID del usuario
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: ID del nuevo rol
+        in: body
+        name: role
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: ID inválido o rol no proporcionado
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Usuario no encontrado
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Error interno del servidor
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Actualizar rol de un usuario
+      tags:
+      - usuarios
 swagger: "2.0"
