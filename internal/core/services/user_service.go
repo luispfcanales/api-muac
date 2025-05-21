@@ -11,12 +11,14 @@ import (
 // UserService implementa la lógica de negocio para usuarios
 type userService struct {
 	userRepo ports.IUserRepository
+	roleRepo ports.IRoleRepository
 }
 
 // NewUserService crea una nueva instancia de UserService
-func NewUserService(userRepo ports.IUserRepository) ports.IUserService {
+func NewUserService(userRepo ports.IUserRepository, roleRepo ports.IRoleRepository) ports.IUserService {
 	return &userService{
 		userRepo: userRepo,
+		roleRepo: roleRepo,
 	}
 }
 
@@ -25,6 +27,15 @@ func (s *userService) Create(ctx context.Context, user *domain.User) error {
 	if err := user.Validate(); err != nil {
 		return err
 	}
+	
+	// Verificar que el rol existe
+	if user.RoleID != uuid.Nil {
+		_, err := s.roleRepo.GetByID(ctx, user.RoleID)
+		if err != nil {
+			return err
+		}
+	}
+	
 	return s.userRepo.Create(ctx, user)
 }
 
@@ -48,6 +59,15 @@ func (s *userService) Update(ctx context.Context, user *domain.User) error {
 	if err := user.Validate(); err != nil {
 		return err
 	}
+	
+	// Verificar que el rol existe
+	if user.RoleID != uuid.Nil {
+		_, err := s.roleRepo.GetByID(ctx, user.RoleID)
+		if err != nil {
+			return err
+		}
+	}
+	
 	return s.userRepo.Update(ctx, user)
 }
 
@@ -72,6 +92,15 @@ func (s *userService) UpdateRole(ctx context.Context, id uuid.UUID, roleID uuid.
 	if err != nil {
 		return err
 	}
+	
+	// Verificar que el rol existe
+	if roleID != uuid.Nil {
+		_, err := s.roleRepo.GetByID(ctx, roleID)
+		if err != nil {
+			return err
+		}
+	}
+	
 	user.UpdateRole(roleID)
 	return s.userRepo.Update(ctx, user)
 }

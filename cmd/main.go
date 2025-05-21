@@ -67,7 +67,7 @@ func main() {
 
 	// Crear servicios
 	roleService := services.NewRoleService(roleRepo)
-	userService := services.NewUserService(userRepo)
+	userService := services.NewUserService(userRepo, roleRepo)
 	notificationService := services.NewNotificationService(notificationRepo)
 	faqService := services.NewFAQService(faqRepo)
 	localityService := services.NewLocalityService(localityRepo)
