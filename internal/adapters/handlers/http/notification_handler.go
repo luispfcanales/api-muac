@@ -125,7 +125,7 @@ func (h *NotificationHandler) UpdateNotification(w http.ResponseWriter, r *http.
 		Visible bool   `json:"visible"`
 	}
 
-	if err := json.NewDecoder(r.Body).Decode(&notificationDTO); err != nil {
+	if err = json.NewDecoder(r.Body).Decode(&notificationDTO); err != nil {
 		http.Error(w, "Error al decodificar el cuerpo de la petición", http.StatusBadRequest)
 		return
 	}
@@ -204,7 +204,7 @@ func (h *NotificationHandler) SetVisibility(w http.ResponseWriter, r *http.Reque
 		Visible bool `json:"visible"`
 	}
 
-	if err := json.NewDecoder(r.Body).Decode(&visibilityDTO); err != nil {
+	if err = json.NewDecoder(r.Body).Decode(&visibilityDTO); err != nil {
 		http.Error(w, "Error al decodificar el cuerpo de la petición", http.StatusBadRequest)
 		return
 	}
