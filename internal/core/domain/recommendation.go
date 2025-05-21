@@ -8,12 +8,12 @@ import (
 
 // Recommendation representa la entidad de recomendación médica en el dominio
 type Recommendation struct {
-	ID                 uuid.UUID `json:"id" gorm:"type:uuid;primaryKey"`
-	Name               string    `json:"name" gorm:"column:NAME;type:varchar(100);not null"`
-	Description        string    `json:"description" gorm:"column:DESCRIPTION;type:text"`
-	RecommendationUmbral string  `json:"recommendation_umbral" gorm:"column:RECOMMENDATION_UMBRAL;type:varchar(255)"`
-	CreatedAt          time.Time `json:"created_at" gorm:"column:CREATE_AT;autoCreateTime"`
-	UpdatedAt          time.Time `json:"updated_at" gorm:"column:UPDATE_AT;autoUpdateTime"`
+	ID                   uuid.UUID `json:"id" gorm:"type:uuid;primaryKey"`
+	Name                 string    `json:"name" gorm:"column:NAME;type:varchar(100);not null"`
+	Description          string    `json:"description" gorm:"column:DESCRIPTION;type:text"`
+	RecommendationUmbral string    `json:"recommendation_umbral" gorm:"column:RECOMMENDATION_UMBRAL;type:varchar(255)"`
+	CreatedAt            time.Time `json:"created_at" gorm:"column:CREATE_AT;autoCreateTime"`
+	UpdatedAt            time.Time `json:"updated_at" gorm:"column:UPDATE_AT;autoUpdateTime"`
 }
 
 // TableName especifica el nombre de la tabla para GORM
@@ -24,11 +24,11 @@ func (Recommendation) TableName() string {
 // NewRecommendation crea una nueva instancia de Recommendation
 func NewRecommendation(name, description, umbral string) *Recommendation {
 	return &Recommendation{
-		ID:                 uuid.New(),
-		Name:               name,
-		Description:        description,
+		ID:                   uuid.New(),
+		Name:                 name,
+		Description:          description,
 		RecommendationUmbral: umbral,
-		CreatedAt:          time.Now(),
+		CreatedAt:            time.Now(),
 	}
 }
 
