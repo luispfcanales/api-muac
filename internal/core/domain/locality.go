@@ -23,10 +23,12 @@ func (Locality) TableName() string {
 }
 
 // NewLocality crea una nueva instancia de Locality
-func NewLocality(name, location, description string) *Locality {
+func NewLocality(name, latitude, longitude, description string) *Locality {
 	return &Locality{
 		ID:          uuid.New(),
 		Name:        name,
+		Latitude:    latitude,
+		Longitude:   longitude,
 		Description: description,
 		CreatedAt:   time.Now(),
 	}

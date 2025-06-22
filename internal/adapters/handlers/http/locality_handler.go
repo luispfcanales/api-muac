@@ -69,7 +69,8 @@ func (h *LocalityHandler) CreateLocality(w http.ResponseWriter, r *http.Request)
 
 	var req struct {
 		Name        string `json:"name"`
-		Location    string `json:"location"`
+		Latitude    string `json:"latitude"`
+		Longitude   string `json:"longitude"`
 		Description string `json:"description"`
 	}
 
@@ -78,7 +79,7 @@ func (h *LocalityHandler) CreateLocality(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	locality := domain.NewLocality(req.Name, req.Location, req.Description)
+	locality := domain.NewLocality(req.Name, req.Latitude, req.Longitude, req.Description)
 
 	if err := h.localityService.Create(ctx, locality); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
