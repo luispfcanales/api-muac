@@ -58,10 +58,15 @@ func (r *userRepository) GetByEmail(ctx context.Context, email string) (*domain.
 	return &user, nil
 }
 
-// GetAll obtiene todos los usuarios
+// GetAll obtiene todos los usuarios con sus relaciones
 func (r *userRepository) GetAll(ctx context.Context) ([]*domain.User, error) {
 	var users []*domain.User
-	result := r.db.WithContext(ctx).Preload("Role").Find(&users)
+	result := r.db.WithContext(ctx).
+		Preload("Role").
+		Preload("Locality").
+		Preload("Patient").
+		Find(&users)
+
 	if result.Error != nil {
 		return nil, fmt.Errorf("error al obtener usuarios: %w", result.Error)
 	}

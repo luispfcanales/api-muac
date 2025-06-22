@@ -22,11 +22,11 @@ type User struct {
 	RoleID uuid.UUID `json:"role_id" gorm:"column:ROLE_ID;type:char(36);not null"`
 	Role   Role      `json:"role" gorm:"foreignKey:RoleID"`
 
-	LocalityID *uuid.UUID `json:"locality_id,omitempty" gorm:"column:LOCALITY_ID;type:char(36)"`
-	Locality   *Locality  `json:"locality,omitempty" gorm:"foreignKey:LocalityID"`
+	LocalityID *uuid.UUID `json:"locality_id" gorm:"column:LOCALITY_ID;type:char(36)"`
+	Locality   *Locality  `json:"locality" gorm:"foreignKey:LocalityID"`
 
-	PatientID *uuid.UUID `json:"patient_id,omitempty" gorm:"column:PATIENT_ID;type:char(36)"`
-	Patient   *Patient   `json:"patient,omitempty" gorm:"foreignKey:PatientID"`
+	PatientID *uuid.UUID `json:"patient_id" gorm:"column:PATIENT_ID;type:char(36)"`
+	Patient   *Patient   `json:"patient" gorm:"foreignKey:PatientID"`
 
 	CreatedAt time.Time  `json:"created_at,omitempty" gorm:"column:CREATE_AT;autoCreateTime"`
 	UpdatedAt *time.Time `json:"updated_at,omitempty" gorm:"column:UPDATE_AT;autoUpdateTime"`
