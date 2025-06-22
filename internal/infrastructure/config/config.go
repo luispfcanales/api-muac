@@ -46,20 +46,21 @@ type Config struct {
 
 // LoadConfig carga la configuración desde variables de entorno
 func LoadConfig() *Config {
-	dbPort, _ := strconv.Atoi(getEnv("DB_PORT", "5432"))
+	dbPort, _ := strconv.Atoi(getEnv("DB_PORT", "3306"))
 	serverPort, _ := strconv.Atoi(getEnv("SERVER_PORT", "8080"))
-	dbType := DBType(getEnv("DB_TYPE", string(SQLite))) // Por defecto SQLite
+	// dbType := DBType(getEnv("DB_TYPE", string(SQLite))) // Por defecto SQLite
+	dbType := DBType(getEnv("DB_TYPE", string(MySQL)))
 
 	return &Config{
-		DBType:      dbType,
-		DBHost:      getEnv("DB_HOST", "localhost"),
-		DBPort:      dbPort,
-		DBUser:      getEnv("DB_USER", "postgres"),
-		DBPassword:  getEnv("DB_PASSWORD", "postgres"),
-		DBName:      getEnv("DB_NAME", "MUAC"),
-		DBPath:      getEnv("DB_PATH", "./muac.db"),
-		SQLFilePath: getEnv("SQL_FILE_PATH", "./ddbb.sql"),
-		ServerPort:  serverPort,
+		DBType:     dbType,
+		DBHost:     getEnv("DB_HOST", "localhost"),
+		DBPort:     dbPort,
+		DBUser:     getEnv("DB_USER", "root"),
+		DBPassword: getEnv("DB_PASSWORD", "root"),
+		DBName:     getEnv("DB_NAME", "MUAC"),
+		// DBPath:      getEnv("DB_PATH", "./muac.db"),
+		// SQLFilePath: getEnv("SQL_FILE_PATH", "./ddbb.sql"),
+		ServerPort: serverPort,
 	}
 }
 
@@ -107,66 +108,6 @@ func removeLines(input, contains string) string {
 	return strings.Join(result, "\n")
 }
 
-// splitSQLStatements divide el contenido SQL en sentencias individuales
-func splitSQLStatements(sql string) []string {
-	// Dividir por punto y coma, pero ignorar los que están dentro de comillas
-	var statements []string
-
-	// Primero, eliminar todos los comentarios de línea
-	lines := strings.Split(sql, "\n")
-	var cleanedLines []string
-
-	for _, line := range lines {
-		trimmedLine := strings.TrimSpace(line)
-		// Ignorar líneas de comentario completas
-		if strings.HasPrefix(trimmedLine, "--") {
-			continue
-		}
-		// Para líneas con comentarios parciales, mantener solo la parte antes del comentario
-		commentIndex := strings.Index(line, "--")
-		if commentIndex >= 0 {
-			line = line[:commentIndex]
-		}
-		if len(strings.TrimSpace(line)) > 0 {
-			cleanedLines = append(cleanedLines, line)
-		}
-	}
-
-	// Reconstruir el SQL sin comentarios de línea
-	cleanedSQL := strings.Join(cleanedLines, " ")
-
-	// Eliminar comentarios de bloque
-	for {
-		startIdx := strings.Index(cleanedSQL, "/*")
-		if startIdx == -1 {
-			break
-		}
-
-		endIdx := strings.Index(cleanedSQL[startIdx:], "*/")
-		if endIdx == -1 {
-			break
-		}
-
-		cleanedSQL = cleanedSQL[:startIdx] + " " + cleanedSQL[startIdx+endIdx+2:]
-	}
-
-	// Normalizar espacios en blanco
-	cleanedSQL = strings.Join(strings.Fields(cleanedSQL), " ")
-
-	// Dividir por punto y coma
-	rawStatements := strings.Split(cleanedSQL, ";")
-
-	// Filtrar sentencias vacías
-	for _, stmt := range rawStatements {
-		stmt = strings.TrimSpace(stmt)
-		if stmt != "" {
-			statements = append(statements, stmt)
-		}
-	}
-
-	return statements
-}
-
 // NewGormDBConnection crea una nueva conexión a la base de datos usando GORM
 func NewGormDBConnection(config *Config) (*gorm.DB, error) {
 	var db *gorm.DB
@@ -197,45 +138,5 @@ func NewGormDBConnection(config *Config) (*gorm.DB, error) {
 		return nil, err
 	}
 
-	// Si es SQLite y el archivo no existe, inicializar la base de datos
-	if config.DBType == SQLite {
-		if _, err := os.Stat(config.DBPath); os.IsNotExist(err) {
-			if err := InitializeGormDBFromFile(db, config.SQLFilePath); err != nil {
-				return nil, fmt.Errorf("error al inicializar la base de datos SQLite: %w", err)
-			}
-		}
-	}
-
 	return db, nil
-}
-
-// InitializeGormDBFromFile inicializa la base de datos con GORM
-func InitializeGormDBFromFile(db *gorm.DB, sqlFilePath string) error {
-	// Leer el archivo SQL
-	sqlBytes, err := os.ReadFile(sqlFilePath)
-	if err != nil {
-		return fmt.Errorf("error al leer el archivo SQL: %w", err)
-	}
-
-	sqlContent := string(sqlBytes)
-
-	// Adaptar el SQL para SQLite si es necesario
-	sqlContent = adaptSQLForSQLite(sqlContent)
-
-	// Dividir el contenido en sentencias SQL individuales
-	statements := splitSQLStatements(sqlContent)
-
-	// Ejecutar cada sentencia SQL
-	for _, stmt := range statements {
-		stmt = strings.TrimSpace(stmt)
-		if stmt == "" {
-			continue
-		}
-
-		if err := db.Exec(stmt).Error; err != nil {
-			return fmt.Errorf("error al ejecutar sentencia SQL: %s, error: %w", stmt, err)
-		}
-	}
-
-	return nil
 }

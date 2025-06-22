@@ -13,6 +13,7 @@ type Patient struct {
 	Lastname     string    `json:"lastname" gorm:"type:varchar(100);not null"`
 	Gender       string    `json:"gender" gorm:"type:varchar(50)"`
 	Age          int       `json:"age" gorm:"type:int"`
+	UrlDNI       string    `json:"url_dni" gorm:"type:text"`
 	BirthDate    string    `json:"birth_date" gorm:"type:varchar(20)"`
 	ArmSize      string    `json:"arm_size" gorm:"type:varchar(50)"`
 	Weight       string    `json:"weight" gorm:"type:varchar(50)"`

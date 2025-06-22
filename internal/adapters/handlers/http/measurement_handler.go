@@ -376,11 +376,6 @@ func (h *MeasurementHandler) UpdateMeasurement(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	// Si no se proporciona una marca de tiempo, mantener la existente
-	if req.Timestamp.IsZero() {
-		req.Timestamp = measurement.Timestamp
-	}
-
 	measurement.Update(
 		req.MuacValue,
 		req.Description,

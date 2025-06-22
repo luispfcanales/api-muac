@@ -6,6 +6,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/luispfcanales/api-muac/internal/core/domain"
+	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
 
@@ -42,19 +43,19 @@ func SeedDatabase(db *gorm.DB) error {
 	roles := []domain.Role{
 		{
 			ID:          uuid.New(),
-			Name:        "Administrador",
+			Name:        "ADMINISTRADOR",
 			Description: "Acceso completo al sistema",
 			CreatedAt:   time.Now(),
 		},
 		{
 			ID:          uuid.New(),
-			Name:        "Médico",
+			Name:        "SUPERVISOR",
 			Description: "Acceso a pacientes y mediciones",
 			CreatedAt:   time.Now(),
 		},
 		{
 			ID:          uuid.New(),
-			Name:        "Enfermero",
+			Name:        "APODERADO",
 			Description: "Registro de mediciones",
 			CreatedAt:   time.Now(),
 		},
@@ -65,76 +66,30 @@ func SeedDatabase(db *gorm.DB) error {
 		return err
 	}
 
-	// Insertar localidades
-	localities := []domain.Locality{
-		{
-			ID:          uuid.New(),
-			Name:        "Hospital Central",
-			Location:    "Ciudad Capital",
-			Description: "Hospital principal",
-			CreatedAt:   time.Now(),
-		},
-		{
-			ID:          uuid.New(),
-			Name:        "Clínica Norte",
-			Location:    "Zona Norte",
-			Description: "Clínica comunitaria",
-			CreatedAt:   time.Now(),
-		},
-	}
-
-	if err := tx.Create(&localities).Error; err != nil {
+	// Hashear la contraseña
+	password := "123456"
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
 		tx.Rollback()
 		return err
 	}
 
-	// Insertar tags
-	tags := []domain.Tag{
+	// Crear usuarios con rol administrador
+	users := []domain.User{
 		{
-			ID:          uuid.New(),
-			Name:        "Urgente",
-			Description: "Requiere atención inmediata",
-			CreatedAt:   time.Now(),
-		},
-		{
-			ID:          uuid.New(),
-			Name:        "Control",
-			Description: "Medición de control rutinaria",
-			CreatedAt:   time.Now(),
-		},
-	}
-
-	if err := tx.Create(&tags).Error; err != nil {
-		tx.Rollback()
-		return err
-	}
-
-	// Insertar recomendaciones
-	recommendations := []domain.Recommendation{
-		{
-			ID:                   uuid.New(),
-			Name:                 "Desnutrición severa",
-			Description:          "Requiere hospitalización",
-			RecommendationUmbral: "<11.5cm",
-			CreatedAt:            time.Now(),
-		},
-		{
-			ID:                   uuid.New(),
-			Name:                 "Desnutrición moderada",
-			Description:          "Suplementación nutricional",
-			RecommendationUmbral: "11.5-12.5cm",
-			CreatedAt:            time.Now(),
-		},
-		{
-			ID:                   uuid.New(),
-			Name:                 "Normal",
-			Description:          "Sin intervención requerida",
-			RecommendationUmbral: ">12.5cm",
-			CreatedAt:            time.Now(),
+			ID:           uuid.New(),
+			Name:         "administrador",
+			LastName:     "administrador",
+			Username:     "administrador",
+			Email:        "admin@example.com",
+			DNI:          "12345678",
+			PasswordHash: string(hashedPassword),
+			RoleID:       roles[0].ID,
+			CreatedAt:    time.Now(),
 		},
 	}
 
-	if err := tx.Create(&recommendations).Error; err != nil {
+	if err := tx.Create(&users).Error; err != nil {
 		tx.Rollback()
 		return err
 	}

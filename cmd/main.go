@@ -43,7 +43,6 @@ func main() {
 		&domain.Patient{},
 		&domain.Tag{},
 		&domain.User{},
-		&domain.Father{},
 		&domain.Recommendation{},
 		&domain.Measurement{},
 		&domain.Notification{},
@@ -75,7 +74,6 @@ func main() {
 	recommendationRepo := postgres.NewRecommendationRepository(db)
 	tagRepo := postgres.NewTagRepository(db)
 	measurementRepo := postgres.NewMeasurementRepository(db)
-	fatherRepo := postgres.NewFatherRepository(db)
 	patientRepo := postgres.NewPatientRepository(db)
 
 	// Crear servicios
@@ -87,7 +85,6 @@ func main() {
 	recommendationService := services.NewRecommendationService(recommendationRepo)
 	tagService := services.NewTagService(tagRepo)
 	measurementService := services.NewMeasurementService(measurementRepo, tagRepo, recommendationRepo)
-	fatherService := services.NewFatherService(fatherRepo, roleRepo, localityRepo, patientRepo)
 	patientService := services.NewPatientService(patientRepo, measurementRepo)
 
 	// Crear manejadores HTTP
@@ -99,7 +96,6 @@ func main() {
 	recommendationHandler := http.NewRecommendationHandler(recommendationService)
 	tagHandler := http.NewTagHandler(tagService)
 	measurementHandler := http.NewMeasurementHandler(measurementService)
-	fatherHandler := http.NewFatherHandler(fatherService)
 	patientHandler := http.NewPatientHandler(patientService)
 
 	// Configurar rutas
@@ -128,7 +124,6 @@ func main() {
 	recommendationHandler.RegisterRoutes(mux)
 	tagHandler.RegisterRoutes(mux)
 	measurementHandler.RegisterRoutes(mux)
-	fatherHandler.RegisterRoutes(mux)
 	patientHandler.RegisterRoutes(mux)
 
 	// Crear y iniciar servidor

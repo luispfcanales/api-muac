@@ -10,7 +10,8 @@ import (
 type Locality struct {
 	ID          uuid.UUID `json:"id" gorm:"type:uuid;primaryKey"`
 	Name        string    `json:"name" gorm:"column:NAME;type:varchar(100);not null"`
-	Location    string    `json:"location" gorm:"column:LOCATION;type:varchar(255);not null"`
+	Latitude    string    `json:"latitude" gorm:"column:LATITUDE;type:varchar(100)"`
+	Longitude   string    `json:"longitude" gorm:"column:LONGITUDE;type:varchar(100)"`
 	Description string    `json:"description" gorm:"column:DESCRIPTION;type:text"`
 	CreatedAt   time.Time `json:"created_at" gorm:"column:CREATE_AT;autoCreateTime"`
 	UpdatedAt   time.Time `json:"updated_at" gorm:"column:UPDATE_AT;autoUpdateTime"`
@@ -26,7 +27,6 @@ func NewLocality(name, location, description string) *Locality {
 	return &Locality{
 		ID:          uuid.New(),
 		Name:        name,
-		Location:    location,
 		Description: description,
 		CreatedAt:   time.Now(),
 	}
@@ -37,16 +37,12 @@ func (l *Locality) Validate() error {
 	if l.Name == "" {
 		return ErrEmptyLocalityName
 	}
-	if l.Location == "" {
-		return ErrEmptyLocalityLocation
-	}
 	return nil
 }
 
 // Update actualiza los campos de la localidad
 func (l *Locality) Update(name, location, description string) {
 	l.Name = name
-	l.Location = location
 	l.Description = description
 	l.UpdatedAt = time.Now()
 }

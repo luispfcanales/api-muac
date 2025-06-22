@@ -11,8 +11,6 @@ type Measurement struct {
 	ID               uuid.UUID       `json:"id" gorm:"type:uuid;primaryKey"`
 	MuacValue        float64         `json:"muac_value" gorm:"column:MUAC_VALUE;type:decimal(10,2);not null"`
 	Description      string          `json:"description" gorm:"column:DESCRIPTION;type:text"`
-	Location         string          `json:"location" gorm:"column:LOCATION;type:varchar(255)"`
-	Timestamp        time.Time       `json:"timestamp" gorm:"column:TIMESTAMP;not null"`
 	PatientID        uuid.UUID       `json:"patient_id" gorm:"column:PATIENT_ID;type:uuid;not null"`
 	UserID           uuid.UUID       `json:"user_id" gorm:"column:USER_ID;type:uuid;not null"`
 	TagID            uuid.UUID       `json:"tag_id" gorm:"column:TAG_ID;type:uuid"`
@@ -36,8 +34,6 @@ func NewMeasurement(muacValue float64, description, location string, timestamp t
 		ID:               uuid.New(),
 		MuacValue:        muacValue,
 		Description:      description,
-		Location:         location,
-		Timestamp:        timestamp,
 		PatientID:        patientID,
 		UserID:           userID,
 		TagID:            tagID,
@@ -64,8 +60,6 @@ func (m *Measurement) Validate() error {
 func (m *Measurement) Update(muacValue float64, description, location string, timestamp time.Time, tagID, recommendationID uuid.UUID) {
 	m.MuacValue = muacValue
 	m.Description = description
-	m.Location = location
-	m.Timestamp = timestamp
 	m.TagID = tagID
 	m.RecommendationID = recommendationID
 	m.UpdatedAt = time.Now()

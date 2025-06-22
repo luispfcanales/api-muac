@@ -20,6 +20,13 @@ type User struct {
 	UpdatedAt    time.Time `json:"updated_at" gorm:"column:UPDATE_AT;autoUpdateTime"`
 	RoleID       uuid.UUID `json:"role_id" gorm:"column:ROLE_ID;type:uuid"`
 	Role         *Role     `json:"role" gorm:"foreignKey:RoleID"`
+	Active       bool      `json:"active" gorm:"column:ACTIVE;type:bool;default:true"`
+
+	//para usuarios que registran pacientes
+	LocalityID uuid.UUID  `json:"locality_id" gorm:"column:LOCALITY_ID;type:uuid"`
+	Locality   *Locality  `json:"locality" gorm:"foreignKey:LocalityID"`
+	PatientID  uuid.UUID  `json:"patient_id" gorm:"column:PATIENT_ID;type:uuid"`
+	Patient    *[]Patient `json:"patient" gorm:"foreignKey:PatientID"`
 }
 
 // TableName especifica el nombre de la tabla para GORM
