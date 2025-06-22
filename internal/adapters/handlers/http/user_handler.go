@@ -105,14 +105,17 @@ func (h *UserHandler) GetUserByID(w http.ResponseWriter, r *http.Request) {
 // @Router /api/users [post]
 func (h *UserHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 	var userDTO struct {
-		Name     string    `json:"name"`
-		LastName string    `json:"lastname"`
-		Username string    `json:"username"`
-		Email    string    `json:"email"`
-		DNI      string    `json:"dni"`
-		Phone    string    `json:"phone"`
-		Password string    `json:"password"`
-		RoleID   uuid.UUID `json:"role_id"`
+		Name       string     `json:"name"`
+		LastName   string     `json:"lastname"`
+		Username   string     `json:"username"`
+		Email      string     `json:"email"`
+		DNI        string     `json:"dni"`
+		Phone      string     `json:"phone"`
+		Password   string     `json:"password"`
+		LocalityID *uuid.UUID `json:"locality_id,omitempty"`
+		PatientID  *uuid.UUID `json:"patient_id,omitempty"`
+
+		RoleID uuid.UUID `json:"role_id"`
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&userDTO); err != nil {
@@ -137,6 +140,8 @@ func (h *UserHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 		userDTO.Email,
 		passwordHash,
 		userDTO.RoleID,
+		userDTO.LocalityID,
+		userDTO.PatientID,
 	)
 
 	if err := h.userService.Create(r.Context(), user); err != nil {

@@ -8,25 +8,28 @@ import (
 
 // User representa la entidad de usuario en el dominio
 type User struct {
-	ID           uuid.UUID `json:"id" gorm:"type:uuid;primaryKey"`
+	ID           uuid.UUID `json:"id" gorm:"type:char(36);primaryKey;default:uuid_generate_v4()"`
 	Name         string    `json:"name" gorm:"column:NAME;type:varchar(100);not null"`
 	LastName     string    `json:"lastname" gorm:"column:LASTNAME;type:varchar(100);not null"`
-	Username     string    `json:"username" gorm:"column:USER;type:varchar(50);not null"`
-	Email        string    `json:"email" gorm:"column:EMAIL;type:varchar(255);not null"`
-	DNI          string    `json:"dni" gorm:"column:DNI;type:varchar(8);not null"`
+	Username     string    `json:"username" gorm:"column:USERNAME;type:varchar(100);not null;unique"`
+	Email        string    `json:"email" gorm:"column:EMAIL;type:varchar(255);not null;unique"`
+	DNI          string    `json:"dni" gorm:"column:DNI;type:varchar(20);unique"`
 	Phone        string    `json:"phone" gorm:"column:PHONE;type:varchar(20)"`
-	PasswordHash string    `json:"password_hash" gorm:"column:PASSWORD_HASH;type:varchar(255);not null"`
-	CreatedAt    time.Time `json:"created_at" gorm:"column:CREATE_AT;autoCreateTime"`
-	UpdatedAt    time.Time `json:"updated_at" gorm:"column:UPDATE_AT;autoUpdateTime"`
-	RoleID       uuid.UUID `json:"role_id" gorm:"column:ROLE_ID;type:uuid"`
-	Role         *Role     `json:"role" gorm:"foreignKey:RoleID"`
-	Active       bool      `json:"active" gorm:"column:ACTIVE;type:bool;default:true"`
+	PasswordHash string    `json:"-" gorm:"column:PASSWORD_HASH;type:varchar(255);not null"`
+	Active       bool      `json:"active" gorm:"column:ACTIVE;default:true"`
 
-	//para usuarios que registran pacientes
-	LocalityID uuid.UUID  `json:"locality_id" gorm:"column:LOCALITY_ID;type:uuid"`
-	Locality   *Locality  `json:"locality" gorm:"foreignKey:LocalityID"`
-	PatientID  uuid.UUID  `json:"patient_id" gorm:"column:PATIENT_ID;type:uuid"`
-	Patient    *[]Patient `json:"patient" gorm:"foreignKey:PatientID"`
+	// Relaciones (FKs)
+	RoleID uuid.UUID `json:"role_id" gorm:"column:ROLE_ID;type:char(36);not null"`
+	Role   Role      `json:"role" gorm:"foreignKey:RoleID"`
+
+	LocalityID *uuid.UUID `json:"locality_id,omitempty" gorm:"column:LOCALITY_ID;type:char(36)"`
+	Locality   *Locality  `json:"locality,omitempty" gorm:"foreignKey:LocalityID"`
+
+	PatientID *uuid.UUID `json:"patient_id,omitempty" gorm:"column:PATIENT_ID;type:char(36)"`
+	Patient   *Patient   `json:"patient,omitempty" gorm:"foreignKey:PatientID"`
+
+	CreatedAt time.Time  `json:"created_at,omitempty" gorm:"column:CREATE_AT;autoCreateTime"`
+	UpdatedAt *time.Time `json:"updated_at,omitempty" gorm:"column:UPDATE_AT;autoUpdateTime"`
 }
 
 // TableName especifica el nombre de la tabla para GORM
@@ -35,7 +38,7 @@ func (User) TableName() string {
 }
 
 // NewUser crea una nueva instancia de User
-func NewUser(name, lastName, username, dni, phone, email, passwordHash string, roleID uuid.UUID) *User {
+func NewUser(name, lastName, username, dni, phone, email, passwordHash string, roleID uuid.UUID, localityID, patientID *uuid.UUID) *User {
 	return &User{
 		ID:           uuid.New(),
 		Name:         name,
@@ -46,6 +49,8 @@ func NewUser(name, lastName, username, dni, phone, email, passwordHash string, r
 		Phone:        phone,
 		PasswordHash: passwordHash,
 		RoleID:       roleID,
+		LocalityID:   localityID,
+		PatientID:    patientID,
 		CreatedAt:    time.Now(),
 	}
 }
@@ -79,17 +84,23 @@ func (u *User) Update(name, lastname, user, email, phone, dni string, roleID uui
 	u.DNI = dni
 	u.Phone = phone
 	u.RoleID = roleID
-	u.UpdatedAt = time.Now()
+
+	now := time.Now()
+	u.UpdatedAt = &now
 }
 
 // UpdatePassword actualiza la contraseña del usuario
 func (u *User) UpdatePassword(passwordHash string) {
 	u.PasswordHash = passwordHash
-	u.UpdatedAt = time.Now()
+
+	now := time.Now()
+	u.UpdatedAt = &now
 }
 
 // UpdateRole actualiza el rol del usuario
 func (u *User) UpdateRole(roleID uuid.UUID) {
 	u.RoleID = roleID
-	u.UpdatedAt = time.Now()
+
+	now := time.Now()
+	u.UpdatedAt = &now
 }

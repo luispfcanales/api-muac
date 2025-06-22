@@ -46,16 +46,16 @@ type Config struct {
 
 // LoadConfig carga la configuración desde variables de entorno
 func LoadConfig() *Config {
-	dbPort, _ := strconv.Atoi(getEnv("DB_PORT", "3306"))
+	dbPort, _ := strconv.Atoi(getEnv("DB_PORT", "5432"))
 	serverPort, _ := strconv.Atoi(getEnv("SERVER_PORT", "8080"))
 	// dbType := DBType(getEnv("DB_TYPE", string(SQLite))) // Por defecto SQLite
-	dbType := DBType(getEnv("DB_TYPE", string(MySQL)))
+	dbType := DBType(getEnv("DB_TYPE", string(PostgreSQL)))
 
 	return &Config{
 		DBType:     dbType,
 		DBHost:     getEnv("DB_HOST", "localhost"),
 		DBPort:     dbPort,
-		DBUser:     getEnv("DB_USER", "root"),
+		DBUser:     getEnv("DB_USER", "postgres"),
 		DBPassword: getEnv("DB_PASSWORD", "root"),
 		DBName:     getEnv("DB_NAME", "MUAC"),
 		// DBPath:      getEnv("DB_PATH", "./muac.db"),
