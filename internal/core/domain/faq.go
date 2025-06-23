@@ -17,7 +17,7 @@ type FAQ struct {
 
 // TableName especifica el nombre de la tabla para GORM
 func (FAQ) TableName() string {
-	return "FAQ"
+	return "faqs"
 }
 
 // NewFAQ crea una nueva instancia de FAQ

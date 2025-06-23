@@ -23,20 +23,38 @@ type Patient struct {
 	Description  string    `json:"description" gorm:"type:text"`
 	CreatedAt    time.Time `json:"created_at,omitempty" gorm:"column:CREATE_AT;default:CURRENT_TIMESTAMP"`
 	UpdatedAt    time.Time `json:"updated_at,omitempty" gorm:"column:UPDATE_AT"`
+
+	UserID *uuid.UUID `json:"user_id" gorm:"column:USER_ID;type:uuid"`
+	User   *User      `json:"user" gorm:"foreignKey:UserID"`
 }
 
 // TableName especifica el nombre de la tabla para GORM
 func (Patient) TableName() string {
-	return "PATIENT"
+	return "patients"
 }
 
 // NewPatient crea una nueva instancia de Patient
-func NewPatient(name, lastname string) *Patient {
+func NewPatient(
+	name, lastname, gender, birthDate, armSize, weight, size, description string,
+	age int,
+	consentGiven bool,
+	userID *uuid.UUID,
+) *Patient {
+
 	return &Patient{
 		ID:           uuid.New(),
 		Name:         name,
 		Lastname:     lastname,
-		ConsentGiven: true,
+		Gender:       gender,
+		Age:          age,
+		BirthDate:    birthDate,
+		ArmSize:      armSize,
+		Weight:       weight,
+		Size:         size,
+		ConsentGiven: consentGiven,
+		Description:  description,
+		UserID:       userID,
+		ConsentDate:  time.Now(),
 		CreatedAt:    time.Now(),
 	}
 }

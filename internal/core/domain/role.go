@@ -1,8 +1,9 @@
 package domain
 
 import (
-	"github.com/google/uuid"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 // Role representa la entidad de rol en el dominio
@@ -16,7 +17,7 @@ type Role struct {
 
 // TableName especifica el nombre de la tabla para GORM
 func (Role) TableName() string {
-	return "ROLE"
+	return "roles"
 }
 
 // NewRole crea una nueva instancia de Role

@@ -18,7 +18,7 @@ type Recommendation struct {
 
 // TableName especifica el nombre de la tabla para GORM
 func (Recommendation) TableName() string {
-	return "RECOMMENDATION"
+	return "recommendations"
 }
 
 // NewRecommendation crea una nueva instancia de Recommendation

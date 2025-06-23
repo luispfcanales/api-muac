@@ -113,7 +113,6 @@ func (h *UserHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 		Phone      string     `json:"phone"`
 		Password   string     `json:"password"`
 		LocalityID *uuid.UUID `json:"locality_id,omitempty"`
-		PatientID  *uuid.UUID `json:"patient_id,omitempty"`
 
 		RoleID uuid.UUID `json:"role_id"`
 	}
@@ -139,9 +138,9 @@ func (h *UserHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 		userDTO.Phone,
 		userDTO.Email,
 		passwordHash,
+		// [],
 		userDTO.RoleID,
 		userDTO.LocalityID,
-		userDTO.PatientID,
 	)
 
 	if err := h.userService.Create(r.Context(), user); err != nil {

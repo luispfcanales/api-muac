@@ -18,7 +18,7 @@ type Notification struct {
 
 // TableName especifica el nombre de la tabla para GORM
 func (Notification) TableName() string {
-	return "NOTIFICATION"
+	return "notifications"
 }
 
 // NewNotification crea una nueva instancia de Notification

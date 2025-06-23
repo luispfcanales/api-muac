@@ -8,7 +8,8 @@ import (
 
 // User representa la entidad de usuario en el dominio
 type User struct {
-	ID           uuid.UUID `json:"id" gorm:"type:char(36);primaryKey;default:uuid_generate_v4()"`
+	// ID           uuid.UUID `json:"id" gorm:"type:char(36);primaryKey;default:uuid_generate_v4()"`
+	ID           uuid.UUID `json:"id" gorm:"type:uuid;primaryKey"`
 	Name         string    `json:"name" gorm:"column:NAME;type:varchar(100);not null"`
 	LastName     string    `json:"lastname" gorm:"column:LASTNAME;type:varchar(100);not null"`
 	Username     string    `json:"username" gorm:"column:USERNAME;type:varchar(100);not null;unique"`
@@ -19,14 +20,13 @@ type User struct {
 	Active       bool      `json:"active" gorm:"column:ACTIVE;default:true"`
 
 	// Relaciones (FKs)
-	RoleID uuid.UUID `json:"role_id" gorm:"column:ROLE_ID;type:char(36);not null"`
+	RoleID uuid.UUID `json:"role_id" gorm:"column:ROLE_ID;type:uuid;not null"`
 	Role   Role      `json:"role" gorm:"foreignKey:RoleID"`
 
-	LocalityID *uuid.UUID `json:"locality_id" gorm:"column:LOCALITY_ID;type:char(36)"`
+	LocalityID *uuid.UUID `json:"locality_id" gorm:"column:LOCALITY_ID;type:uuid"`
 	Locality   *Locality  `json:"locality" gorm:"foreignKey:LocalityID"`
 
-	PatientID *uuid.UUID `json:"patient_id" gorm:"column:PATIENT_ID;type:char(36)"`
-	Patient   *Patient   `json:"patient" gorm:"foreignKey:PatientID"`
+	Patients []Patient `json:"patients" gorm:"foreignKey:UserID"`
 
 	CreatedAt time.Time  `json:"created_at,omitempty" gorm:"column:CREATE_AT;autoCreateTime"`
 	UpdatedAt *time.Time `json:"updated_at,omitempty" gorm:"column:UPDATE_AT;autoUpdateTime"`
@@ -34,11 +34,16 @@ type User struct {
 
 // TableName especifica el nombre de la tabla para GORM
 func (User) TableName() string {
-	return "USER"
+	return "users"
 }
 
 // NewUser crea una nueva instancia de User
-func NewUser(name, lastName, username, dni, phone, email, passwordHash string, roleID uuid.UUID, localityID, patientID *uuid.UUID) *User {
+func NewUser(
+	name, lastName, username, dni, phone, email, passwordHash string,
+	// patients []Patient,
+	roleID uuid.UUID,
+	localityID *uuid.UUID,
+) *User {
 	return &User{
 		ID:           uuid.New(),
 		Name:         name,
@@ -50,8 +55,8 @@ func NewUser(name, lastName, username, dni, phone, email, passwordHash string, r
 		PasswordHash: passwordHash,
 		RoleID:       roleID,
 		LocalityID:   localityID,
-		PatientID:    patientID,
-		CreatedAt:    time.Now(),
+		// Patients:     patients,
+		CreatedAt: time.Now(),
 	}
 }
 

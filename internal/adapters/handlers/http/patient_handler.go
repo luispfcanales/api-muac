@@ -148,15 +148,16 @@ func (h *PatientHandler) CreatePatient(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	var req struct {
-		Name        string `json:"name"`
-		Lastname    string `json:"lastname"`
-		Gender      string `json:"gender"`
-		Age         int    `json:"age"`
-		BirthDate   string `json:"birth_date"`
-		ArmSize     string `json:"arm_size"`
-		Weight      string `json:"weight"`
-		Size        string `json:"size"`
-		Description string `json:"description"`
+		Name         string `json:"name"`
+		Lastname     string `json:"lastname"`
+		Gender       string `json:"gender"`
+		Age          int    `json:"age"`
+		BirthDate    string `json:"birth_date"`
+		ArmSize      string `json:"arm_size"`
+		Weight       string `json:"weight"`
+		Size         string `json:"size"`
+		Description  string `json:"description"`
+		ConsentGiven bool   `json:"consent_given"`
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -164,14 +165,19 @@ func (h *PatientHandler) CreatePatient(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	patient := domain.NewPatient(req.Name, req.Lastname)
-	patient.Gender = req.Gender
-	patient.Age = req.Age
-	patient.BirthDate = req.BirthDate
-	patient.ArmSize = req.ArmSize
-	patient.Weight = req.Weight
-	patient.Size = req.Size
-	patient.Description = req.Description
+	patient := domain.NewPatient(
+		req.Name,
+		req.Lastname,
+		req.Gender,
+		req.BirthDate,
+		req.ArmSize,
+		req.Weight,
+		req.Size,
+		req.Description,
+		req.Age,
+		req.ConsentGiven,
+		nil,
+	)
 
 	if err := h.patientService.Create(ctx, patient); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)

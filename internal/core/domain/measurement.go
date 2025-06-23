@@ -25,7 +25,7 @@ type Measurement struct {
 
 // TableName especifica el nombre de la tabla para GORM
 func (Measurement) TableName() string {
-	return "MEASUREMENT"
+	return "measurements"
 }
 
 // NewMeasurement crea una nueva instancia de Measurement

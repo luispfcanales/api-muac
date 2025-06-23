@@ -19,7 +19,7 @@ type Locality struct {
 
 // TableName especifica el nombre de la tabla para GORM
 func (Locality) TableName() string {
-	return "LOCALITY"
+	return "localities"
 }
 
 // NewLocality crea una nueva instancia de Locality

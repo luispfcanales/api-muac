@@ -30,13 +30,6 @@ var (
 	ErrEmptyUserPassword = errors.New("la contraseña del usuario no puede estar vacía")
 	ErrUserNotFound      = errors.New("usuario no encontrado")
 
-	// Father errors
-	ErrEmptyFatherName     = errors.New("el nombre del padre no puede estar vacío")
-	ErrEmptyFatherLastName = errors.New("el apellido del padre no puede estar vacío")
-	ErrEmptyFatherEmail    = errors.New("el email del padre no puede estar vacío")
-	ErrEmptyFatherPassword = errors.New("la contraseña del padre no puede estar vacía")
-	ErrFatherNotFound      = errors.New("padre no encontrado")
-
 	// Recommendation errors
 	ErrEmptyRecommendationName = errors.New("el nombre de la recomendación no puede estar vacío")
 	ErrRecommendationNotFound  = errors.New("recomendación no encontrada")

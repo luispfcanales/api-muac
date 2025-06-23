@@ -17,7 +17,7 @@ type Tag struct {
 
 // TableName especifica el nombre de la tabla para GORM
 func (Tag) TableName() string {
-	return "TAG"
+	return "tags"
 }
 
 // NewTag crea una nueva instancia de Tag

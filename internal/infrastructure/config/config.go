@@ -53,11 +53,11 @@ func LoadConfig() *Config {
 
 	return &Config{
 		DBType:     dbType,
-		DBHost:     getEnv("DB_HOST", "localhost"),
+		DBHost:     getEnv("DB_HOST", "35.173.114.173"),
 		DBPort:     dbPort,
-		DBUser:     getEnv("DB_USER", "postgres"),
-		DBPassword: getEnv("DB_PASSWORD", "jeanpierre"),
-		DBName:     getEnv("DB_NAME", "db_muac"),
+		DBUser:     getEnv("DB_USER", "unamadconfericis"),
+		DBPassword: getEnv("DB_PASSWORD", "unamad2024."),
+		DBName:     getEnv("DB_NAME", "muac"),
 		// DBPath:      getEnv("DB_PATH", "./muac.db"),
 		// SQLFilePath: getEnv("SQL_FILE_PATH", "./ddbb.sql"),
 		ServerPort: serverPort,

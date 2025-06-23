@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	stdhttp "net/http"
 	"reflect"
@@ -49,6 +50,19 @@ func main() {
 		&domain.FAQ{},
 	}
 
+	log.Println("Eliminando TODAS las tablas de la base de datos...")
+
+	// Obtener todas las tablas
+	var tables []string
+	db.Raw("SELECT tablename FROM pg_tables WHERE schemaname = 'public'").Scan(&tables)
+
+	// Eliminar cada tabla
+	for _, table := range tables {
+		log.Printf("Eliminando tabla: %s", table)
+		if err := db.Exec(fmt.Sprintf("DROP TABLE IF EXISTS %s CASCADE", table)).Error; err != nil {
+			log.Printf("Advertencia: Error al eliminar tabla %s: %v", table, err)
+		}
+	}
 	// Migrar cada modelo y registrar en el log
 	log.Println("Iniciando migración de modelos...")
 	for _, modelo := range modelos {
