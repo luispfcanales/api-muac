@@ -20,6 +20,8 @@ vendor/
 # Archivos del sistema
 .DS_Store
 .env
+*.json
+*.pem
 muac.db
 
 # Archivos de IDE y editores
