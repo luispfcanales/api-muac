@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/luispfcanales/api-muac/internal/infrastructure/config"
+	"github.com/luispfcanales/api-muac/internal/infrastructure/server/middleware"
 )
 
 // Server representa el servidor HTTP
@@ -21,6 +22,9 @@ type Server struct {
 
 // NewServer crea una nueva instancia del servidor
 func NewServer(config *config.Config, handler http.Handler) *Server {
+
+	handler = middleware.ApplyMiddlewares(handler)
+
 	return &Server{
 		server: &http.Server{
 			Addr:         fmt.Sprintf(":%d", config.ServerPort),
