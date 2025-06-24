@@ -38,7 +38,7 @@ type Config struct {
 // LoadConfig carga la configuración desde variables de entorno
 func LoadConfig() *Config {
 	dbPort, _ := strconv.Atoi(getEnv("DB_PORT", "5432"))
-	serverPort, _ := strconv.Atoi(getEnv("SERVER_PORT", "8080"))
+	serverPort, _ := strconv.Atoi(getEnv("SERVER_PORT", "8003"))
 	dbType := DBType(getEnv("DB_TYPE", string(PostgreSQL)))
 
 	return &Config{
