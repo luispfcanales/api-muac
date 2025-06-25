@@ -64,7 +64,7 @@ func (r *userRepository) GetAll(ctx context.Context) ([]*domain.User, error) {
 	result := r.db.WithContext(ctx).
 		Preload("Role").
 		Preload("Locality").
-		Preload("Patient").
+		Preload("Patients").
 		Find(&users)
 
 	if result.Error != nil {

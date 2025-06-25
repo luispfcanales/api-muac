@@ -8,7 +8,6 @@ import (
 
 // User representa la entidad de usuario en el dominio
 type User struct {
-	// ID           uuid.UUID `json:"id" gorm:"type:char(36);primaryKey;default:uuid_generate_v4()"`
 	ID           uuid.UUID `json:"id" gorm:"type:uuid;primaryKey"`
 	Name         string    `json:"name" gorm:"column:NAME;type:varchar(100);not null"`
 	LastName     string    `json:"lastname" gorm:"column:LASTNAME;type:varchar(100);not null"`
@@ -20,10 +19,10 @@ type User struct {
 	Active       bool      `json:"active" gorm:"column:ACTIVE;default:true"`
 
 	// Relaciones (FKs)
-	RoleID uuid.UUID `json:"role_id" gorm:"column:ROLE_ID;type:uuid;not null"`
+	RoleID uuid.UUID `json:"-" gorm:"column:ROLE_ID;type:uuid;not null"`
 	Role   Role      `json:"role" gorm:"foreignKey:RoleID"`
 
-	LocalityID *uuid.UUID `json:"locality_id" gorm:"column:LOCALITY_ID;type:uuid"`
+	LocalityID *uuid.UUID `json:"-" gorm:"column:LOCALITY_ID;type:uuid"`
 	Locality   *Locality  `json:"locality" gorm:"foreignKey:LocalityID"`
 
 	Patients []Patient `json:"patients" gorm:"foreignKey:UserID"`
