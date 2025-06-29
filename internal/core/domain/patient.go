@@ -38,7 +38,7 @@ func NewPatient(
 	name, lastname, gender, birthDate, armSize, weight, size, description string,
 	age int,
 	consentGiven bool,
-	userID *uuid.UUID,
+	createdBy *uuid.UUID,
 ) *Patient {
 
 	return &Patient{
@@ -53,7 +53,7 @@ func NewPatient(
 		Size:         size,
 		ConsentGiven: consentGiven,
 		Description:  description,
-		UserID:       userID,
+		UserID:       createdBy,
 		ConsentDate:  time.Now(),
 		CreatedAt:    time.Now(),
 	}

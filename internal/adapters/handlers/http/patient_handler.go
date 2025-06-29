@@ -13,12 +13,14 @@ import (
 // PatientHandler maneja las peticiones HTTP relacionadas con pacientes
 type PatientHandler struct {
 	patientService ports.IPatientService
+	fileService    ports.IFileService // Agregar servicio de archivos
 }
 
 // NewPatientHandler crea una nueva instancia de PatientHandler
-func NewPatientHandler(patientService ports.IPatientService) *PatientHandler {
+func NewPatientHandler(patientService ports.IPatientService, fileService ports.IFileService) *PatientHandler {
 	return &PatientHandler{
 		patientService: patientService,
+		fileService:    fileService,
 	}
 }
 
@@ -26,6 +28,7 @@ func NewPatientHandler(patientService ports.IPatientService) *PatientHandler {
 func (h *PatientHandler) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /api/patients", h.GetAllPatients)
 	mux.HandleFunc("POST /api/patients", h.CreatePatient)
+	mux.HandleFunc("POST /api/patients/with-file", h.CreatePatientWithFile)
 	mux.HandleFunc("GET /api/patients/{id}", h.GetPatientByID)
 	mux.HandleFunc("PUT /api/patients/{id}", h.UpdatePatient)
 	mux.HandleFunc("DELETE /api/patients/{id}", h.DeletePatient)
@@ -158,10 +161,17 @@ func (h *PatientHandler) CreatePatient(w http.ResponseWriter, r *http.Request) {
 		Size         string `json:"size"`
 		Description  string `json:"description"`
 		ConsentGiven bool   `json:"consent_given"`
+		CreatedBy    string `json:"created_by"`
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, "Solicitud inválida", http.StatusBadRequest)
+		return
+	}
+
+	id, err := uuid.Parse(req.CreatedBy)
+	if err != nil {
+		http.Error(w, "ID inválido", http.StatusBadRequest)
 		return
 	}
 
@@ -176,9 +186,112 @@ func (h *PatientHandler) CreatePatient(w http.ResponseWriter, r *http.Request) {
 		req.Description,
 		req.Age,
 		req.ConsentGiven,
-		nil,
+		&id,
 	)
 
+	patient.Validate()
+
+	if err := h.patientService.Create(ctx, patient); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(patient)
+}
+
+// CreatePatientWithFile crea un nuevo paciente con archivo DNI
+func (h *PatientHandler) CreatePatientWithFile(w http.ResponseWriter, r *http.Request) {
+	var patient *domain.Patient
+	ctx := r.Context()
+
+	// Parsear multipart form
+	if err := r.ParseMultipartForm(10 << 20); err != nil { // 10 MB
+		http.Error(w, "Error al parsear formulario", http.StatusBadRequest)
+		return
+	}
+
+	// Verificar si se enviaron los datos como JSON en un campo del formulario
+	if patientData := r.FormValue("patient"); patientData != "" {
+		var req struct {
+			Name         string `json:"name"`
+			Lastname     string `json:"lastname"`
+			Gender       string `json:"gender"`
+			Age          int    `json:"age"`
+			BirthDate    string `json:"birth_date"`
+			ArmSize      string `json:"arm_size"`
+			Weight       string `json:"weight"`
+			Size         string `json:"size"`
+			Description  string `json:"description"`
+			ConsentGiven bool   `json:"consent_given"`
+			CreatedBy    string `json:"created_by"`
+		}
+
+		if err := json.Unmarshal([]byte(patientData), &req); err != nil {
+			http.Error(w, "Datos del paciente inválidos", http.StatusBadRequest)
+			return
+		}
+
+		id, err := uuid.Parse(req.CreatedBy)
+		if err != nil {
+			http.Error(w, "ID inválido", http.StatusBadRequest)
+			return
+		}
+
+		patient = domain.NewPatient(
+			req.Name,
+			req.Lastname,
+			req.Gender,
+			req.BirthDate,
+			req.ArmSize,
+			req.Weight,
+			req.Size,
+			req.Description,
+			req.Age,
+			req.ConsentGiven,
+			&id,
+		)
+	} else {
+		// Obtener datos directamente de los campos del formulario
+		createdBy := r.FormValue("created_by")
+		id, err := uuid.Parse(createdBy)
+		if err != nil {
+			http.Error(w, "ID inválido", http.StatusBadRequest)
+			return
+		}
+
+		patient = domain.NewPatient(
+			r.FormValue("name"),
+			r.FormValue("lastname"),
+			r.FormValue("gender"),
+			r.FormValue("birth_date"),
+			r.FormValue("arm_size"),
+			r.FormValue("weight"),
+			r.FormValue("size"),
+			r.FormValue("description"),
+			0, // Age se puede parsear si es necesario
+			r.FormValue("consent_given") == "true",
+			&id,
+		)
+	}
+
+	// Procesar archivo DNI si se proporciona
+	if file, header, err := r.FormFile("dni_file"); err == nil {
+		defer file.Close()
+
+		// Subir archivo DNI
+		fileInfo, err := h.fileService.UploadFile(ctx, file, header, "patients/dni")
+		if err != nil {
+			http.Error(w, "Error al subir archivo DNI: "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		// Asignar URL del DNI al paciente
+		patient.UrlDNI = fileInfo.URL
+	}
+
+	// Crear paciente
 	if err := h.patientService.Create(ctx, patient); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

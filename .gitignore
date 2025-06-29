@@ -23,6 +23,7 @@ vendor/
 *.json
 *.pem
 muac.db
+muac-api
 
 # Archivos de IDE y editores
 .idea/
