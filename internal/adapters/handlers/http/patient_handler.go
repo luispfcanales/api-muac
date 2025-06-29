@@ -36,6 +36,7 @@ func (h *PatientHandler) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /api/patients/father/{fatherId}", h.GetPatientsByFatherID)
 	mux.HandleFunc("GET /api/patients/measurements/{id}", h.GetPatientMeasurements)
 	mux.HandleFunc("POST /api/patients/measurements/{id}", h.AddPatientMeasurement)
+	mux.HandleFunc("POST /api/patients/{id}/upload-dni", h.UploadPatientDNI)
 }
 
 // GetAllPatients godoc
@@ -300,6 +301,69 @@ func (h *PatientHandler) CreatePatientWithFile(w http.ResponseWriter, r *http.Re
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(patient)
+}
+
+// UploadPatientDNI sube o actualiza el archivo DNI de un paciente existente
+func (h *PatientHandler) UploadPatientDNI(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	patientID := r.PathValue("id")
+
+	// Parsear ID del paciente
+	id, err := uuid.Parse(patientID)
+	if err != nil {
+		http.Error(w, "ID de paciente inválido", http.StatusBadRequest)
+		return
+	}
+
+	// Verificar que el paciente existe
+	patient, err := h.patientService.GetByID(ctx, id)
+	if err != nil {
+		http.Error(w, "Paciente no encontrado", http.StatusNotFound)
+		return
+	}
+
+	// Parsear multipart form
+	if err := r.ParseMultipartForm(10 << 20); err != nil {
+		http.Error(w, "Error al parsear formulario", http.StatusBadRequest)
+		return
+	}
+
+	// Obtener archivo
+	file, header, err := r.FormFile("dni_file")
+	if err != nil {
+		http.Error(w, "Error al obtener archivo", http.StatusBadRequest)
+		return
+	}
+	defer file.Close()
+
+	// Subir archivo
+	fileInfo, err := h.fileService.UploadFile(ctx, file, header, "patients/dni")
+	if err != nil {
+		http.Error(w, "Error al subir archivo: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Actualizar paciente con nueva URL del DNI
+	patient.UrlDNI = fileInfo.URL
+
+	if err := h.patientService.Update(ctx, patient); err != nil {
+		http.Error(w, "Error al actualizar paciente: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Responder con información del archivo subido
+	response := struct {
+		Message  string          `json:"message"`
+		FileInfo *ports.FileInfo `json:"file_info"`
+		Patient  *domain.Patient `json:"patient"`
+	}{
+		Message:  "Archivo DNI subido exitosamente",
+		FileInfo: fileInfo,
+		Patient:  patient,
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(response)
 }
 
 // UpdatePatient godoc
