@@ -36,7 +36,7 @@ func (h *PatientHandler) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /api/patients/father/{fatherId}", h.GetPatientsByFatherID)
 	mux.HandleFunc("GET /api/patients/measurements/{id}", h.GetPatientMeasurements)
 	mux.HandleFunc("POST /api/patients/measurements/{id}", h.AddPatientMeasurement)
-	mux.HandleFunc("POST /api/patients/{id}/upload-dni", h.UploadPatientDNI)
+	mux.HandleFunc("POST /api/patients/upload-dni/{id}", h.UploadPatientDNI)
 }
 
 // GetAllPatients godoc
