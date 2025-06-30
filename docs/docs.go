@@ -42,7 +42,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.FAQ"
+                                "$ref": "#/definitions/domain.FAQ"
                             }
                         }
                     },
@@ -84,7 +84,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.FAQ"
+                            "$ref": "#/definitions/domain.FAQ"
                         }
                     },
                     "400": {
@@ -134,7 +134,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.FAQ"
+                            "$ref": "#/definitions/domain.FAQ"
                         }
                     },
                     "400": {
@@ -200,7 +200,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.FAQ"
+                            "$ref": "#/definitions/domain.FAQ"
                         }
                     },
                     "400": {
@@ -287,324 +287,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/fathers": {
-            "get": {
-                "description": "Obtiene una lista de todos los padres registrados en el sistema",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "padres"
-                ],
-                "summary": "Obtener todos los padres",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Father"
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Error interno del servidor",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/api/fathers/dni/{dni}": {
-            "get": {
-                "description": "Obtiene un padre específico por su número de DNI",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "padres"
-                ],
-                "summary": "Obtener un padre por DNI",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "DNI del padre",
-                        "name": "dni",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Father"
-                        }
-                    },
-                    "400": {
-                        "description": "DNI no proporcionado o inválido",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "404": {
-                        "description": "Padre no encontrado",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Error interno del servidor",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/api/fathers/email/{email}": {
-            "get": {
-                "description": "Obtiene un padre específico por su dirección de email",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "padres"
-                ],
-                "summary": "Obtener un padre por email",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Email del padre",
-                        "name": "email",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Father"
-                        }
-                    },
-                    "400": {
-                        "description": "Email no proporcionado",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "404": {
-                        "description": "Padre no encontrado",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Error interno del servidor",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/api/fathers/locality/{localityId}": {
-            "get": {
-                "description": "Obtiene todos los padres asociados a una localidad específica",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "padres"
-                ],
-                "summary": "Obtener padres por ID de localidad",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "ID de la localidad",
-                        "name": "localityId",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Father"
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "ID de localidad inválido o no proporcionado",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Error interno del servidor",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/api/fathers/patient/{patientId}": {
-            "get": {
-                "description": "Obtiene todos los padres asociados a un paciente específico",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "padres"
-                ],
-                "summary": "Obtener padres por ID del paciente",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "ID del paciente",
-                        "name": "patientId",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Father"
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "ID de paciente inválido o no proporcionado",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Error interno del servidor",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/api/fathers/{id}": {
-            "get": {
-                "description": "Obtiene un padre específico por su ID",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "padres"
-                ],
-                "summary": "Obtener un padre por ID",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "ID del padre",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Father"
-                        }
-                    },
-                    "400": {
-                        "description": "ID inválido o no proporcionado",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "404": {
-                        "description": "Padre no encontrado",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Error interno del servidor",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    }
-                }
-            }
-        },
         "/api/localities": {
             "get": {
                 "description": "Obtiene una lista de todas las localidades registradas en el sistema",
@@ -624,7 +306,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Locality"
+                                "$ref": "#/definitions/domain.Locality"
                             }
                         }
                     },
@@ -666,7 +348,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Locality"
+                            "$ref": "#/definitions/domain.Locality"
                         }
                     },
                     "400": {
@@ -716,7 +398,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Locality"
+                            "$ref": "#/definitions/domain.Locality"
                         }
                     },
                     "400": {
@@ -775,7 +457,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Locality"
+                            "$ref": "#/definitions/domain.Locality"
                         }
                     },
                     "400": {
@@ -841,7 +523,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Locality"
+                            "$ref": "#/definitions/domain.Locality"
                         }
                     },
                     "400": {
@@ -947,7 +629,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Measurement"
+                                "$ref": "#/definitions/domain.Measurement"
                             }
                         }
                     },
@@ -998,7 +680,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Measurement"
+                                "$ref": "#/definitions/domain.Measurement"
                             }
                         }
                     },
@@ -1051,7 +733,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Measurement"
+                                "$ref": "#/definitions/domain.Measurement"
                             }
                         }
                     },
@@ -1104,7 +786,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Measurement"
+                                "$ref": "#/definitions/domain.Measurement"
                             }
                         }
                     },
@@ -1157,7 +839,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Measurement"
+                                "$ref": "#/definitions/domain.Measurement"
                             }
                         }
                     },
@@ -1210,7 +892,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Measurement"
+                                "$ref": "#/definitions/domain.Measurement"
                             }
                         }
                     },
@@ -1261,7 +943,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Measurement"
+                            "$ref": "#/definitions/domain.Measurement"
                         }
                     },
                     "400": {
@@ -1313,7 +995,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Notification"
+                                "$ref": "#/definitions/domain.Notification"
                             }
                         }
                     },
@@ -1355,7 +1037,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Notification"
+                            "$ref": "#/definitions/domain.Notification"
                         }
                     },
                     "400": {
@@ -1405,7 +1087,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Notification"
+                            "$ref": "#/definitions/domain.Notification"
                         }
                     },
                     "400": {
@@ -1471,7 +1153,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Notification"
+                            "$ref": "#/definitions/domain.Notification"
                         }
                     },
                     "400": {
@@ -1593,7 +1275,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Notification"
+                            "$ref": "#/definitions/domain.Notification"
                         }
                     },
                     "400": {
@@ -1645,7 +1327,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Patient"
+                                "$ref": "#/definitions/domain.Patient"
                             }
                         }
                     },
@@ -1687,7 +1369,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Patient"
+                            "$ref": "#/definitions/domain.Patient"
                         }
                     },
                     "400": {
@@ -1737,7 +1419,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Patient"
+                            "$ref": "#/definitions/domain.Patient"
                         }
                     },
                     "400": {
@@ -1796,7 +1478,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Patient"
+                            "$ref": "#/definitions/domain.Patient"
                         }
                     },
                     "400": {
@@ -1862,7 +1544,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Patient"
+                            "$ref": "#/definitions/domain.Patient"
                         }
                     },
                     "400": {
@@ -1968,7 +1650,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Recommendation"
+                                "$ref": "#/definitions/domain.Recommendation"
                             }
                         }
                     },
@@ -2010,7 +1692,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Recommendation"
+                            "$ref": "#/definitions/domain.Recommendation"
                         }
                     },
                     "400": {
@@ -2060,7 +1742,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Recommendation"
+                            "$ref": "#/definitions/domain.Recommendation"
                         }
                     },
                     "400": {
@@ -2121,7 +1803,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Recommendation"
+                                "$ref": "#/definitions/domain.Recommendation"
                             }
                         }
                     },
@@ -2172,7 +1854,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Recommendation"
+                            "$ref": "#/definitions/domain.Recommendation"
                         }
                     },
                     "400": {
@@ -2238,7 +1920,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Recommendation"
+                            "$ref": "#/definitions/domain.Recommendation"
                         }
                     },
                     "400": {
@@ -2344,7 +2026,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Role"
+                                "$ref": "#/definitions/domain.Role"
                             }
                         }
                     },
@@ -2378,7 +2060,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/internal_adapters_handlers_http.CreateRoleRequest"
+                            "$ref": "#/definitions/http.CreateRoleRequest"
                         }
                     }
                 ],
@@ -2386,7 +2068,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Role"
+                            "$ref": "#/definitions/domain.Role"
                         }
                     },
                     "400": {
@@ -2436,7 +2118,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Role"
+                            "$ref": "#/definitions/domain.Role"
                         }
                     },
                     "400": {
@@ -2494,7 +2176,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/internal_adapters_handlers_http.UpdateRoleRequest"
+                            "$ref": "#/definitions/http.UpdateRoleRequest"
                         }
                     }
                 ],
@@ -2502,7 +2184,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Role"
+                            "$ref": "#/definitions/domain.Role"
                         }
                     },
                     "400": {
@@ -2608,7 +2290,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Tag"
+                                "$ref": "#/definitions/domain.Tag"
                             }
                         }
                     },
@@ -2650,7 +2332,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Tag"
+                            "$ref": "#/definitions/domain.Tag"
                         }
                     },
                     "400": {
@@ -2700,7 +2382,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Tag"
+                            "$ref": "#/definitions/domain.Tag"
                         }
                     },
                     "400": {
@@ -2759,7 +2441,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Tag"
+                            "$ref": "#/definitions/domain.Tag"
                         }
                     },
                     "400": {
@@ -2825,7 +2507,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Tag"
+                            "$ref": "#/definitions/domain.Tag"
                         }
                     },
                     "400": {
@@ -2931,7 +2613,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.User"
+                                "$ref": "#/definitions/domain.User"
                             }
                         }
                     },
@@ -2973,7 +2655,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.User"
+                            "$ref": "#/definitions/domain.User"
                         }
                     },
                     "400": {
@@ -3023,7 +2705,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.User"
+                            "$ref": "#/definitions/domain.User"
                         }
                     },
                     "400": {
@@ -3089,7 +2771,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.User"
+                            "$ref": "#/definitions/domain.User"
                         }
                     },
                     "400": {
@@ -3308,7 +2990,7 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "github_com_luispfcanales_api-muac_internal_core_domain.FAQ": {
+        "domain.FAQ": {
             "type": "object",
             "properties": {
                 "answer": {
@@ -3328,60 +3010,7 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_luispfcanales_api-muac_internal_core_domain.Father": {
-            "type": "object",
-            "properties": {
-                "active": {
-                    "type": "boolean"
-                },
-                "created_at": {
-                    "type": "string"
-                },
-                "dni": {
-                    "type": "integer"
-                },
-                "email": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "lastname": {
-                    "type": "string"
-                },
-                "locality": {
-                    "$ref": "#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Locality"
-                },
-                "locality_id": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "password_hash": {
-                    "type": "string"
-                },
-                "patient": {
-                    "$ref": "#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Patient"
-                },
-                "patient_id": {
-                    "type": "string"
-                },
-                "phone": {
-                    "type": "string"
-                },
-                "role": {
-                    "$ref": "#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Role"
-                },
-                "role_id": {
-                    "type": "string"
-                },
-                "updated_at": {
-                    "type": "string"
-                }
-            }
-        },
-        "github_com_luispfcanales_api-muac_internal_core_domain.Locality": {
+        "domain.Locality": {
             "type": "object",
             "properties": {
                 "created_at": {
@@ -3393,7 +3022,10 @@ const docTemplate = `{
                 "id": {
                     "type": "string"
                 },
-                "location": {
+                "latitude": {
+                    "type": "string"
+                },
+                "longitude": {
                     "type": "string"
                 },
                 "name": {
@@ -3404,7 +3036,7 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_luispfcanales_api-muac_internal_core_domain.Measurement": {
+        "domain.Measurement": {
             "type": "object",
             "properties": {
                 "created_at": {
@@ -3414,47 +3046,41 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "id": {
-                    "type": "string"
-                },
-                "location": {
                     "type": "string"
                 },
                 "muac_value": {
                     "type": "number"
                 },
                 "patient": {
-                    "$ref": "#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Patient"
+                    "$ref": "#/definitions/domain.Patient"
                 },
                 "patient_id": {
                     "type": "string"
                 },
                 "recommendation": {
-                    "$ref": "#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Recommendation"
+                    "$ref": "#/definitions/domain.Recommendation"
                 },
                 "recommendation_id": {
                     "type": "string"
                 },
                 "tag": {
-                    "$ref": "#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Tag"
+                    "$ref": "#/definitions/domain.Tag"
                 },
                 "tag_id": {
-                    "type": "string"
-                },
-                "timestamp": {
                     "type": "string"
                 },
                 "updated_at": {
                     "type": "string"
                 },
                 "user": {
-                    "$ref": "#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.User"
+                    "$ref": "#/definitions/domain.User"
                 },
                 "user_id": {
                     "type": "string"
                 }
             }
         },
-        "github_com_luispfcanales_api-muac_internal_core_domain.Notification": {
+        "domain.Notification": {
             "type": "object",
             "properties": {
                 "body": {
@@ -3477,7 +3103,7 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_luispfcanales_api-muac_internal_core_domain.Patient": {
+        "domain.Patient": {
             "type": "object",
             "properties": {
                 "age": {
@@ -3519,12 +3145,21 @@ const docTemplate = `{
                 "updated_at": {
                     "type": "string"
                 },
+                "url_dni": {
+                    "type": "string"
+                },
+                "user": {
+                    "$ref": "#/definitions/domain.User"
+                },
+                "user_id": {
+                    "type": "string"
+                },
                 "weight": {
                     "type": "string"
                 }
             }
         },
-        "github_com_luispfcanales_api-muac_internal_core_domain.Recommendation": {
+        "domain.Recommendation": {
             "type": "object",
             "properties": {
                 "created_at": {
@@ -3547,7 +3182,7 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_luispfcanales_api-muac_internal_core_domain.Role": {
+        "domain.Role": {
             "type": "object",
             "properties": {
                 "created_at": {
@@ -3567,7 +3202,7 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_luispfcanales_api-muac_internal_core_domain.Tag": {
+        "domain.Tag": {
             "type": "object",
             "properties": {
                 "created_at": {
@@ -3587,9 +3222,12 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_luispfcanales_api-muac_internal_core_domain.User": {
+        "domain.User": {
             "type": "object",
             "properties": {
+                "active": {
+                    "type": "boolean"
+                },
                 "created_at": {
                     "type": "string"
                 },
@@ -3605,20 +3243,23 @@ const docTemplate = `{
                 "lastname": {
                     "type": "string"
                 },
+                "locality": {
+                    "$ref": "#/definitions/domain.Locality"
+                },
                 "name": {
                     "type": "string"
                 },
-                "password_hash": {
-                    "type": "string"
+                "patients": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/domain.Patient"
+                    }
                 },
                 "phone": {
                     "type": "string"
                 },
                 "role": {
-                    "$ref": "#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Role"
-                },
-                "role_id": {
-                    "type": "string"
+                    "$ref": "#/definitions/domain.Role"
                 },
                 "updated_at": {
                     "type": "string"
@@ -3628,7 +3269,7 @@ const docTemplate = `{
                 }
             }
         },
-        "internal_adapters_handlers_http.CreateRoleRequest": {
+        "http.CreateRoleRequest": {
             "type": "object",
             "properties": {
                 "description": {
@@ -3639,7 +3280,7 @@ const docTemplate = `{
                 }
             }
         },
-        "internal_adapters_handlers_http.UpdateRoleRequest": {
+        "http.UpdateRoleRequest": {
             "type": "object",
             "properties": {
                 "description": {
@@ -3656,7 +3297,7 @@ const docTemplate = `{
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
 	Version:          "1.0",
-	Host:             "localhost:8080",
+	Host:             "localhost:8003",
 	BasePath:         "/",
 	Schemes:          []string{},
 	Title:            "API MUAC",

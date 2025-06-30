@@ -1,6 +1,6 @@
 basePath: /
 definitions:
-  github_com_luispfcanales_api-muac_internal_core_domain.FAQ:
+  domain.FAQ:
     properties:
       answer:
         type: string
@@ -13,42 +13,7 @@ definitions:
       updated_at:
         type: string
     type: object
-  github_com_luispfcanales_api-muac_internal_core_domain.Father:
-    properties:
-      active:
-        type: boolean
-      created_at:
-        type: string
-      dni:
-        type: integer
-      email:
-        type: string
-      id:
-        type: string
-      lastname:
-        type: string
-      locality:
-        $ref: '#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Locality'
-      locality_id:
-        type: string
-      name:
-        type: string
-      password_hash:
-        type: string
-      patient:
-        $ref: '#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Patient'
-      patient_id:
-        type: string
-      phone:
-        type: string
-      role:
-        $ref: '#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Role'
-      role_id:
-        type: string
-      updated_at:
-        type: string
-    type: object
-  github_com_luispfcanales_api-muac_internal_core_domain.Locality:
+  domain.Locality:
     properties:
       created_at:
         type: string
@@ -56,47 +21,45 @@ definitions:
         type: string
       id:
         type: string
-      location:
+      latitude:
+        type: string
+      longitude:
         type: string
       name:
         type: string
       updated_at:
         type: string
     type: object
-  github_com_luispfcanales_api-muac_internal_core_domain.Measurement:
+  domain.Measurement:
     properties:
       created_at:
         type: string
       description:
         type: string
       id:
-        type: string
-      location:
         type: string
       muac_value:
         type: number
       patient:
-        $ref: '#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Patient'
+        $ref: '#/definitions/domain.Patient'
       patient_id:
         type: string
       recommendation:
-        $ref: '#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Recommendation'
+        $ref: '#/definitions/domain.Recommendation'
       recommendation_id:
         type: string
       tag:
-        $ref: '#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Tag'
+        $ref: '#/definitions/domain.Tag'
       tag_id:
-        type: string
-      timestamp:
         type: string
       updated_at:
         type: string
       user:
-        $ref: '#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.User'
+        $ref: '#/definitions/domain.User'
       user_id:
         type: string
     type: object
-  github_com_luispfcanales_api-muac_internal_core_domain.Notification:
+  domain.Notification:
     properties:
       body:
         type: string
@@ -111,7 +74,7 @@ definitions:
       visible:
         type: boolean
     type: object
-  github_com_luispfcanales_api-muac_internal_core_domain.Patient:
+  domain.Patient:
     properties:
       age:
         type: integer
@@ -139,10 +102,16 @@ definitions:
         type: string
       updated_at:
         type: string
+      url_dni:
+        type: string
+      user:
+        $ref: '#/definitions/domain.User'
+      user_id:
+        type: string
       weight:
         type: string
     type: object
-  github_com_luispfcanales_api-muac_internal_core_domain.Recommendation:
+  domain.Recommendation:
     properties:
       created_at:
         type: string
@@ -157,7 +126,7 @@ definitions:
       updated_at:
         type: string
     type: object
-  github_com_luispfcanales_api-muac_internal_core_domain.Role:
+  domain.Role:
     properties:
       created_at:
         type: string
@@ -170,7 +139,7 @@ definitions:
       updated_at:
         type: string
     type: object
-  github_com_luispfcanales_api-muac_internal_core_domain.Tag:
+  domain.Tag:
     properties:
       created_at:
         type: string
@@ -183,8 +152,10 @@ definitions:
       updated_at:
         type: string
     type: object
-  github_com_luispfcanales_api-muac_internal_core_domain.User:
+  domain.User:
     properties:
+      active:
+        type: boolean
       created_at:
         type: string
       dni:
@@ -195,36 +166,38 @@ definitions:
         type: string
       lastname:
         type: string
+      locality:
+        $ref: '#/definitions/domain.Locality'
       name:
         type: string
-      password_hash:
-        type: string
+      patients:
+        items:
+          $ref: '#/definitions/domain.Patient'
+        type: array
       phone:
         type: string
       role:
-        $ref: '#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Role'
-      role_id:
-        type: string
+        $ref: '#/definitions/domain.Role'
       updated_at:
         type: string
       username:
         type: string
     type: object
-  internal_adapters_handlers_http.CreateRoleRequest:
+  http.CreateRoleRequest:
     properties:
       description:
         type: string
       name:
         type: string
     type: object
-  internal_adapters_handlers_http.UpdateRoleRequest:
+  http.UpdateRoleRequest:
     properties:
       description:
         type: string
       name:
         type: string
     type: object
-host: localhost:8080
+host: localhost:8003
 info:
   contact:
     email: tu.email@ejemplo.com
@@ -249,7 +222,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.FAQ'
+              $ref: '#/definitions/domain.FAQ'
             type: array
         "500":
           description: Error interno del servidor
@@ -277,7 +250,7 @@ paths:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.FAQ'
+            $ref: '#/definitions/domain.FAQ'
         "400":
           description: Solicitud inválida
           schema:
@@ -346,7 +319,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.FAQ'
+            $ref: '#/definitions/domain.FAQ'
         "400":
           description: ID inválido o no proporcionado
           schema:
@@ -390,7 +363,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.FAQ'
+            $ref: '#/definitions/domain.FAQ'
         "400":
           description: ID inválido o solicitud inválida
           schema:
@@ -412,216 +385,6 @@ paths:
       summary: Actualizar una pregunta frecuente
       tags:
       - faqs
-  /api/fathers:
-    get:
-      consumes:
-      - application/json
-      description: Obtiene una lista de todos los padres registrados en el sistema
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            items:
-              $ref: '#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Father'
-            type: array
-        "500":
-          description: Error interno del servidor
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: Obtener todos los padres
-      tags:
-      - padres
-  /api/fathers/{id}:
-    get:
-      consumes:
-      - application/json
-      description: Obtiene un padre específico por su ID
-      parameters:
-      - description: ID del padre
-        in: path
-        name: id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Father'
-        "400":
-          description: ID inválido o no proporcionado
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "404":
-          description: Padre no encontrado
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "500":
-          description: Error interno del servidor
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: Obtener un padre por ID
-      tags:
-      - padres
-  /api/fathers/dni/{dni}:
-    get:
-      consumes:
-      - application/json
-      description: Obtiene un padre específico por su número de DNI
-      parameters:
-      - description: DNI del padre
-        in: path
-        name: dni
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Father'
-        "400":
-          description: DNI no proporcionado o inválido
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "404":
-          description: Padre no encontrado
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "500":
-          description: Error interno del servidor
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: Obtener un padre por DNI
-      tags:
-      - padres
-  /api/fathers/email/{email}:
-    get:
-      consumes:
-      - application/json
-      description: Obtiene un padre específico por su dirección de email
-      parameters:
-      - description: Email del padre
-        in: path
-        name: email
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Father'
-        "400":
-          description: Email no proporcionado
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "404":
-          description: Padre no encontrado
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "500":
-          description: Error interno del servidor
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: Obtener un padre por email
-      tags:
-      - padres
-  /api/fathers/locality/{localityId}:
-    get:
-      consumes:
-      - application/json
-      description: Obtiene todos los padres asociados a una localidad específica
-      parameters:
-      - description: ID de la localidad
-        in: path
-        name: localityId
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            items:
-              $ref: '#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Father'
-            type: array
-        "400":
-          description: ID de localidad inválido o no proporcionado
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "500":
-          description: Error interno del servidor
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: Obtener padres por ID de localidad
-      tags:
-      - padres
-  /api/fathers/patient/{patientId}:
-    get:
-      consumes:
-      - application/json
-      description: Obtiene todos los padres asociados a un paciente específico
-      parameters:
-      - description: ID del paciente
-        in: path
-        name: patientId
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            items:
-              $ref: '#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Father'
-            type: array
-        "400":
-          description: ID de paciente inválido o no proporcionado
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "500":
-          description: Error interno del servidor
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: Obtener padres por ID del paciente
-      tags:
-      - padres
   /api/localities:
     get:
       consumes:
@@ -634,7 +397,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Locality'
+              $ref: '#/definitions/domain.Locality'
             type: array
         "500":
           description: Error interno del servidor
@@ -662,7 +425,7 @@ paths:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Locality'
+            $ref: '#/definitions/domain.Locality'
         "400":
           description: Solicitud inválida
           schema:
@@ -731,7 +494,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Locality'
+            $ref: '#/definitions/domain.Locality'
         "400":
           description: ID inválido o no proporcionado
           schema:
@@ -775,7 +538,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Locality'
+            $ref: '#/definitions/domain.Locality'
         "400":
           description: ID inválido o solicitud inválida
           schema:
@@ -814,7 +577,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Locality'
+            $ref: '#/definitions/domain.Locality'
         "400":
           description: Nombre no proporcionado
           schema:
@@ -848,7 +611,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Measurement'
+              $ref: '#/definitions/domain.Measurement'
             type: array
         "500":
           description: Error interno del servidor
@@ -876,7 +639,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Measurement'
+            $ref: '#/definitions/domain.Measurement'
         "400":
           description: ID inválido o no proporcionado
           schema:
@@ -921,7 +684,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Measurement'
+              $ref: '#/definitions/domain.Measurement'
             type: array
         "400":
           description: Fechas inválidas o no proporcionadas
@@ -956,7 +719,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Measurement'
+              $ref: '#/definitions/domain.Measurement'
             type: array
         "400":
           description: ID de paciente inválido o no proporcionado
@@ -991,7 +754,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Measurement'
+              $ref: '#/definitions/domain.Measurement'
             type: array
         "400":
           description: ID de recomendación inválido o no proporcionado
@@ -1026,7 +789,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Measurement'
+              $ref: '#/definitions/domain.Measurement'
             type: array
         "400":
           description: ID de etiqueta inválido o no proporcionado
@@ -1061,7 +824,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Measurement'
+              $ref: '#/definitions/domain.Measurement'
             type: array
         "400":
           description: ID de usuario inválido o no proporcionado
@@ -1091,7 +854,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Notification'
+              $ref: '#/definitions/domain.Notification'
             type: array
         "500":
           description: Error interno del servidor
@@ -1119,7 +882,7 @@ paths:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Notification'
+            $ref: '#/definitions/domain.Notification'
         "400":
           description: Solicitud inválida
           schema:
@@ -1188,7 +951,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Notification'
+            $ref: '#/definitions/domain.Notification'
         "400":
           description: ID inválido o no proporcionado
           schema:
@@ -1232,7 +995,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Notification'
+            $ref: '#/definitions/domain.Notification'
         "400":
           description: ID inválido o solicitud inválida
           schema:
@@ -1277,7 +1040,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Notification'
+            $ref: '#/definitions/domain.Notification'
         "400":
           description: ID inválido o solicitud inválida
           schema:
@@ -1311,7 +1074,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Patient'
+              $ref: '#/definitions/domain.Patient'
             type: array
         "500":
           description: Error interno del servidor
@@ -1339,7 +1102,7 @@ paths:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Patient'
+            $ref: '#/definitions/domain.Patient'
         "400":
           description: Solicitud inválida
           schema:
@@ -1408,7 +1171,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Patient'
+            $ref: '#/definitions/domain.Patient'
         "400":
           description: ID inválido o no proporcionado
           schema:
@@ -1452,7 +1215,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Patient'
+            $ref: '#/definitions/domain.Patient'
         "400":
           description: ID inválido o solicitud inválida
           schema:
@@ -1491,7 +1254,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Patient'
+            $ref: '#/definitions/domain.Patient'
         "400":
           description: DNI no proporcionado
           schema:
@@ -1526,7 +1289,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Recommendation'
+              $ref: '#/definitions/domain.Recommendation'
             type: array
         "500":
           description: Error interno del servidor
@@ -1554,7 +1317,7 @@ paths:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Recommendation'
+            $ref: '#/definitions/domain.Recommendation'
         "400":
           description: Solicitud inválida
           schema:
@@ -1623,7 +1386,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Recommendation'
+            $ref: '#/definitions/domain.Recommendation'
         "400":
           description: ID inválido o no proporcionado
           schema:
@@ -1667,7 +1430,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Recommendation'
+            $ref: '#/definitions/domain.Recommendation'
         "400":
           description: ID inválido o solicitud inválida
           schema:
@@ -1706,7 +1469,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Recommendation'
+            $ref: '#/definitions/domain.Recommendation'
         "400":
           description: Nombre no proporcionado
           schema:
@@ -1746,7 +1509,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Recommendation'
+              $ref: '#/definitions/domain.Recommendation'
             type: array
         "400":
           description: Umbral no proporcionado
@@ -1775,7 +1538,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Role'
+              $ref: '#/definitions/domain.Role'
             type: array
         "500":
           description: Error interno del servidor
@@ -1796,14 +1559,14 @@ paths:
         name: role
         required: true
         schema:
-          $ref: '#/definitions/internal_adapters_handlers_http.CreateRoleRequest'
+          $ref: '#/definitions/http.CreateRoleRequest'
       produces:
       - application/json
       responses:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Role'
+            $ref: '#/definitions/domain.Role'
         "400":
           description: Solicitud inválida o nombre de rol vacío
           schema:
@@ -1872,7 +1635,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Role'
+            $ref: '#/definitions/domain.Role'
         "400":
           description: ID inválido o no proporcionado
           schema:
@@ -1909,14 +1672,14 @@ paths:
         name: role
         required: true
         schema:
-          $ref: '#/definitions/internal_adapters_handlers_http.UpdateRoleRequest'
+          $ref: '#/definitions/http.UpdateRoleRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Role'
+            $ref: '#/definitions/domain.Role'
         "400":
           description: ID inválido, solicitud inválida o nombre de rol vacío
           schema:
@@ -1950,7 +1713,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Tag'
+              $ref: '#/definitions/domain.Tag'
             type: array
         "500":
           description: Error interno del servidor
@@ -1978,7 +1741,7 @@ paths:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Tag'
+            $ref: '#/definitions/domain.Tag'
         "400":
           description: Solicitud inválida
           schema:
@@ -2047,7 +1810,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Tag'
+            $ref: '#/definitions/domain.Tag'
         "400":
           description: ID inválido o no proporcionado
           schema:
@@ -2091,7 +1854,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Tag'
+            $ref: '#/definitions/domain.Tag'
         "400":
           description: ID inválido o solicitud inválida
           schema:
@@ -2130,7 +1893,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.Tag'
+            $ref: '#/definitions/domain.Tag'
         "400":
           description: Nombre no proporcionado
           schema:
@@ -2164,7 +1927,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.User'
+              $ref: '#/definitions/domain.User'
             type: array
         "500":
           description: Error interno del servidor
@@ -2192,7 +1955,7 @@ paths:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.User'
+            $ref: '#/definitions/domain.User'
         "400":
           description: Solicitud inválida
           schema:
@@ -2261,7 +2024,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.User'
+            $ref: '#/definitions/domain.User'
         "400":
           description: ID inválido o no proporcionado
           schema:
@@ -2305,7 +2068,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_luispfcanales_api-muac_internal_core_domain.User'
+            $ref: '#/definitions/domain.User'
         "400":
           description: ID inválido o solicitud inválida
           schema:
