@@ -13,6 +13,7 @@ type Patient struct {
 	Lastname     string    `json:"lastname" gorm:"type:varchar(100);not null"`
 	Gender       string    `json:"gender" gorm:"type:varchar(50)"`
 	Age          int       `json:"age" gorm:"type:int"`
+	DNI          string    `json:"dni" gorm:"column:DNI;type:varchar(20);unique"`
 	UrlDNI       string    `json:"url_dni" gorm:"type:text"`
 	BirthDate    string    `json:"birth_date" gorm:"type:varchar(20)"`
 	ArmSize      string    `json:"arm_size" gorm:"type:varchar(50)"`
@@ -37,6 +38,7 @@ func (Patient) TableName() string {
 func NewPatient(
 	name, lastname, gender, birthDate, armSize, weight, size, description string,
 	age int,
+	dni string,
 	consentGiven bool,
 	createdBy *uuid.UUID,
 ) *Patient {
@@ -47,6 +49,7 @@ func NewPatient(
 		Lastname:     lastname,
 		Gender:       gender,
 		Age:          age,
+		DNI:          dni,
 		BirthDate:    birthDate,
 		ArmSize:      armSize,
 		Weight:       weight,

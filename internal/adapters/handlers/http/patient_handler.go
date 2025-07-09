@@ -156,6 +156,7 @@ func (h *PatientHandler) CreatePatient(w http.ResponseWriter, r *http.Request) {
 		Lastname     string `json:"lastname"`
 		Gender       string `json:"gender"`
 		Age          int    `json:"age"`
+		DNI          string `json:"dni"`
 		BirthDate    string `json:"birth_date"`
 		ArmSize      string `json:"arm_size"`
 		Weight       string `json:"weight"`
@@ -186,6 +187,7 @@ func (h *PatientHandler) CreatePatient(w http.ResponseWriter, r *http.Request) {
 		req.Size,
 		req.Description,
 		req.Age,
+		req.DNI,
 		req.ConsentGiven,
 		&id,
 	)
@@ -220,6 +222,7 @@ func (h *PatientHandler) CreatePatientWithFile(w http.ResponseWriter, r *http.Re
 			Lastname     string `json:"lastname"`
 			Gender       string `json:"gender"`
 			Age          int    `json:"age"`
+			DNI          string `json:"dni"`
 			BirthDate    string `json:"birth_date"`
 			ArmSize      string `json:"arm_size"`
 			Weight       string `json:"weight"`
@@ -250,6 +253,7 @@ func (h *PatientHandler) CreatePatientWithFile(w http.ResponseWriter, r *http.Re
 			req.Size,
 			req.Description,
 			req.Age,
+			req.DNI,
 			req.ConsentGiven,
 			&id,
 		)
@@ -272,6 +276,7 @@ func (h *PatientHandler) CreatePatientWithFile(w http.ResponseWriter, r *http.Re
 			r.FormValue("size"),
 			r.FormValue("description"),
 			0, // Age se puede parsear si es necesario
+			r.FormValue("dni"),
 			r.FormValue("consent_given") == "true",
 			&id,
 		)
