@@ -26,7 +26,7 @@ type Patient struct {
 	UpdatedAt    time.Time `json:"updated_at,omitempty" gorm:"column:UPDATE_AT"`
 
 	UserID *uuid.UUID `json:"user_id" gorm:"column:USER_ID;type:uuid"`
-	User   *User      `json:"user" gorm:"foreignKey:UserID"`
+	User   *User      `json:"user,omitempty" gorm:"foreignKey:UserID"`
 }
 
 // TableName especifica el nombre de la tabla para GORM
