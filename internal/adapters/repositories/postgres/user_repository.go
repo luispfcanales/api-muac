@@ -35,7 +35,11 @@ func (r *userRepository) Create(ctx context.Context, user *domain.User) error {
 // GetByID obtiene un usuario por su ID
 func (r *userRepository) GetByID(ctx context.Context, id uuid.UUID) (*domain.User, error) {
 	var user domain.User
-	result := r.db.WithContext(ctx).Preload("Role").Where("ID = ?", id).First(&user)
+	result := r.db.WithContext(ctx).
+		Preload("Role").
+		Preload("Locality").
+		Preload("Patients").
+		Where("ID = ?", id).First(&user)
 	if result.Error != nil {
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 			return nil, domain.ErrUserNotFound

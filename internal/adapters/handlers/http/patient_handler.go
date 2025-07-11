@@ -560,7 +560,6 @@ func (h *PatientHandler) AddPatientMeasurement(w http.ResponseWriter, r *http.Re
 	var req struct {
 		MuacValue        float64   `json:"muac_value"`
 		Description      string    `json:"description"`
-		Location         string    `json:"location"`
 		UserID           uuid.UUID `json:"user_id"`
 		TagID            uuid.UUID `json:"tag_id"`
 		RecommendationID uuid.UUID `json:"recommendation_id"`
@@ -574,7 +573,6 @@ func (h *PatientHandler) AddPatientMeasurement(w http.ResponseWriter, r *http.Re
 	measurement := domain.NewMeasurement(
 		req.MuacValue,
 		req.Description,
-		req.Location,
 		time.Now(),
 		id,
 		req.UserID,

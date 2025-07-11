@@ -318,7 +318,6 @@ func (h *MeasurementHandler) CreateMeasurement(w http.ResponseWriter, r *http.Re
 	measurement := domain.NewMeasurement(
 		req.MuacValue,
 		req.Description,
-		req.Location,
 		req.Timestamp,
 		req.PatientID,
 		req.UserID,

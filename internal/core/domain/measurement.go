@@ -29,7 +29,7 @@ func (Measurement) TableName() string {
 }
 
 // NewMeasurement crea una nueva instancia de Measurement
-func NewMeasurement(muacValue float64, description, location string, timestamp time.Time, patientID, userID, tagID, recommendationID uuid.UUID) *Measurement {
+func NewMeasurement(muacValue float64, description string, timestamp time.Time, patientID, userID, tagID, recommendationID uuid.UUID) *Measurement {
 	return &Measurement{
 		ID:               uuid.New(),
 		MuacValue:        muacValue,
