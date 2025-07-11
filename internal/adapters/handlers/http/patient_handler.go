@@ -597,5 +597,7 @@ func (h *PatientHandler) AddPatientMeasurement(w http.ResponseWriter, r *http.Re
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(measurement)
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"message": "Medición agregada exitosamente",
+	})
 }
