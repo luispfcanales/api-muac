@@ -23,6 +23,25 @@ func NewUserRepository(db *gorm.DB) ports.IUserRepository {
 	}
 }
 
+// GetByUsername obtiene un usuario por su nombre de usuario
+func (r *userRepository) GetByUsernameOrEmail(ctx context.Context, usernameOrEmail string) (*domain.User, error) {
+	var user domain.User
+	result := r.db.WithContext(ctx).
+		Preload("Role").
+		Preload("Locality").
+		Preload("Patients").
+		Where(`"USERNAME" = ? OR "EMAIL" = ?`, usernameOrEmail, usernameOrEmail).
+		First(&user)
+
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return nil, domain.ErrUserNotFound
+		}
+		return nil, fmt.Errorf("error al obtener usuario: %w", result.Error)
+	}
+	return &user, nil
+}
+
 // Create inserta un nuevo usuario en la base de datos
 func (r *userRepository) Create(ctx context.Context, user *domain.User) error {
 	result := r.db.WithContext(ctx).Create(user)

@@ -22,12 +22,17 @@ func NewUserService(userRepo ports.IUserRepository, roleRepo ports.IRoleReposito
 	}
 }
 
+// GetByUsernameOrEmail obtiene un usuario por su nombre de usuario o email
+func (s *userService) GetByUsernameOrEmail(ctx context.Context, usernameOrEmail string) (*domain.User, error) {
+	return s.userRepo.GetByUsernameOrEmail(ctx, usernameOrEmail)
+}
+
 // Create crea un nuevo usuario
 func (s *userService) Create(ctx context.Context, user *domain.User) error {
 	if err := user.Validate(); err != nil {
 		return err
 	}
-	
+
 	// Verificar que el rol existe
 	if user.RoleID != uuid.Nil {
 		_, err := s.roleRepo.GetByID(ctx, user.RoleID)
@@ -35,7 +40,7 @@ func (s *userService) Create(ctx context.Context, user *domain.User) error {
 			return err
 		}
 	}
-	
+
 	return s.userRepo.Create(ctx, user)
 }
 
@@ -59,7 +64,7 @@ func (s *userService) Update(ctx context.Context, user *domain.User) error {
 	if err := user.Validate(); err != nil {
 		return err
 	}
-	
+
 	// Verificar que el rol existe
 	if user.RoleID != uuid.Nil {
 		_, err := s.roleRepo.GetByID(ctx, user.RoleID)
@@ -67,7 +72,7 @@ func (s *userService) Update(ctx context.Context, user *domain.User) error {
 			return err
 		}
 	}
-	
+
 	return s.userRepo.Update(ctx, user)
 }
 
@@ -92,7 +97,7 @@ func (s *userService) UpdateRole(ctx context.Context, id uuid.UUID, roleID uuid.
 	if err != nil {
 		return err
 	}
-	
+
 	// Verificar que el rol existe
 	if roleID != uuid.Nil {
 		_, err := s.roleRepo.GetByID(ctx, roleID)
@@ -100,7 +105,7 @@ func (s *userService) UpdateRole(ctx context.Context, id uuid.UUID, roleID uuid.
 			return err
 		}
 	}
-	
+
 	user.UpdateRole(roleID)
 	return s.userRepo.Update(ctx, user)
 }

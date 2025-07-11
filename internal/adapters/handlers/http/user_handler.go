@@ -2,6 +2,7 @@ package http
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 
 	"github.com/google/uuid"
@@ -25,12 +26,45 @@ func NewUserHandler(userService ports.IUserService) *UserHandler {
 // RegisterRoutes registra las rutas del handler en el router
 func (h *UserHandler) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /api/users", h.GetUsers)
+	mux.HandleFunc("POST /api/users/login", h.Login)
 	mux.HandleFunc("POST /api/users", h.CreateUser)
 	mux.HandleFunc("GET /api/users/{id}", h.GetUserByID)
 	mux.HandleFunc("PUT /api/users/{id}", h.UpdateUser)
 	mux.HandleFunc("DELETE /api/users/{id}", h.DeleteUser)
 	mux.HandleFunc("PUT /api/users/{id}/password", h.UpdatePassword)
 	mux.HandleFunc("PUT /api/users/{id}/role", h.UpdateRole)
+}
+
+func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
+	var loginRequest struct {
+		UsernameOrEmail string `json:"username_or_email"`
+		Password        string `json:"password"`
+	}
+
+	err := json.NewDecoder(r.Body).Decode(&loginRequest)
+	if err != nil {
+		http.Error(w, "Error en los datos de entrada", http.StatusBadRequest)
+		return
+	}
+
+	user, err := h.userService.GetByUsernameOrEmail(
+		r.Context(),
+		loginRequest.UsernameOrEmail,
+	)
+	if err != nil {
+		log.Println(err)
+		http.Error(w, "Usuario o contraseñas incorrectos", http.StatusUnauthorized)
+		return
+	}
+
+	err = bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(loginRequest.Password))
+	if err != nil {
+		http.Error(w, "Usuario o contraseña incorrectos", http.StatusUnauthorized)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(user)
 }
 
 // GetUsers godoc
