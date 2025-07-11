@@ -3,6 +3,7 @@ package http
 import (
 	"encoding/json"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/google/uuid"
@@ -266,6 +267,12 @@ func (h *PatientHandler) CreatePatientWithFile(w http.ResponseWriter, r *http.Re
 			return
 		}
 
+		age, err := strconv.Atoi(r.FormValue("age"))
+		if err != nil {
+			http.Error(w, "Edad inválida", http.StatusBadRequest)
+			return
+		}
+
 		patient = domain.NewPatient(
 			r.FormValue("name"),
 			r.FormValue("lastname"),
@@ -275,7 +282,7 @@ func (h *PatientHandler) CreatePatientWithFile(w http.ResponseWriter, r *http.Re
 			r.FormValue("weight"),
 			r.FormValue("size"),
 			r.FormValue("description"),
-			0, // Age se puede parsear si es necesario
+			age, // Age se puede parsear si es necesario
 			r.FormValue("dni"),
 			r.FormValue("consent_given") == "true",
 			&id,
@@ -305,7 +312,10 @@ func (h *PatientHandler) CreatePatientWithFile(w http.ResponseWriter, r *http.Re
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(patient)
+	json.NewEncoder(w).Encode(map[string]string{
+		"message": "Creado exitosamente",
+		"id":      patient.ID.String(),
+	})
 }
 
 // UploadPatientDNI sube o actualiza el archivo DNI de un paciente existente

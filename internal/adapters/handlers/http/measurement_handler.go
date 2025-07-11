@@ -297,7 +297,6 @@ func (h *MeasurementHandler) CreateMeasurement(w http.ResponseWriter, r *http.Re
 	var req struct {
 		MuacValue        float64   `json:"muac_value"`
 		Description      string    `json:"description"`
-		Location         string    `json:"location"`
 		Timestamp        time.Time `json:"timestamp"`
 		PatientID        uuid.UUID `json:"patient_id"`
 		UserID           uuid.UUID `json:"user_id"`
@@ -332,7 +331,7 @@ func (h *MeasurementHandler) CreateMeasurement(w http.ResponseWriter, r *http.Re
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(measurement)
+	json.NewEncoder(w).Encode(map[string]string{"message": "Medición creada exitosamente"})
 }
 
 // UpdateMeasurement actualiza una medición
