@@ -22,7 +22,7 @@ type IMeasurementRepository interface {
 	GetByDateRange(ctx context.Context, startDate, endDate time.Time) ([]*domain.Measurement, error)
 }
 
-// IMeasurementService define las operaciones del servicio para mediciones
+// IMeasurementService define las operaciones del servicio para mediciones (ACTUALIZADO)
 type IMeasurementService interface {
 	Create(ctx context.Context, measurement *domain.Measurement) error
 	GetByID(ctx context.Context, id uuid.UUID) (*domain.Measurement, error)
@@ -36,4 +36,7 @@ type IMeasurementService interface {
 	GetByDateRange(ctx context.Context, startDate, endDate time.Time) ([]*domain.Measurement, error)
 	AssignTag(ctx context.Context, measurementID, tagID uuid.UUID) error
 	AssignRecommendation(ctx context.Context, measurementID, recommendationID uuid.UUID) error
+
+	// ============= NUEVO MÉTODO PARA AUTO-ASIGNACIÓN =============
+	CreateWithAutoAssignment(ctx context.Context, muacValue float64, description string, patientID, userID uuid.UUID) (*domain.Measurement, error)
 }
