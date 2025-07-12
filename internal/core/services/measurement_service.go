@@ -102,7 +102,8 @@ func (s *measurementService) AssignTag(ctx context.Context, measurementID, tagID
 	}
 
 	// Asignar la etiqueta
-	measurement.SetTag(tagID)
+	measurement.SetTag(&tagID)
+
 	return s.measurementRepo.Update(ctx, measurement)
 }
 
@@ -123,6 +124,6 @@ func (s *measurementService) AssignRecommendation(ctx context.Context, measureme
 	}
 
 	// Asignar la recomendación
-	measurement.SetRecommendation(recommendationID)
+	measurement.SetRecommendation(&recommendationID)
 	return s.measurementRepo.Update(ctx, measurement)
 }

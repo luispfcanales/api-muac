@@ -35,7 +35,11 @@ func (r *patientRepository) Create(ctx context.Context, patient *domain.Patient)
 // GetByID obtiene un paciente por su ID
 func (r *patientRepository) GetByID(ctx context.Context, id uuid.UUID) (*domain.Patient, error) {
 	var patient domain.Patient
-	result := r.db.WithContext(ctx).Where("ID = ?", id).First(&patient)
+	result := r.db.WithContext(ctx).
+		Preload("Measurements").
+		Preload("Measurements.Tag").
+		Preload("Measurements.Recommendation").
+		Where("ID = ?", id).First(&patient)
 	if result.Error != nil {
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 			return nil, domain.ErrPatientNotFound

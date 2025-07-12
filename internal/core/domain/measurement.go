@@ -13,13 +13,13 @@ type Measurement struct {
 	Description      string          `json:"description" gorm:"column:DESCRIPTION;type:text"`
 	PatientID        uuid.UUID       `json:"patient_id" gorm:"column:PATIENT_ID;type:uuid;not null"`
 	UserID           uuid.UUID       `json:"user_id" gorm:"column:USER_ID;type:uuid;not null"`
-	TagID            uuid.UUID       `json:"tag_id" gorm:"column:TAG_ID;type:uuid"`
-	RecommendationID uuid.UUID       `json:"recommendation_id" gorm:"column:RECOMMENDATION_ID;type:uuid"`
+	TagID            *uuid.UUID      `json:"tag_id,omitempty" gorm:"column:TAG_ID;type:uuid"`
+	RecommendationID *uuid.UUID      `json:"recommendation_id,omitempty" gorm:"column:RECOMMENDATION_ID;type:uuid"`
 	CreatedAt        time.Time       `json:"created_at" gorm:"column:CREATE_AT;autoCreateTime"`
 	UpdatedAt        time.Time       `json:"updated_at" gorm:"column:UPDATE_AT;autoUpdateTime"`
-	Patient          *Patient        `json:"patient" gorm:"foreignKey:PatientID"`
-	User             *User           `json:"user" gorm:"foreignKey:UserID"`
-	Tag              *Tag            `json:"tag" gorm:"foreignKey:TagID"`
+	Patient          *Patient        `json:"patient,omitempty" gorm:"foreignKey:PatientID"`
+	User             *User           `json:"user,omitempty" gorm:"foreignKey:UserID"`
+	Tag              *Tag            `json:"tag,omitempty" gorm:"foreignKey:TagID"`
 	Recommendation   *Recommendation `json:"recommendation" gorm:"foreignKey:RecommendationID"`
 }
 
@@ -29,16 +29,20 @@ func (Measurement) TableName() string {
 }
 
 // NewMeasurement crea una nueva instancia de Measurement
-func NewMeasurement(muacValue float64, description string, timestamp time.Time, patientID, userID, tagID, recommendationID uuid.UUID) *Measurement {
+func NewMeasurement(muacValue float64, description string, timestamp time.Time, patientID, userID uuid.UUID, tagID, recommendationID *uuid.UUID) *Measurement {
+	if tagID != nil && *tagID == uuid.Nil {
+		tagID = nil
+	}
+	if recommendationID != nil && *recommendationID == uuid.Nil {
+		recommendationID = nil
+	}
 	return &Measurement{
-		ID:               uuid.New(),
-		MuacValue:        muacValue,
-		Description:      description,
-		PatientID:        patientID,
-		UserID:           userID,
-		TagID:            tagID,
-		RecommendationID: recommendationID,
-		CreatedAt:        time.Now(),
+		ID:          uuid.New(),
+		MuacValue:   muacValue,
+		Description: description,
+		PatientID:   patientID,
+		UserID:      userID,
+		CreatedAt:   time.Now(),
 	}
 }
 
@@ -57,7 +61,7 @@ func (m *Measurement) Validate() error {
 }
 
 // Update actualiza los campos de la medición
-func (m *Measurement) Update(muacValue float64, description, location string, timestamp time.Time, tagID, recommendationID uuid.UUID) {
+func (m *Measurement) Update(muacValue float64, description, location string, timestamp time.Time, tagID, recommendationID *uuid.UUID) {
 	m.MuacValue = muacValue
 	m.Description = description
 	m.TagID = tagID
@@ -66,13 +70,13 @@ func (m *Measurement) Update(muacValue float64, description, location string, ti
 }
 
 // SetTag asigna una etiqueta a la medición
-func (m *Measurement) SetTag(tagID uuid.UUID) {
+func (m *Measurement) SetTag(tagID *uuid.UUID) {
 	m.TagID = tagID
 	m.UpdatedAt = time.Now()
 }
 
 // SetRecommendation asigna una recomendación a la medición
-func (m *Measurement) SetRecommendation(recommendationID uuid.UUID) {
+func (m *Measurement) SetRecommendation(recommendationID *uuid.UUID) {
 	m.RecommendationID = recommendationID
 	m.UpdatedAt = time.Now()
 }

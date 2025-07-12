@@ -586,8 +586,8 @@ func (h *PatientHandler) AddPatientMeasurement(w http.ResponseWriter, r *http.Re
 		time.Now(),
 		id,
 		req.UserID,
-		req.TagID,
-		req.RecommendationID,
+		&req.TagID,
+		&req.RecommendationID,
 	)
 
 	if err := h.patientService.AddMeasurement(ctx, id, measurement); err != nil {

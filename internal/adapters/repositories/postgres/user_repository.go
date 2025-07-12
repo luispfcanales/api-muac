@@ -58,6 +58,7 @@ func (r *userRepository) GetByID(ctx context.Context, id uuid.UUID) (*domain.Use
 		Preload("Role").
 		Preload("Locality").
 		Preload("Patients").
+		Preload("Patients.Measurements").
 		Where("ID = ?", id).First(&user)
 	if result.Error != nil {
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
@@ -88,6 +89,7 @@ func (r *userRepository) GetAll(ctx context.Context) ([]*domain.User, error) {
 		Preload("Role").
 		Preload("Locality").
 		Preload("Patients").
+		Preload("Patients.Measurements").
 		Find(&users)
 
 	if result.Error != nil {

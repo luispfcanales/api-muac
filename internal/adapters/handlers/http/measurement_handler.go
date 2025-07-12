@@ -320,8 +320,8 @@ func (h *MeasurementHandler) CreateMeasurement(w http.ResponseWriter, r *http.Re
 		req.Timestamp,
 		req.PatientID,
 		req.UserID,
-		req.TagID,
-		req.RecommendationID,
+		&req.TagID,
+		&req.RecommendationID,
 	)
 
 	if err := h.measurementService.Create(ctx, measurement); err != nil {
@@ -379,8 +379,8 @@ func (h *MeasurementHandler) UpdateMeasurement(w http.ResponseWriter, r *http.Re
 		req.Description,
 		req.Location,
 		req.Timestamp,
-		req.TagID,
-		req.RecommendationID,
+		&req.TagID,
+		&req.RecommendationID,
 	)
 
 	if err := h.measurementService.Update(ctx, measurement); err != nil {
