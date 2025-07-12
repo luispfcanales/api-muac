@@ -75,6 +75,7 @@ func main() {
 	tagRepo := postgres.NewTagRepository(db)
 	measurementRepo := postgres.NewMeasurementRepository(db)
 	patientRepo := postgres.NewPatientRepository(db)
+	reportRepo := postgres.NewReportRepository(db)
 
 	// Crear servicios
 	roleService := services.NewRoleService(roleRepo)
@@ -86,6 +87,7 @@ func main() {
 	tagService := services.NewTagService(tagRepo)
 	measurementService := services.NewMeasurementService(measurementRepo, tagRepo, recommendationRepo)
 	patientService := services.NewPatientService(patientRepo, measurementRepo)
+	reportService := services.NewReportService(reportRepo)
 
 	baseURL := fmt.Sprintf("http://localhost:%d", cfg.ServerPort)
 	fileService := services.NewFileService("uploads", baseURL)
@@ -100,6 +102,7 @@ func main() {
 	tagHandler := http.NewTagHandler(tagService)
 	measurementHandler := http.NewMeasurementHandler(measurementService)
 	patientHandler := http.NewPatientHandler(patientService, fileService)
+	reportHandler := http.NewReportHandler(reportService)
 
 	// Configurar rutas
 	mux := stdhttp.NewServeMux()
@@ -128,6 +131,7 @@ func main() {
 	tagHandler.RegisterRoutes(mux)
 	measurementHandler.RegisterRoutes(mux)
 	patientHandler.RegisterRoutes(mux)
+	reportHandler.RegisterRoutes(mux)
 
 	// Crear y iniciar servidor
 	srv := server.NewServer(cfg, mux)
