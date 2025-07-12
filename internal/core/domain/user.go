@@ -9,26 +9,26 @@ import (
 // User representa la entidad de usuario en el dominio
 type User struct {
 	ID           uuid.UUID `json:"id" gorm:"type:uuid;primaryKey"`
-	Name         string    `json:"name" gorm:"column:NAME;type:varchar(100);not null"`
-	LastName     string    `json:"lastname" gorm:"column:LASTNAME;type:varchar(100);not null"`
-	Username     string    `json:"username" gorm:"column:USERNAME;type:varchar(100);not null;unique"`
-	Email        string    `json:"email" gorm:"column:EMAIL;type:varchar(255);not null;unique"`
-	DNI          string    `json:"dni" gorm:"column:DNI;type:varchar(20);unique"`
-	Phone        string    `json:"phone" gorm:"column:PHONE;type:varchar(20)"`
-	PasswordHash string    `json:"-" gorm:"column:PASSWORD_HASH;type:varchar(255);not null"`
-	Active       bool      `json:"active" gorm:"column:ACTIVE;default:true"`
+	Name         string    `json:"name" gorm:"column:name;type:varchar(100);not null"`
+	LastName     string    `json:"lastname" gorm:"column:lastname;type:varchar(100);not null"`
+	Username     string    `json:"username" gorm:"column:username;type:varchar(100);not null;unique"`
+	Email        string    `json:"email" gorm:"column:email;type:varchar(255);not null;unique"`
+	DNI          string    `json:"dni" gorm:"column:dni;type:varchar(20);unique"`
+	Phone        string    `json:"phone" gorm:"column:phone;type:varchar(20)"`
+	PasswordHash string    `json:"-" gorm:"column:password_hash;type:varchar(255);not null"`
+	Active       bool      `json:"active" gorm:"column:active;default:true"`
 
 	// Relaciones (FKs)
-	RoleID uuid.UUID `json:"-" gorm:"column:ROLE_ID;type:uuid;not null"`
+	RoleID uuid.UUID `json:"-" gorm:"column:role_id;type:uuid;not null"`
 	Role   Role      `json:"role" gorm:"foreignKey:RoleID"`
 
-	LocalityID *uuid.UUID `json:"-" gorm:"column:LOCALITY_ID;type:uuid"`
+	LocalityID *uuid.UUID `json:"-" gorm:"column:locality_id;type:uuid"`
 	Locality   *Locality  `json:"locality" gorm:"foreignKey:LocalityID"`
 
 	Patients []Patient `json:"patients" gorm:"foreignKey:UserID"`
 
-	CreatedAt time.Time  `json:"created_at,omitempty" gorm:"column:CREATE_AT;autoCreateTime"`
-	UpdatedAt *time.Time `json:"updated_at,omitempty" gorm:"column:UPDATE_AT;autoUpdateTime"`
+	CreatedAt time.Time  `json:"created_at,omitempty" gorm:"column:created_at;autoCreateTime"`
+	UpdatedAt *time.Time `json:"updated_at,omitempty" gorm:"column:updated_at;autoUpdateTime"`
 }
 
 // TableName especifica el nombre de la tabla para GORM

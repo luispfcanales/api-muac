@@ -9,14 +9,14 @@ import (
 // Measurement representa la entidad de medición en el dominio
 type Measurement struct {
 	ID               uuid.UUID       `json:"id" gorm:"type:uuid;primaryKey"`
-	MuacValue        float64         `json:"muac_value" gorm:"column:MUAC_VALUE;type:decimal(10,2);not null"`
-	Description      string          `json:"description" gorm:"column:DESCRIPTION;type:text"`
-	PatientID        uuid.UUID       `json:"patient_id" gorm:"column:PATIENT_ID;type:uuid;not null"`
-	UserID           uuid.UUID       `json:"user_id" gorm:"column:USER_ID;type:uuid;not null"`
-	TagID            *uuid.UUID      `json:"tag_id,omitempty" gorm:"column:TAG_ID;type:uuid"`
-	RecommendationID *uuid.UUID      `json:"recommendation_id,omitempty" gorm:"column:RECOMMENDATION_ID;type:uuid"`
-	CreatedAt        time.Time       `json:"created_at" gorm:"column:CREATE_AT;autoCreateTime"`
-	UpdatedAt        time.Time       `json:"updated_at" gorm:"column:UPDATE_AT;autoUpdateTime"`
+	MuacValue        float64         `json:"muac_value" gorm:"column:muac_value;type:decimal(10,2);not null"`
+	Description      string          `json:"description" gorm:"column:description;type:text"`
+	PatientID        uuid.UUID       `json:"patient_id" gorm:"column:patient_id;type:uuid;not null"`
+	UserID           uuid.UUID       `json:"user_id" gorm:"column:user_id;type:uuid;not null"`
+	TagID            *uuid.UUID      `json:"tag_id,omitempty" gorm:"column:tag_id;type:uuid"`
+	RecommendationID *uuid.UUID      `json:"recommendation_id,omitempty" gorm:"column:recommendation_id;type:uuid"`
+	CreatedAt        time.Time       `json:"created_at" gorm:"column:created_at;autoCreateTime"`
+	UpdatedAt        time.Time       `json:"updated_at" gorm:"column:updated_at;autoUpdateTime"`
 	Patient          *Patient        `json:"patient,omitempty" gorm:"foreignKey:PatientID"`
 	User             *User           `json:"user,omitempty" gorm:"foreignKey:UserID"`
 	Tag              *Tag            `json:"tag,omitempty" gorm:"foreignKey:TagID"`

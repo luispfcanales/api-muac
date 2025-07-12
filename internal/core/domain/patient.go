@@ -13,7 +13,7 @@ type Patient struct {
 	Lastname     string    `json:"lastname" gorm:"type:varchar(100);not null"`
 	Gender       string    `json:"gender" gorm:"type:varchar(50)"`
 	Age          int       `json:"age" gorm:"type:int"`
-	DNI          string    `json:"dni" gorm:"column:DNI;type:varchar(20);unique"`
+	DNI          string    `json:"dni" gorm:"column:dni;type:varchar(20);unique"`
 	UrlDNI       string    `json:"url_dni" gorm:"type:text"`
 	BirthDate    string    `json:"birth_date" gorm:"type:varchar(20)"`
 	ArmSize      string    `json:"arm_size" gorm:"type:varchar(50)"`
@@ -22,11 +22,11 @@ type Patient struct {
 	ConsentGiven bool      `json:"consent_given" gorm:"type:boolean;default:true"`
 	ConsentDate  time.Time `json:"consent_date,omitempty" gorm:"type:date"`
 	Description  string    `json:"description" gorm:"type:text"`
-	CreatedAt    time.Time `json:"created_at,omitempty" gorm:"column:CREATE_AT;default:CURRENT_TIMESTAMP"`
-	UpdatedAt    time.Time `json:"updated_at,omitempty" gorm:"column:UPDATE_AT"`
+	CreatedAt    time.Time `json:"created_at,omitempty" gorm:"column:created_at;default:CURRENT_TIMESTAMP"`
+	UpdatedAt    time.Time `json:"updated_at,omitempty" gorm:"column:updated_at"`
 
 	Measurements []Measurement `json:"measurements" gorm:"foreignKey:PatientID"`
-	UserID       *uuid.UUID    `json:"user_id" gorm:"column:USER_ID;type:uuid"`
+	UserID       *uuid.UUID    `json:"user_id" gorm:"column:user_id;type:uuid"`
 	User         *User         `json:"user,omitempty" gorm:"foreignKey:UserID"`
 }
 

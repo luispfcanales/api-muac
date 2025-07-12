@@ -9,10 +9,10 @@ import (
 // Role representa la entidad de rol en el dominio
 type Role struct {
 	ID          uuid.UUID `json:"id" gorm:"type:uuid;primaryKey"`
-	Name        string    `json:"name" gorm:"column:NAME;type:varchar(100);not null"`
-	Description string    `json:"description" gorm:"column:DESCRIPTION;type:text"`
-	CreatedAt   time.Time `json:"created_at" gorm:"column:CREATE_AT;autoCreateTime"`
-	UpdatedAt   time.Time `json:"updated_at" gorm:"column:UPDATE_AT;autoUpdateTime"`
+	Name        string    `json:"name" gorm:"column:name;type:varchar(100);not null"`
+	Description string    `json:"description" gorm:"column:description;type:text"`
+	CreatedAt   time.Time `json:"created_at" gorm:"column:created_at;autoCreateTime"`
+	UpdatedAt   time.Time `json:"updated_at" gorm:"column:updated_at;autoUpdateTime"`
 }
 
 // TableName especifica el nombre de la tabla para GORM

@@ -9,10 +9,10 @@ import (
 // FAQ representa la entidad de pregunta frecuente en el dominio
 type FAQ struct {
 	ID        uuid.UUID `json:"id" gorm:"type:uuid;primaryKey"`
-	Question  string    `json:"question" gorm:"column:QUESTION;type:text;not null"`
-	Answer    string    `json:"answer" gorm:"column:ANSWER;type:text;not null"`
-	CreatedAt time.Time `json:"created_at" gorm:"column:CREATE_AT;autoCreateTime"`
-	UpdatedAt time.Time `json:"updated_at" gorm:"column:UPDATE_AT;autoUpdateTime"`
+	Question  string    `json:"question" gorm:"column:question;type:text;not null"`
+	Answer    string    `json:"answer" gorm:"column:answer;type:text;not null"`
+	CreatedAt time.Time `json:"created_at" gorm:"column:created_at;autoCreateTime"`
+	UpdatedAt time.Time `json:"updated_at" gorm:"column:updated_at;autoUpdateTime"`
 }
 
 // TableName especifica el nombre de la tabla para GORM

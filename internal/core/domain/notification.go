@@ -9,11 +9,11 @@ import (
 // Notification representa la entidad de notificación en el dominio
 type Notification struct {
 	ID        uuid.UUID `json:"id" gorm:"type:uuid;primaryKey"`
-	Title     string    `json:"title" gorm:"column:TITLE;type:varchar(255);not null"`
-	Body      string    `json:"body" gorm:"column:BODY;type:text"`
-	Visible   bool      `json:"visible" gorm:"column:VISIBLE;default:false"`
-	CreatedAt time.Time `json:"created_at" gorm:"column:CREATE_AT;autoCreateTime"`
-	UpdatedAt time.Time `json:"updated_at" gorm:"column:UPDATE_AT;autoUpdateTime"`
+	Title     string    `json:"title" gorm:"column:title;type:varchar(255);not null"`
+	Body      string    `json:"body" gorm:"column:body;type:text"`
+	Visible   bool      `json:"visible" gorm:"column:visible;default:false"`
+	CreatedAt time.Time `json:"created_at" gorm:"column:created_at;autoCreateTime"`
+	UpdatedAt time.Time `json:"updated_at" gorm:"column:updated_at;autoUpdateTime"`
 }
 
 // TableName especifica el nombre de la tabla para GORM
