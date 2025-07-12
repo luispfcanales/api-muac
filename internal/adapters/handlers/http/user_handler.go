@@ -182,11 +182,15 @@ func (h *UserHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	userCreated, err := h.userService.GetByID(r.Context(), user.ID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(map[string]string{
-		"message": "Usuario creado exitosamente",
-	})
+	json.NewEncoder(w).Encode(userCreated)
 }
 
 // UpdateUser godoc

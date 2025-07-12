@@ -28,7 +28,7 @@ func NewPatientHandler(patientService ports.IPatientService, fileService ports.I
 // RegisterRoutes registra las rutas del manejador
 func (h *PatientHandler) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /api/patients", h.GetAllPatients)
-	mux.HandleFunc("POST /api/patients", h.CreatePatient)
+	// mux.HandleFunc("POST /api/patients", h.CreatePatient)
 	mux.HandleFunc("POST /api/patients/with-file", h.CreatePatientWithFile)
 	mux.HandleFunc("GET /api/patients/{id}", h.GetPatientByID)
 	mux.HandleFunc("PUT /api/patients/{id}", h.UpdatePatient)
