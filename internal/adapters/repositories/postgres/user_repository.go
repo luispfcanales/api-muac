@@ -30,7 +30,7 @@ func (r *userRepository) GetByUsernameOrEmail(ctx context.Context, usernameOrEma
 		Preload("Role").
 		Preload("Locality").
 		Preload("Patients").
-		Where(`"USERNAME" = ? OR "EMAIL" = ?`, usernameOrEmail, usernameOrEmail).
+		Where(`username = ? OR email = ?`, usernameOrEmail, usernameOrEmail).
 		First(&user)
 
 	if result.Error != nil {
@@ -72,7 +72,7 @@ func (r *userRepository) GetByID(ctx context.Context, id uuid.UUID) (*domain.Use
 // GetByEmail obtiene un usuario por su email
 func (r *userRepository) GetByEmail(ctx context.Context, email string) (*domain.User, error) {
 	var user domain.User
-	result := r.db.WithContext(ctx).Preload("Role").Where("EMAIL = ?", email).First(&user)
+	result := r.db.WithContext(ctx).Preload("Role").Where("email = ?", email).First(&user)
 	if result.Error != nil {
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 			return nil, domain.ErrUserNotFound
@@ -112,7 +112,7 @@ func (r *userRepository) Update(ctx context.Context, user *domain.User) error {
 
 // Delete elimina un usuario por su ID
 func (r *userRepository) Delete(ctx context.Context, id uuid.UUID) error {
-	result := r.db.WithContext(ctx).Delete(&domain.User{}, "ID = ?", id)
+	result := r.db.WithContext(ctx).Delete(&domain.User{}, "id = ?", id)
 	if result.Error != nil {
 		return fmt.Errorf("error al eliminar usuario: %w", result.Error)
 	}

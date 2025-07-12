@@ -36,32 +36,6 @@ func main() {
 		log.Fatalf("Error al conectar a la base de datos: %v", err)
 	}
 
-	// 🗑️ ELIMINAR TODAS LAS TABLAS EXISTENTES
-	log.Println("🗑️ RESET COMPLETO: Eliminando todas las tablas...")
-
-	// Lista de modelos en orden de dependencias (eliminar primero los dependientes)
-	modelsToClean := []interface{}{
-		&domain.Measurement{}, // Depende de otros
-		&domain.Notification{},
-		&domain.Patient{},
-		&domain.User{},
-		&domain.Recommendation{},
-		&domain.Tag{},
-		&domain.FAQ{},
-		&domain.Locality{},
-		&domain.Role{},
-	}
-
-	// Eliminar todas las tablas
-	for _, model := range modelsToClean {
-		if err := db.Migrator().DropTable(model); err != nil {
-			log.Printf("Warning: Error eliminando tabla: %v", err)
-		}
-	}
-
-	// 🆕 RECREAR TODAS LAS TABLAS
-	log.Println("🆕 Recreando todas las tablas desde cero...")
-
 	// Lista de modelos a migrar
 	modelos := []interface{}{
 		&domain.Role{},
