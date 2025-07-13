@@ -122,6 +122,10 @@ func main() {
 		httpSwagger.DomID("swagger-ui"),
 	))
 
+	// HANDLER PARA SERVIR ARCHIVOS ESTÁTICOS
+	fileServer := stdhttp.FileServer(stdhttp.Dir("uploads/"))
+	mux.Handle("GET /files/", stdhttp.StripPrefix("/files/", fileServer))
+
 	roleHandler.RegisterRoutes(mux)
 	userHandler.RegisterRoutes(mux)
 	notificationHandler.RegisterRoutes(mux)
