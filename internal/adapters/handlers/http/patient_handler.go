@@ -314,11 +314,18 @@ func (h *PatientHandler) CreatePatientWithFile(w http.ResponseWriter, r *http.Re
 		return
 	}
 
+	//obtener el patient por id
+	patient, err := h.patientService.GetByID(ctx, patient.ID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(map[string]string{
+	json.NewEncoder(w).Encode(map[string]interface{}{
 		"message": "Creado exitosamente",
-		"id":      patient.ID.String(),
+		"patient": patient,
 	})
 }
 
