@@ -41,12 +41,18 @@ func (r *reportRepository) GetDashboardData(ctx context.Context, filters *domain
 	}
 
 	// Total de mediciones
-	measureQuery := query
-	if filters != nil && filters.LocalityID != nil {
-		measureQuery = measureQuery.Joins("JOIN patients ON measurements.patient_id = patients.id").
-			Joins("JOIN users ON patients.user_id = users.id").
-			Where("users.locality_id = ?", *filters.LocalityID)
+	measureQuery := r.db.WithContext(ctx)
+	if filters != nil && filters.Days > 0 {
+		since := time.Now().AddDate(0, 0, -filters.Days)
+		measureQuery = measureQuery.Where("measurements.created_at >= ?", since)
 	}
+
+	if filters != nil && filters.LocalityID != nil {
+		measureQuery = measureQuery.Joins("JOIN patients p ON measurements.patient_id = p.id").
+			Joins("JOIN users u ON p.user_id = u.id").
+			Where("u.locality_id = ?", *filters.LocalityID)
+	}
+
 	if err := measureQuery.Model(&domain.Measurement{}).Count(&report.TotalMeasurements).Error; err != nil {
 		return nil, fmt.Errorf("error al contar mediciones: %w", err)
 	}
