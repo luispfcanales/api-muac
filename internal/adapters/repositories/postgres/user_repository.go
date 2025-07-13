@@ -86,11 +86,16 @@ func (r *userRepository) GetByEmail(ctx context.Context, email string) (*domain.
 func (r *userRepository) GetAll(ctx context.Context, localityID *uuid.UUID) ([]*domain.User, error) {
 	var users []*domain.User
 
+	// Corregir los preloads - no existe "Recommendations" (plural) en Measurement
 	query := r.db.WithContext(ctx).
 		Preload("Role").
 		Preload("Locality").
 		Preload("Patients").
-		Preload("Patients.Measurements")
+		Preload("Patients.Measurements", func(db *gorm.DB) *gorm.DB {
+			return db.Order("created_at DESC") // Ordenar las mediciones por paciente
+		}).
+		Preload("Patients.Measurements.Tag").           // Singular, no Tags
+		Preload("Patients.Measurements.Recommendation") // Singular, no Recommendations
 
 	// Aplicar filtro por localidad si se proporciona
 	if localityID != nil {
