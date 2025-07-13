@@ -226,6 +226,7 @@ func (h *UserHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 		Email      string     `json:"email"`
 		DNI        string     `json:"dni"`
 		Phone      string     `json:"phone"`
+		Password   string     `json:"password,omitempty"`
 		RoleID     uuid.UUID  `json:"role_id"`
 		LocalityID *uuid.UUID `json:"locality_id,omitempty"`
 	}
@@ -245,6 +246,23 @@ func (h *UserHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Hashear la nueva contraseña
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(userDTO.Password), bcrypt.DefaultCost)
+	if err != nil {
+		http.Error(w, "Error al hashear la contraseña", http.StatusInternalServerError)
+		return
+	}
+	passwordHash := string(hashedPassword)
+
+	if err := h.userService.UpdatePassword(r.Context(), id, passwordHash); err != nil {
+		if err == domain.ErrUserNotFound {
+			http.Error(w, "Usuario no encontrado", http.StatusNotFound)
+			return
+		}
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
 	user.Update(
 		userDTO.Name,
 		userDTO.LastName,
@@ -252,6 +270,7 @@ func (h *UserHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 		userDTO.Email,
 		userDTO.Phone,
 		userDTO.DNI,
+		passwordHash,
 		userDTO.RoleID,
 		userDTO.LocalityID,
 	)
@@ -360,7 +379,8 @@ func (h *UserHandler) UpdatePassword(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.WriteHeader(http.StatusNoContent)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]string{"message": "Contraseña actualizada"})
 }
 
 // UpdateRole godoc

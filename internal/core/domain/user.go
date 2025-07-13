@@ -80,7 +80,7 @@ func (u *User) Validate() error {
 }
 
 // Update actualiza los campos del usuario
-func (u *User) Update(name, lastname, user, email, phone, dni string, roleID uuid.UUID, localityID *uuid.UUID) {
+func (u *User) Update(name, lastname, user, email, phone, dni, password string, roleID uuid.UUID, localityID *uuid.UUID) {
 	//setear si no esta vacio
 	if name != "" {
 		u.Name = name
@@ -99,6 +99,9 @@ func (u *User) Update(name, lastname, user, email, phone, dni string, roleID uui
 	}
 	if dni != "" {
 		u.DNI = dni
+	}
+	if password != "" {
+		u.PasswordHash = password
 	}
 
 	// Validar si se está actualizando la localidad
