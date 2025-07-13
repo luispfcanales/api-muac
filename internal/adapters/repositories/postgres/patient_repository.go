@@ -36,7 +36,10 @@ func (r *patientRepository) Create(ctx context.Context, patient *domain.Patient)
 func (r *patientRepository) GetByID(ctx context.Context, id uuid.UUID) (*domain.Patient, error) {
 	var patient domain.Patient
 	result := r.db.WithContext(ctx).
-		Preload("Measurements").
+		// Mediciones ordenadas por fecha (más recientes primero)
+		Preload("Measurements", func(db *gorm.DB) *gorm.DB {
+			return db.Order("created_at DESC")
+		}).
 		Preload("Measurements.Tag").
 		Preload("Measurements.Recommendation").
 		Where("ID = ?", id).First(&patient)
