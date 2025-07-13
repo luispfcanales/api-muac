@@ -54,9 +54,9 @@ func (s *userService) GetByEmail(ctx context.Context, email string) (*domain.Use
 	return s.userRepo.GetByEmail(ctx, email)
 }
 
-// GetAll obtiene todos los usuarios
-func (s *userService) GetAll(ctx context.Context) ([]*domain.User, error) {
-	return s.userRepo.GetAll(ctx)
+// GetAll obtiene todos los usuarios, opcionalmente filtrados por localidad
+func (s *userService) GetAll(ctx context.Context, localityID *uuid.UUID) ([]*domain.User, error) {
+	return s.userRepo.GetAll(ctx, localityID)
 }
 
 // Update actualiza un usuario existente

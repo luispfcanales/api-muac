@@ -77,7 +77,18 @@ func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 // @Failure 500 {object} map[string]string "Error interno del servidor"
 // @Router /api/users [get]
 func (h *UserHandler) GetUsers(w http.ResponseWriter, r *http.Request) {
-	users, err := h.userService.GetAll(r.Context())
+	// Extraer locality_id del query parameter
+	var localityID *uuid.UUID
+	if localityIDStr := r.URL.Query().Get("locality_id"); localityIDStr != "" {
+		parsedID, err := uuid.Parse(localityIDStr)
+		if err != nil {
+			http.Error(w, "locality_id inválido: "+err.Error(), http.StatusBadRequest)
+			return
+		}
+		localityID = &parsedID
+	}
+
+	users, err := h.userService.GetAll(r.Context(), localityID)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

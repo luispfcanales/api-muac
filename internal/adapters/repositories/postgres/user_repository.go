@@ -82,15 +82,22 @@ func (r *userRepository) GetByEmail(ctx context.Context, email string) (*domain.
 	return &user, nil
 }
 
-// GetAll obtiene todos los usuarios con sus relaciones
-func (r *userRepository) GetAll(ctx context.Context) ([]*domain.User, error) {
+// GetAll obtiene todos los usuarios con sus relaciones, opcionalmente filtrados por localidad
+func (r *userRepository) GetAll(ctx context.Context, localityID *uuid.UUID) ([]*domain.User, error) {
 	var users []*domain.User
-	result := r.db.WithContext(ctx).
+
+	query := r.db.WithContext(ctx).
 		Preload("Role").
 		Preload("Locality").
 		Preload("Patients").
-		Preload("Patients.Measurements").
-		Find(&users)
+		Preload("Patients.Measurements")
+
+	// Aplicar filtro por localidad si se proporciona
+	if localityID != nil {
+		query = query.Where("locality_id = ?", *localityID)
+	}
+
+	result := query.Find(&users)
 
 	if result.Error != nil {
 		return nil, fmt.Errorf("error al obtener usuarios: %w", result.Error)
