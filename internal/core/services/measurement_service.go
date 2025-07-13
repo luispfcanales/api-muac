@@ -1,139 +1,11 @@
-// package services
-
-// import (
-// 	"context"
-// 	"time"
-
-// 	"github.com/google/uuid"
-// 	"github.com/luispfcanales/api-muac/internal/core/domain"
-// 	"github.com/luispfcanales/api-muac/internal/core/ports"
-// )
-
-// // measurementService implementa la lógica de negocio para mediciones
-// type measurementService struct {
-// 	measurementRepo ports.IMeasurementRepository
-// 	tagRepo         ports.ITagRepository
-// 	recommendRepo   ports.IRecommendationRepository
-// }
-
-// // NewMeasurementService crea una nueva instancia de MeasurementService
-// func NewMeasurementService(
-// 	measurementRepo ports.IMeasurementRepository,
-// 	tagRepo ports.ITagRepository,
-// 	recommendRepo ports.IRecommendationRepository,
-// ) ports.IMeasurementService {
-// 	return &measurementService{
-// 		measurementRepo: measurementRepo,
-// 		tagRepo:         tagRepo,
-// 		recommendRepo:   recommendRepo,
-// 	}
-// }
-
-// // Create crea una nueva medición
-// func (s *measurementService) Create(ctx context.Context, measurement *domain.Measurement) error {
-// 	if err := measurement.Validate(); err != nil {
-// 		return err
-// 	}
-// 	return s.measurementRepo.Create(ctx, measurement)
-// }
-
-// // GetByID obtiene una medición por su ID
-// func (s *measurementService) GetByID(ctx context.Context, id uuid.UUID) (*domain.Measurement, error) {
-// 	return s.measurementRepo.GetByID(ctx, id)
-// }
-
-// // GetByPatientID obtiene mediciones por ID de paciente
-// func (s *measurementService) GetByPatientID(ctx context.Context, patientID uuid.UUID) ([]*domain.Measurement, error) {
-// 	return s.measurementRepo.GetByPatientID(ctx, patientID)
-// }
-
-// // GetByUserID obtiene mediciones por ID de usuario
-// func (s *measurementService) GetByUserID(ctx context.Context, userID uuid.UUID) ([]*domain.Measurement, error) {
-// 	return s.measurementRepo.GetByUserID(ctx, userID)
-// }
-
-// // GetByTagID obtiene mediciones por ID de etiqueta
-// func (s *measurementService) GetByTagID(ctx context.Context, tagID uuid.UUID) ([]*domain.Measurement, error) {
-// 	return s.measurementRepo.GetByTagID(ctx, tagID)
-// }
-
-// // GetByRecommendationID obtiene mediciones por ID de recomendación
-// func (s *measurementService) GetByRecommendationID(ctx context.Context, recommendationID uuid.UUID) ([]*domain.Measurement, error) {
-// 	return s.measurementRepo.GetByRecommendationID(ctx, recommendationID)
-// }
-
-// // GetByDateRange obtiene mediciones dentro de un rango de fechas
-// func (s *measurementService) GetByDateRange(ctx context.Context, startDate, endDate time.Time) ([]*domain.Measurement, error) {
-// 	return s.measurementRepo.GetByDateRange(ctx, startDate, endDate)
-// }
-
-// // GetAll obtiene todas las mediciones
-// func (s *measurementService) GetAll(ctx context.Context) ([]*domain.Measurement, error) {
-// 	return s.measurementRepo.GetAll(ctx)
-// }
-
-// // Update actualiza una medición existente
-// func (s *measurementService) Update(ctx context.Context, measurement *domain.Measurement) error {
-// 	if err := measurement.Validate(); err != nil {
-// 		return err
-// 	}
-// 	return s.measurementRepo.Update(ctx, measurement)
-// }
-
-// // Delete elimina una medición por su ID
-// func (s *measurementService) Delete(ctx context.Context, id uuid.UUID) error {
-// 	return s.measurementRepo.Delete(ctx, id)
-// }
-
-// // AssignTag asigna una etiqueta a una medición
-// func (s *measurementService) AssignTag(ctx context.Context, measurementID, tagID uuid.UUID) error {
-// 	// Verificar que la medición existe
-// 	measurement, err := s.measurementRepo.GetByID(ctx, measurementID)
-// 	if err != nil {
-// 		return err
-// 	}
-
-// 	// Verificar que la etiqueta existe
-// 	if tagID != uuid.Nil {
-// 		_, err = s.tagRepo.GetByID(ctx, tagID)
-// 		if err != nil {
-// 			return err
-// 		}
-// 	}
-
-// 	// Asignar la etiqueta
-// 	measurement.SetTag(&tagID)
-
-// 	return s.measurementRepo.Update(ctx, measurement)
-// }
-
-// // AssignRecommendation asigna una recomendación a una medición
-// func (s *measurementService) AssignRecommendation(ctx context.Context, measurementID, recommendationID uuid.UUID) error {
-// 	// Verificar que la medición existe
-// 	measurement, err := s.measurementRepo.GetByID(ctx, measurementID)
-// 	if err != nil {
-// 		return err
-// 	}
-
-// 	// Verificar que la recomendación existe
-// 	if recommendationID != uuid.Nil {
-// 		_, err = s.recommendRepo.GetByID(ctx, recommendationID)
-// 		if err != nil {
-// 			return err
-// 		}
-// 	}
-
-//		// Asignar la recomendación
-//		measurement.SetRecommendation(&recommendationID)
-//		return s.measurementRepo.Update(ctx, measurement)
-//	}
-//
-// services/measurement_service.go (ACTUALIZADO)
+// services/measurement_service.go (ACTUALIZADO CON MANEJO DE DUPLICADOS)
 package services
 
 import (
 	"context"
 	"fmt"
+	"log"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -169,7 +41,7 @@ func (s *measurementService) Create(ctx context.Context, measurement *domain.Mea
 	return s.measurementRepo.Create(ctx, measurement)
 }
 
-// CreateWithAutoAssignment crea una nueva medición con asignación automática de tag y recomendación (NUEVO)
+// CreateWithAutoAssignment crea una nueva medición con asignación automática de tag y recomendación (ACTUALIZADO)
 func (s *measurementService) CreateWithAutoAssignment(ctx context.Context, muacValue float64, description string, patientID, userID uuid.UUID) (*domain.Measurement, error) {
 	// Validar valor MUAC
 	if !domain.IsValidMuacValue(muacValue) {
@@ -220,9 +92,9 @@ func (s *measurementService) CreateWithAutoAssignment(ctx context.Context, muacV
 	return measurement, nil
 }
 
-// getOrCreateMuacTag obtiene o crea el tag apropiado para el código MUAC (NUEVO - MÉTODO PRIVADO)
+// getOrCreateMuacTag obtiene o crea el tag apropiado para el código MUAC (MÉTODO CORREGIDO)
 func (s *measurementService) getOrCreateMuacTag(ctx context.Context, muacCode, colorCode string, priority int) (*domain.Tag, error) {
-	// Intentar obtener tag existente por código MUAC si el repo lo soporta
+	// PASO 1: Intentar obtener tag existente por código MUAC si el repo lo soporta
 	if tagRepoExtended, ok := s.tagRepo.(interface {
 		GetByMuacCode(ctx context.Context, muacCode string) (*domain.Tag, error)
 	}); ok {
@@ -232,28 +104,102 @@ func (s *measurementService) getOrCreateMuacTag(ctx context.Context, muacCode, c
 		}
 	}
 
-	// Si no existe o el repo no soporta GetByMuacCode, crear uno nuevo
+	// PASO 2: Buscar por nombre del tag usando GetAll (FALLBACK PRINCIPAL)
+	allTags, err := s.tagRepo.GetAll(ctx)
+	if err == nil {
+		// Buscar tag existente por código MUAC
+		for _, tag := range allTags {
+			if tag.MuacCode == muacCode && tag.Active {
+				return tag, nil
+			}
+		}
+
+		// Si no se encuentra por muac_code, buscar por nombre generado
+		expectedName := s.getMuacTagName(muacCode)
+		for _, tag := range allTags {
+			if tag.Name == expectedName && tag.Active {
+				// Actualizar el tag existente con el muac_code si no lo tiene
+				if tag.MuacCode == "" {
+					tag.MuacCode = muacCode
+					tag.Color = colorCode
+					tag.Priority = priority
+					tag.UpdatedAt = time.Now()
+
+					// Actualizar en la base de datos
+					if updateErr := s.tagRepo.Update(ctx, tag); updateErr != nil {
+						log.Printf("Warning: No se pudo actualizar tag existente: %v", updateErr)
+					}
+				}
+				return tag, nil
+			}
+		}
+
+		// Buscar por nombre similar (manejo de emojis/caracteres especiales)
+		for _, tag := range allTags {
+			if s.isTagNameSimilar(tag.Name, expectedName) && tag.Active {
+				// Actualizar con muac_code si no lo tiene
+				if tag.MuacCode == "" {
+					tag.MuacCode = muacCode
+					tag.Color = colorCode
+					tag.Priority = priority
+					tag.UpdatedAt = time.Now()
+
+					if updateErr := s.tagRepo.Update(ctx, tag); updateErr != nil {
+						log.Printf("Warning: No se pudo actualizar tag similar: %v", updateErr)
+					}
+				}
+				return tag, nil
+			}
+		}
+	}
+
+	// PASO 3: Si no existe, crear uno nuevo
 	name := s.getMuacTagName(muacCode)
 	description := s.getMuacTagDescription(muacCode)
 
 	newTag := domain.NewMuacTag(name, description, colorCode, muacCode, priority)
 
 	if err := s.tagRepo.Create(ctx, newTag); err != nil {
+		// Si hay error de duplicado, intentar buscar nuevamente
+		if strings.Contains(err.Error(), "duplicate key") || strings.Contains(err.Error(), "UNIQUE constraint") {
+			log.Printf("Tag duplicado detectado, buscando tag existente para: %s", muacCode)
+
+			// Reintentiar búsqueda por si acaso otro proceso lo creó
+			if allTags, retryErr := s.tagRepo.GetAll(ctx); retryErr == nil {
+				for _, tag := range allTags {
+					if tag.MuacCode == muacCode && tag.Active {
+						return tag, nil
+					}
+					if tag.Name == name && tag.Active {
+						return tag, nil
+					}
+					if s.isTagNameSimilar(tag.Name, name) && tag.Active {
+						return tag, nil
+					}
+				}
+			}
+		}
 		return nil, fmt.Errorf("error al crear tag MUAC: %w", err)
 	}
 
 	return newTag, nil
 }
 
-// getOrCreateMuacRecommendation obtiene o crea la recomendación apropiada (NUEVO - MÉTODO PRIVADO)
+// getOrCreateMuacRecommendation obtiene o crea la recomendación apropiada (MÉTODO CORREGIDO)
 func (s *measurementService) getOrCreateMuacRecommendation(ctx context.Context, muacValue float64, muacCode string) (*domain.Recommendation, error) {
-	// Intentar obtener recomendaciones activas si el repo lo soporta
+	// PASO 1: Intentar obtener recomendaciones activas si el repo lo soporta
 	if recommendRepoExtended, ok := s.recommendRepo.(interface {
 		GetActiveRecommendations(ctx context.Context) ([]*domain.Recommendation, error)
 	}); ok {
 		recommendations, err := recommendRepoExtended.GetActiveRecommendations(ctx)
 		if err == nil {
-			// Buscar recomendación aplicable
+			// Buscar recomendación aplicable por muac_code primero
+			for _, rec := range recommendations {
+				if rec.MuacCode == muacCode && rec.IsApplicableForMuac(muacValue) {
+					return rec, nil
+				}
+			}
+			// Si no encuentra por muac_code, buscar por rango
 			for _, rec := range recommendations {
 				if rec.IsApplicableForMuac(muacValue) {
 					return rec, nil
@@ -262,11 +208,48 @@ func (s *measurementService) getOrCreateMuacRecommendation(ctx context.Context, 
 		}
 	}
 
-	// Si no hay recomendaciones aplicables, crear una por defecto
+	// PASO 2: Usar GetAll como fallback
+	allRecommendations, err := s.recommendRepo.GetAll(ctx)
+	if err == nil {
+		// Filtrar solo las activas
+		activeRecs := domain.FilterActiveRecommendations(allRecommendations)
+
+		// Buscar por código MUAC específico
+		for _, rec := range activeRecs {
+			if rec.MuacCode == muacCode && rec.IsApplicableForMuac(muacValue) {
+				return rec, nil
+			}
+		}
+
+		// Buscar por rango aplicable
+		for _, rec := range activeRecs {
+			if rec.IsApplicableForMuac(muacValue) {
+				return rec, nil
+			}
+		}
+
+		// Buscar por nombre si las anteriores fallan
+		expectedName := s.getExpectedRecommendationName(muacCode)
+		for _, rec := range activeRecs {
+			if strings.Contains(rec.Name, expectedName) {
+				// Actualizar muac_code si no lo tiene
+				if rec.MuacCode == "" {
+					rec.MuacCode = muacCode
+					rec.UpdatedAt = time.Now()
+					if updateErr := s.recommendRepo.Update(ctx, rec); updateErr != nil {
+						log.Printf("Warning: No se pudo actualizar recomendación: %v", updateErr)
+					}
+				}
+				return rec, nil
+			}
+		}
+	}
+
+	// PASO 3: Si no hay recomendaciones aplicables, crear una por defecto
 	return s.createDefaultRecommendation(ctx, muacCode, muacValue)
 }
 
-// createDefaultRecommendation crea una recomendación por defecto completa y contextualizada (ACTUALIZADO)
+// createDefaultRecommendation crea una recomendación por defecto completa y contextualizada (MEJORADO)
 func (s *measurementService) createDefaultRecommendation(ctx context.Context, muacCode string, muacValue float64) (*domain.Recommendation, error) {
 	var name, description string
 	var minValue, maxValue *float64
@@ -361,6 +344,12 @@ func (s *measurementService) createDefaultRecommendation(ctx context.Context, mu
 		colorCode = domain.ColorGray
 	}
 
+	// Verificar si ya existe una recomendación similar
+	if existingRec, exists := s.recommendationExists(ctx, name, muacCode); exists {
+		return existingRec, nil
+	}
+
+	// Crear nueva recomendación
 	recommendation := domain.NewMuacRecommendation(
 		name,
 		description,
@@ -372,13 +361,70 @@ func (s *measurementService) createDefaultRecommendation(ctx context.Context, mu
 	)
 
 	if err := s.recommendRepo.Create(ctx, recommendation); err != nil {
+		// Si hay error de duplicado, intentar buscar la existente
+		if strings.Contains(err.Error(), "duplicate key") || strings.Contains(err.Error(), "UNIQUE constraint") {
+			log.Printf("Recomendación duplicada detectada, buscando existente para: %s", muacCode)
+
+			if existingRec, exists := s.recommendationExists(ctx, name, muacCode); exists {
+				return existingRec, nil
+			}
+		}
 		return nil, fmt.Errorf("error al crear recomendación por defecto: %w", err)
 	}
 
 	return recommendation, nil
 }
 
-// getMuacTagName retorna el nombre del tag según código MUAC (NUEVO - MÉTODO PRIVADO)
+// ============= MÉTODOS HELPER PRIVADOS =============
+
+// isTagNameSimilar verifica si dos nombres de tags son similares (maneja emojis)
+func (s *measurementService) isTagNameSimilar(name1, name2 string) bool {
+	// Remover emojis y espacios extra para comparar
+	clean1 := strings.TrimSpace(strings.ReplaceAll(strings.ReplaceAll(strings.ReplaceAll(name1, "🚨", ""), "🟡", ""), "✅", ""))
+	clean2 := strings.TrimSpace(strings.ReplaceAll(strings.ReplaceAll(strings.ReplaceAll(name2, "🚨", ""), "🟡", ""), "✅", ""))
+
+	return strings.Contains(clean1, "ALERTA ROJA") && strings.Contains(clean2, "ALERTA ROJA") ||
+		strings.Contains(clean1, "ALERTA AMARILLA") && strings.Contains(clean2, "ALERTA AMARILLA") ||
+		strings.Contains(clean1, "ZONA VERDE") && strings.Contains(clean2, "ZONA VERDE") ||
+		strings.Contains(clean1, "SEGUIMIENTO") && strings.Contains(clean2, "SEGUIMIENTO")
+}
+
+// getExpectedRecommendationName retorna el nombre esperado para buscar recomendaciones existentes
+func (s *measurementService) getExpectedRecommendationName(muacCode string) string {
+	switch muacCode {
+	case domain.MuacCodeRed:
+		return "ALERTA ROJA"
+	case domain.MuacCodeYellow:
+		return "ALERTA AMARILLA"
+	case domain.MuacCodeGreen:
+		return "ZONA VERDE"
+	case domain.MuacCodeFollow:
+		return "Seguimiento"
+	default:
+		return "General"
+	}
+}
+
+// recommendationExists verifica si una recomendación ya existe antes de crear
+func (s *measurementService) recommendationExists(ctx context.Context, name string, muacCode string) (*domain.Recommendation, bool) {
+	allRecommendations, err := s.recommendRepo.GetAll(ctx)
+	if err != nil {
+		return nil, false
+	}
+
+	for _, rec := range allRecommendations {
+		if rec.Active && (rec.Name == name || rec.MuacCode == muacCode) {
+			return rec, true
+		}
+		// Buscar por nombre similar
+		if rec.Active && strings.Contains(rec.Name, s.getExpectedRecommendationName(muacCode)) {
+			return rec, true
+		}
+	}
+	return nil, false
+}
+
+// getMuacTagName retorna el nombre del tag según código MUAC (MÉTODO PRIVADO)
 func (s *measurementService) getMuacTagName(muacCode string) string {
 	switch muacCode {
 	case domain.MuacCodeRed:
@@ -394,7 +440,7 @@ func (s *measurementService) getMuacTagName(muacCode string) string {
 	}
 }
 
-// getMuacTagDescription retorna la descripción del tag según código MUAC (NUEVO - MÉTODO PRIVADO)
+// getMuacTagDescription retorna la descripción del tag según código MUAC (MÉTODO PRIVADO)
 func (s *measurementService) getMuacTagDescription(muacCode string) string {
 	switch muacCode {
 	case domain.MuacCodeRed:
