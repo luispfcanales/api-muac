@@ -28,15 +28,20 @@ func NewReportRepository(db *gorm.DB) ports.IReportRepository {
 func (r *reportRepository) GetDashboardData(ctx context.Context, filters *domain.ReportFilters) (*domain.DashboardReport, error) {
 	report := &domain.DashboardReport{}
 
-	// Aplicar filtros de tiempo
-	query := r.db.WithContext(ctx)
+	// Total de pacientes
+	patientQuery := r.db.WithContext(ctx)
 	if filters != nil && filters.Days > 0 {
 		since := time.Now().AddDate(0, 0, -filters.Days)
-		query = query.Where("created_at >= ?", since)
+		patientQuery = patientQuery.Where("patients.created_at >= ?", since)
 	}
 
-	// Total de pacientes
-	if err := query.Model(&domain.Patient{}).Count(&report.TotalPatients).Error; err != nil {
+	// Agregar filtro por localidad para pacientes
+	if filters != nil && filters.LocalityID != nil {
+		patientQuery = patientQuery.Joins("JOIN users u ON patients.user_id = u.id").
+			Where("u.locality_id = ?", *filters.LocalityID)
+	}
+
+	if err := patientQuery.Model(&domain.Patient{}).Count(&report.TotalPatients).Error; err != nil {
 		return nil, fmt.Errorf("error al contar pacientes: %w", err)
 	}
 
