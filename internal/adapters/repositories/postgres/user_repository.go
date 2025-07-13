@@ -82,6 +82,35 @@ func (r *userRepository) GetByEmail(ctx context.Context, email string) (*domain.
 	return &user, nil
 }
 
+// GetByRole obtiene todos los usuarios por rol, opcionalmente filtrados por localidad
+func (r *userRepository) GetByRole(ctx context.Context, roleName string, localityID *uuid.UUID) ([]*domain.User, error) {
+	var users []*domain.User
+
+	query := r.db.WithContext(ctx).
+		Preload("Role").
+		Preload("Locality").
+		Preload("Patients").
+		Preload("Patients.Measurements", func(db *gorm.DB) *gorm.DB {
+			return db.Order("created_at DESC")
+		}).
+		Preload("Patients.Measurements.Tag").
+		Preload("Patients.Measurements.Recommendation").
+		Joins("JOIN roles ON users.role_id = roles.id").
+		Where("roles.name = ?", roleName)
+
+	// Aplicar filtro por localidad si se proporciona
+	if localityID != nil {
+		query = query.Where("users.locality_id = ?", *localityID)
+	}
+
+	result := query.Find(&users)
+
+	if result.Error != nil {
+		return nil, fmt.Errorf("error al obtener usuarios con rol %s: %w", roleName, result.Error)
+	}
+	return users, nil
+}
+
 // GetAll obtiene todos los usuarios con sus relaciones, opcionalmente filtrados por localidad
 func (r *userRepository) GetAll(ctx context.Context, localityID *uuid.UUID) ([]*domain.User, error) {
 	var users []*domain.User

@@ -59,6 +59,11 @@ func (s *userService) GetAll(ctx context.Context, localityID *uuid.UUID) ([]*dom
 	return s.userRepo.GetAll(ctx, localityID)
 }
 
+// GetApoderados obtiene todos los usuarios con rol de APODERADO, opcionalmente filtrados por localidad
+func (s *userService) GetApoderados(ctx context.Context, localityID *uuid.UUID) ([]*domain.User, error) {
+	return s.userRepo.GetByRole(ctx, "APODERADO", localityID)
+}
+
 // Update actualiza un usuario existente
 func (s *userService) Update(ctx context.Context, user *domain.User) error {
 	if err := user.Validate(); err != nil {

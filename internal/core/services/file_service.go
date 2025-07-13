@@ -12,7 +12,9 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/luispfcanales/api-muac/internal/core/domain"
 	"github.com/luispfcanales/api-muac/internal/core/ports"
+	"github.com/xuri/excelize/v2"
 )
 
 type FileService struct {
@@ -239,4 +241,206 @@ func (fs *FileService) loadFileMetadata(metadataPath string) (*ports.FileInfo, e
 	}
 
 	return &info, nil
+}
+
+func (s *FileService) GenerateApoderadosReport(ctx context.Context, users []*domain.User) ([]byte, error) {
+	f := excelize.NewFile()
+	defer f.Close()
+
+	// Crear hojas
+	if err := s.createApoderadosSheet(f, users); err != nil {
+		return nil, fmt.Errorf("error creando hoja de apoderados: %w", err)
+	}
+
+	if err := s.createPatientsSheet(f, users); err != nil {
+		return nil, fmt.Errorf("error creando hoja de pacientes: %w", err)
+	}
+
+	if err := s.createMeasurementsSheet(f, users); err != nil {
+		return nil, fmt.Errorf("error creando hoja de mediciones: %w", err)
+	}
+
+	// Eliminar la hoja por defecto
+	f.DeleteSheet("Sheet1")
+
+	// Generar el archivo
+	buffer, err := f.WriteToBuffer()
+	if err != nil {
+		return nil, fmt.Errorf("error generando archivo Excel: %w", err)
+	}
+
+	return buffer.Bytes(), nil
+}
+
+func (s *FileService) createApoderadosSheet(f *excelize.File, users []*domain.User) error {
+	sheetName := "Apoderados"
+	index, err := f.NewSheet(sheetName)
+	if err != nil {
+		return err
+	}
+	f.SetActiveSheet(index)
+
+	// Headers
+	headers := []string{"ID", "Nombre", "Apellido", "Username", "Email", "DNI", "Teléfono", "Activo", "Rol", "Localidad", "Total Pacientes"}
+	for i, header := range headers {
+		cell := fmt.Sprintf("%c1", 'A'+i)
+		f.SetCellValue(sheetName, cell, header)
+	}
+
+	// Estilo para headers
+	style, _ := f.NewStyle(&excelize.Style{
+		Font: &excelize.Font{Bold: true},
+		Fill: excelize.Fill{Type: "pattern", Color: []string{"CCCCCC"}, Pattern: 1},
+	})
+	f.SetCellStyle(sheetName, "A1", fmt.Sprintf("%c1", 'A'+len(headers)-1), style)
+
+	// Datos
+	for i, user := range users {
+		row := i + 2
+		f.SetCellValue(sheetName, fmt.Sprintf("A%d", row), user.ID.String())
+		f.SetCellValue(sheetName, fmt.Sprintf("B%d", row), user.Name)
+		f.SetCellValue(sheetName, fmt.Sprintf("C%d", row), user.LastName)
+		f.SetCellValue(sheetName, fmt.Sprintf("D%d", row), user.Username)
+		f.SetCellValue(sheetName, fmt.Sprintf("E%d", row), user.Email)
+		f.SetCellValue(sheetName, fmt.Sprintf("F%d", row), user.DNI)
+		f.SetCellValue(sheetName, fmt.Sprintf("G%d", row), user.Phone)
+		f.SetCellValue(sheetName, fmt.Sprintf("H%d", row), user.Active)
+		if user.Role.ID != uuid.Nil {
+			f.SetCellValue(sheetName, fmt.Sprintf("I%d", row), user.Role.Name)
+		}
+		if user.Locality != nil {
+			f.SetCellValue(sheetName, fmt.Sprintf("J%d", row), user.Locality.Name)
+		}
+		f.SetCellValue(sheetName, fmt.Sprintf("K%d", row), len(user.Patients))
+	}
+
+	// Ajustar ancho de columnas
+	columns := []string{"A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K"}
+	for _, col := range columns {
+		f.SetColWidth(sheetName, col, col, 15)
+	}
+
+	return nil
+}
+
+func (s *FileService) createPatientsSheet(f *excelize.File, users []*domain.User) error {
+	sheetName := "Pacientes"
+	_, err := f.NewSheet(sheetName)
+	if err != nil {
+		return err
+	}
+
+	// Headers
+	headers := []string{"Paciente ID", "Nombre", "Apellido", "Género", "Edad", "DNI", "Fecha Nacimiento",
+		"Talla Brazo", "Peso", "Talla", "Consentimiento", "Fecha Consentimiento", "Descripción",
+		"Apoderado", "Localidad", "Total Mediciones"}
+
+	for i, header := range headers {
+		cell := fmt.Sprintf("%c1", 'A'+i)
+		f.SetCellValue(sheetName, cell, header)
+	}
+
+	// Estilo para headers
+	style, _ := f.NewStyle(&excelize.Style{
+		Font: &excelize.Font{Bold: true},
+		Fill: excelize.Fill{Type: "pattern", Color: []string{"CCCCCC"}, Pattern: 1},
+	})
+	f.SetCellStyle(sheetName, "A1", fmt.Sprintf("%c1", 'A'+len(headers)-1), style)
+
+	// Datos
+	row := 2
+	for _, user := range users {
+		for _, patient := range user.Patients {
+			f.SetCellValue(sheetName, fmt.Sprintf("A%d", row), patient.ID.String())
+			f.SetCellValue(sheetName, fmt.Sprintf("B%d", row), patient.Name)
+			f.SetCellValue(sheetName, fmt.Sprintf("C%d", row), patient.Lastname)
+			f.SetCellValue(sheetName, fmt.Sprintf("D%d", row), patient.Gender)
+			f.SetCellValue(sheetName, fmt.Sprintf("E%d", row), patient.Age)
+			f.SetCellValue(sheetName, fmt.Sprintf("F%d", row), patient.DNI)
+			f.SetCellValue(sheetName, fmt.Sprintf("G%d", row), patient.BirthDate)
+			f.SetCellValue(sheetName, fmt.Sprintf("H%d", row), patient.ArmSize)
+			f.SetCellValue(sheetName, fmt.Sprintf("I%d", row), patient.Weight)
+			f.SetCellValue(sheetName, fmt.Sprintf("J%d", row), patient.Size)
+			f.SetCellValue(sheetName, fmt.Sprintf("K%d", row), patient.ConsentGiven)
+			if !patient.ConsentDate.IsZero() {
+				f.SetCellValue(sheetName, fmt.Sprintf("L%d", row), patient.ConsentDate.Format("2006-01-02"))
+			}
+			f.SetCellValue(sheetName, fmt.Sprintf("M%d", row), patient.Description)
+			f.SetCellValue(sheetName, fmt.Sprintf("N%d", row), user.Name+" "+user.LastName)
+			if user.Locality != nil {
+				f.SetCellValue(sheetName, fmt.Sprintf("O%d", row), user.Locality.Name)
+			}
+			f.SetCellValue(sheetName, fmt.Sprintf("P%d", row), len(patient.Measurements))
+			row++
+		}
+	}
+
+	// Ajustar ancho de columnas
+	for i := 0; i < len(headers); i++ {
+		col := string(rune('A' + i))
+		f.SetColWidth(sheetName, col, col, 15)
+	}
+
+	return nil
+}
+
+func (s *FileService) createMeasurementsSheet(f *excelize.File, users []*domain.User) error {
+	sheetName := "Mediciones"
+	_, err := f.NewSheet(sheetName)
+	if err != nil {
+		return err
+	}
+
+	// Headers
+	headers := []string{"Medición ID", "Valor MUAC", "Descripción", "Fecha", "Paciente", "Apoderado",
+		"Localidad", "Tag", "Color Tag", "Prioridad Tag", "Recomendación", "Umbral", "Código MUAC"}
+
+	for i, header := range headers {
+		cell := fmt.Sprintf("%c1", 'A'+i)
+		f.SetCellValue(sheetName, cell, header)
+	}
+
+	// Estilo para headers
+	style, _ := f.NewStyle(&excelize.Style{
+		Font: &excelize.Font{Bold: true},
+		Fill: excelize.Fill{Type: "pattern", Color: []string{"CCCCCC"}, Pattern: 1},
+	})
+	f.SetCellStyle(sheetName, "A1", fmt.Sprintf("%c1", 'A'+len(headers)-1), style)
+
+	// Datos
+	row := 2
+	for _, user := range users {
+		for _, patient := range user.Patients {
+			for _, measurement := range patient.Measurements {
+				f.SetCellValue(sheetName, fmt.Sprintf("A%d", row), measurement.ID.String())
+				f.SetCellValue(sheetName, fmt.Sprintf("B%d", row), measurement.MuacValue)
+				f.SetCellValue(sheetName, fmt.Sprintf("C%d", row), measurement.Description)
+				f.SetCellValue(sheetName, fmt.Sprintf("D%d", row), measurement.CreatedAt.Format("2006-01-02 15:04:05"))
+				f.SetCellValue(sheetName, fmt.Sprintf("E%d", row), patient.Name+" "+patient.Lastname)
+				f.SetCellValue(sheetName, fmt.Sprintf("F%d", row), user.Name+" "+user.LastName)
+				if user.Locality != nil {
+					f.SetCellValue(sheetName, fmt.Sprintf("G%d", row), user.Locality.Name)
+				}
+				if measurement.Tag != nil {
+					f.SetCellValue(sheetName, fmt.Sprintf("H%d", row), measurement.Tag.Name)
+					f.SetCellValue(sheetName, fmt.Sprintf("I%d", row), measurement.Tag.Color)
+					f.SetCellValue(sheetName, fmt.Sprintf("J%d", row), measurement.Tag.Priority)
+				}
+				if measurement.Recommendation != nil {
+					f.SetCellValue(sheetName, fmt.Sprintf("K%d", row), measurement.Recommendation.Name)
+					f.SetCellValue(sheetName, fmt.Sprintf("L%d", row), measurement.Recommendation.RecommendationUmbral)
+					f.SetCellValue(sheetName, fmt.Sprintf("M%d", row), measurement.Recommendation.MuacCode)
+				}
+				row++
+			}
+		}
+	}
+
+	// Ajustar ancho de columnas
+	for i := 0; i < len(headers); i++ {
+		col := string(rune('A' + i))
+		f.SetColWidth(sheetName, col, col, 18)
+	}
+
+	return nil
 }

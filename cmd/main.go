@@ -94,7 +94,7 @@ func main() {
 
 	// Crear manejadores HTTP
 	roleHandler := http.NewRoleHandler(roleService)
-	userHandler := http.NewUserHandler(userService)
+	userHandler := http.NewUserHandler(userService, fileService)
 	notificationHandler := http.NewNotificationHandler(notificationService)
 	faqHandler := http.NewFAQHandler(faqService)
 	localityHandler := http.NewLocalityHandler(localityService)

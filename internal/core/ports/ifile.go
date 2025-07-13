@@ -4,6 +4,8 @@ import (
 	"context"
 	"io"
 	"mime/multipart"
+
+	"github.com/luispfcanales/api-muac/internal/core/domain"
 )
 
 // FileInfo contiene información sobre un archivo subido
@@ -37,4 +39,6 @@ type IFileService interface {
 
 	// ValidateFile valida si un archivo es válido (tipo, tamaño, etc.)
 	ValidateFile(header *multipart.FileHeader) error
+
+	GenerateApoderadosReport(ctx context.Context, users []*domain.User) ([]byte, error)
 }

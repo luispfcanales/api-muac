@@ -16,6 +16,7 @@ type IUserRepository interface {
 	GetAll(ctx context.Context, localityID *uuid.UUID) ([]*domain.User, error)
 	Update(ctx context.Context, user *domain.User) error
 	Delete(ctx context.Context, id uuid.UUID) error
+	GetByRole(ctx context.Context, roleName string, localityID *uuid.UUID) ([]*domain.User, error)
 }
 
 // IUserService define las operaciones del servicio para usuarios
@@ -29,4 +30,5 @@ type IUserService interface {
 	Delete(ctx context.Context, id uuid.UUID) error
 	UpdatePassword(ctx context.Context, id uuid.UUID, passwordHash string) error
 	UpdateRole(ctx context.Context, id uuid.UUID, roleID uuid.UUID) error
+	GetApoderados(ctx context.Context, localityID *uuid.UUID) ([]*domain.User, error)
 }

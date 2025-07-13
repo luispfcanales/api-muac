@@ -2,8 +2,11 @@ package http
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
+	"strconv"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/luispfcanales/api-muac/internal/core/domain"
@@ -13,18 +16,21 @@ import (
 
 // UserHandler maneja las peticiones HTTP relacionadas con usuarios
 type UserHandler struct {
-	userService ports.IUserService
+	userService  ports.IUserService
+	excelService ports.IFileService
 }
 
 // NewUserHandler crea una nueva instancia de UserHandler
-func NewUserHandler(userService ports.IUserService) *UserHandler {
+func NewUserHandler(userService ports.IUserService, excelService ports.IFileService) *UserHandler {
 	return &UserHandler{
-		userService: userService,
+		userService:  userService,
+		excelService: excelService,
 	}
 }
 
 // RegisterRoutes registra las rutas del handler en el router
 func (h *UserHandler) RegisterRoutes(mux *http.ServeMux) {
+	mux.HandleFunc("GET /api/users/reporte/excel", h.GetApoderados)
 	mux.HandleFunc("GET /api/users", h.GetUsers)
 	mux.HandleFunc("POST /api/users/login", h.Login)
 	mux.HandleFunc("POST /api/users", h.CreateUser)
@@ -96,6 +102,42 @@ func (h *UserHandler) GetUsers(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(users)
+}
+
+func (h *UserHandler) GetApoderados(w http.ResponseWriter, r *http.Request) {
+	// Extraer locality_id del query parameter (opcional)
+	var localityID *uuid.UUID
+	if localityIDStr := r.URL.Query().Get("locality_id"); localityIDStr != "" {
+		parsedID, err := uuid.Parse(localityIDStr)
+		if err != nil {
+			http.Error(w, "locality_id inválido: "+err.Error(), http.StatusBadRequest)
+			return
+		}
+		localityID = &parsedID
+	}
+
+	// Obtener usuarios
+	users, err := h.userService.GetApoderados(r.Context(), localityID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Generar Excel
+	excelData, err := h.excelService.GenerateApoderadosReport(r.Context(), users)
+	if err != nil {
+		http.Error(w, "Error generando reporte Excel: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Configurar headers para descarga
+	filename := fmt.Sprintf("reporte_apoderados_%s.xlsx", time.Now().Format("2006-01-02_15-04-05"))
+	w.Header().Set("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+	w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=%s", filename))
+	w.Header().Set("Content-Length", strconv.Itoa(len(excelData)))
+
+	// Escribir el archivo
+	w.Write(excelData)
 }
 
 // GetUserByID godoc
