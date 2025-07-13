@@ -80,14 +80,36 @@ func (u *User) Validate() error {
 }
 
 // Update actualiza los campos del usuario
-func (u *User) Update(name, lastname, user, email, phone, dni string, roleID uuid.UUID) {
-	u.Name = name
-	u.LastName = lastname
-	u.Username = user
-	u.Email = email
-	u.DNI = dni
-	u.Phone = phone
-	u.RoleID = roleID
+func (u *User) Update(name, lastname, user, email, phone, dni string, roleID uuid.UUID, localityID *uuid.UUID) {
+	//setear si no esta vacio
+	if name != "" {
+		u.Name = name
+	}
+	if lastname != "" {
+		u.LastName = lastname
+	}
+	if user != "" {
+		u.Username = user
+	}
+	if email != "" {
+		u.Email = email
+	}
+	if phone != "" {
+		u.Phone = phone
+	}
+	if dni != "" {
+		u.DNI = dni
+	}
+
+	// Validar si se está actualizando la localidad
+	if localityID != nil {
+		u.LocalityID = localityID
+	}
+
+	// Validar si se está actualizando el rol
+	if roleID != uuid.Nil {
+		u.RoleID = roleID
+	}
 
 	now := time.Now()
 	u.UpdatedAt = &now

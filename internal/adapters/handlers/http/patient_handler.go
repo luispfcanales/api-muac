@@ -2,9 +2,11 @@ package http
 
 import (
 	"encoding/json"
+	"errors"
+	"log"
 	"net/http"
 	"strconv"
-	"time"
+	"strings"
 
 	"github.com/google/uuid"
 	"github.com/luispfcanales/api-muac/internal/core/domain"
@@ -13,15 +15,17 @@ import (
 
 // PatientHandler maneja las peticiones HTTP relacionadas con pacientes
 type PatientHandler struct {
-	patientService ports.IPatientService
-	fileService    ports.IFileService // Agregar servicio de archivos
+	patientService     ports.IPatientService
+	measurementService ports.IMeasurementService
+	fileService        ports.IFileService // Agregar servicio de archivos
 }
 
 // NewPatientHandler crea una nueva instancia de PatientHandler
-func NewPatientHandler(patientService ports.IPatientService, fileService ports.IFileService) *PatientHandler {
+func NewPatientHandler(patientService ports.IPatientService, measurementService ports.IMeasurementService, fileService ports.IFileService) *PatientHandler {
 	return &PatientHandler{
-		patientService: patientService,
-		fileService:    fileService,
+		patientService:     patientService,
+		measurementService: measurementService,
+		fileService:        fileService,
 	}
 }
 
@@ -551,53 +555,213 @@ func (h *PatientHandler) GetPatientMeasurements(w http.ResponseWriter, r *http.R
 	json.NewEncoder(w).Encode(measurements)
 }
 
-// AddPatientMeasurement añade una nueva medición a un paciente
+// // AddPatientMeasurement añade una nueva medición a un paciente
+// func (h *PatientHandler) AddPatientMeasurement(w http.ResponseWriter, r *http.Request) {
+// 	ctx := r.Context()
+
+// 	idStr := r.PathValue("id")
+// 	if idStr == "" {
+// 		http.Error(w, "ID de paciente no proporcionado", http.StatusBadRequest)
+// 		return
+// 	}
+
+// 	id, err := uuid.Parse(idStr)
+// 	if err != nil {
+// 		http.Error(w, "ID inválido", http.StatusBadRequest)
+// 		return
+// 	}
+
+// 	var req struct {
+// 		MuacValue        float64   `json:"muac_value"`
+// 		Description      string    `json:"description"`
+// 		UserID           uuid.UUID `json:"user_id"`
+// 		TagID            uuid.UUID `json:"tag_id"`
+// 		RecommendationID uuid.UUID `json:"recommendation_id"`
+// 	}
+
+// 	if err = json.NewDecoder(r.Body).Decode(&req); err != nil {
+// 		http.Error(w, "Solicitud inválida", http.StatusBadRequest)
+// 		return
+// 	}
+
+// 	measurement := domain.NewMeasurement(
+// 		req.MuacValue,
+// 		req.Description,
+// 		time.Now(),
+// 		id,
+// 		req.UserID,
+// 		&req.TagID,
+// 		&req.RecommendationID,
+// 	)
+
+// 	if err := h.patientService.AddMeasurement(ctx, id, measurement); err != nil {
+// 		http.Error(w, err.Error(), http.StatusInternalServerError)
+// 		return
+// 	}
+
+// 	w.Header().Set("Content-Type", "application/json")
+// 	w.WriteHeader(http.StatusCreated)
+// 	json.NewEncoder(w).Encode(map[string]interface{}{
+// 		"message": "Medición agregada exitosamente",
+// 	})
+// }
+
+// AddPatientMeasurement añade una nueva medición a un paciente con asignación automática de tag y recomendación
 func (h *PatientHandler) AddPatientMeasurement(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
+	// Obtener ID del paciente desde la URL
 	idStr := r.PathValue("id")
 	if idStr == "" {
 		http.Error(w, "ID de paciente no proporcionado", http.StatusBadRequest)
 		return
 	}
 
-	id, err := uuid.Parse(idStr)
+	patientID, err := uuid.Parse(idStr)
 	if err != nil {
-		http.Error(w, "ID inválido", http.StatusBadRequest)
+		http.Error(w, "ID de paciente inválido", http.StatusBadRequest)
 		return
 	}
 
+	// Estructura de request simplificada - solo necesitamos los datos básicos
 	var req struct {
-		MuacValue        float64   `json:"muac_value"`
-		Description      string    `json:"description"`
-		UserID           uuid.UUID `json:"user_id"`
-		TagID            uuid.UUID `json:"tag_id"`
-		RecommendationID uuid.UUID `json:"recommendation_id"`
+		MuacValue   float64   `json:"muac_value" validate:"required,gt=0"`
+		Description string    `json:"description"`
+		UserID      uuid.UUID `json:"user_id" validate:"required"`
 	}
 
 	if err = json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, "Solicitud inválida", http.StatusBadRequest)
+		http.Error(w, "Solicitud inválida: "+err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	measurement := domain.NewMeasurement(
+	// Validaciones básicas
+	if req.MuacValue <= 0 {
+		http.Error(w, "El valor MUAC debe ser mayor a 0", http.StatusBadRequest)
+		return
+	}
+
+	if req.MuacValue > 50 {
+		http.Error(w, "El valor MUAC debe ser menor a 50 cm", http.StatusBadRequest)
+		return
+	}
+
+	if req.UserID == uuid.Nil {
+		http.Error(w, "ID de usuario es requerido", http.StatusBadRequest)
+		return
+	}
+
+	// Verificar que el paciente existe
+	patient, err := h.patientService.GetByID(ctx, patientID)
+	if err != nil {
+		if errors.Is(err, domain.ErrPatientNotFound) {
+			http.Error(w, "Paciente no encontrado", http.StatusNotFound)
+			return
+		}
+		http.Error(w, "Error al verificar paciente: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Usar el servicio de mediciones con asignación automática
+	measurement, err := h.measurementService.CreateWithAutoAssignment(
+		ctx,
 		req.MuacValue,
 		req.Description,
-		time.Now(),
-		id,
+		patientID,
 		req.UserID,
-		&req.TagID,
-		&req.RecommendationID,
 	)
 
-	if err := h.patientService.AddMeasurement(ctx, id, measurement); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+	if err != nil {
+		// Manejar diferentes tipos de errores
+		switch {
+		case strings.Contains(err.Error(), "valor MUAC inválido"):
+			http.Error(w, err.Error(), http.StatusBadRequest)
+		case strings.Contains(err.Error(), "usuario no encontrado"):
+			http.Error(w, "Usuario no encontrado", http.StatusNotFound)
+		default:
+			log.Printf("Error creando medición con auto-asignación: %v", err)
+			http.Error(w, "Error interno del servidor", http.StatusInternalServerError)
+		}
 		return
+	}
+
+	// Preparar respuesta con toda la información
+	response := map[string]interface{}{
+		"success": true,
+		"message": "Medición agregada exitosamente con clasificación automática",
+		"data": map[string]interface{}{
+			"measurement": map[string]interface{}{
+				"id":          measurement.ID,
+				"muac_value":  measurement.MuacValue,
+				"description": measurement.Description,
+				"patient_id":  measurement.PatientID,
+				"user_id":     measurement.UserID,
+				"created_at":  measurement.CreatedAt,
+			},
+			"patient": map[string]interface{}{
+				"id":       patient.ID,
+				"name":     patient.Name,
+				"lastname": patient.Lastname,
+			},
+			"classification": map[string]interface{}{
+				"tag": map[string]interface{}{
+					"id":          measurement.Tag.ID,
+					"name":        measurement.Tag.Name,
+					"description": measurement.Tag.Description,
+					"color":       measurement.Tag.Color,
+					"muac_code":   measurement.Tag.MuacCode,
+					"priority":    measurement.Tag.Priority,
+				},
+				"recommendation": map[string]interface{}{
+					"id":                    measurement.Recommendation.ID,
+					"name":                  measurement.Recommendation.Name,
+					"description":           measurement.Recommendation.Description,
+					"recommendation_umbral": measurement.Recommendation.RecommendationUmbral,
+					"priority":              measurement.Recommendation.Priority,
+					"color_code":            measurement.Recommendation.ColorCode,
+					"muac_code":             measurement.Recommendation.MuacCode,
+				},
+			},
+			"muac_analysis": map[string]interface{}{
+				"risk_level":     domain.GetMuacRiskLevel(req.MuacValue),
+				"threshold_info": getMuacThresholdInfo(req.MuacValue),
+			},
+		},
 	}
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(map[string]interface{}{
-		"message": "Medición agregada exitosamente",
-	})
+	if err := json.NewEncoder(w).Encode(response); err != nil {
+		log.Printf("Error encoding response: %v", err)
+	}
+}
+
+// getMuacThresholdInfo proporciona información contextual sobre los umbrales MUAC
+func getMuacThresholdInfo(muacValue float64) map[string]interface{} {
+	info := map[string]interface{}{
+		"measured_value": muacValue,
+		"thresholds": map[string]float64{
+			"severe_malnutrition":   domain.MuacThresholdSevere,   // < 11.5 cm
+			"moderate_malnutrition": domain.MuacThresholdModerate, // 11.5-12.4 cm
+			"normal_nutrition":      domain.MuacThresholdNormal,   // >= 12.5 cm
+		},
+	}
+
+	// Agregar contexto específico
+	switch {
+	case muacValue < domain.MuacThresholdSevere:
+		info["status"] = "severe_acute_malnutrition"
+		info["action_required"] = "urgent_medical_attention"
+		info["priority"] = "critical"
+	case muacValue < domain.MuacThresholdModerate:
+		info["status"] = "moderate_acute_malnutrition"
+		info["action_required"] = "nutritional_support"
+		info["priority"] = "high"
+	default:
+		info["status"] = "adequate_nutritional_state"
+		info["action_required"] = "maintain_current_care"
+		info["priority"] = "normal"
+	}
+
+	return info
 }

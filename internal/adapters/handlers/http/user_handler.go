@@ -220,13 +220,14 @@ func (h *UserHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var userDTO struct {
-		Name     string    `json:"name"`
-		LastName string    `json:"lastname"`
-		Username string    `json:"username"`
-		Email    string    `json:"email"`
-		DNI      string    `json:"dni"`
-		Phone    string    `json:"phone"`
-		RoleID   uuid.UUID `json:"role_id"`
+		Name       string     `json:"name"`
+		LastName   string     `json:"lastname"`
+		Username   string     `json:"username"`
+		Email      string     `json:"email"`
+		DNI        string     `json:"dni"`
+		Phone      string     `json:"phone"`
+		RoleID     uuid.UUID  `json:"role_id"`
+		LocalityID *uuid.UUID `json:"locality_id,omitempty"`
 	}
 
 	if err = json.NewDecoder(r.Body).Decode(&userDTO); err != nil {
@@ -252,6 +253,7 @@ func (h *UserHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 		userDTO.Phone,
 		userDTO.DNI,
 		userDTO.RoleID,
+		userDTO.LocalityID,
 	)
 
 	if err := h.userService.Update(r.Context(), user); err != nil {
@@ -259,8 +261,14 @@ func (h *UserHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	userUpdated, err := h.userService.GetByID(r.Context(), id)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(user)
+	json.NewEncoder(w).Encode(userUpdated)
 }
 
 // DeleteUser godoc

@@ -266,7 +266,7 @@ func (s *measurementService) getOrCreateMuacRecommendation(ctx context.Context, 
 	return s.createDefaultRecommendation(ctx, muacCode, muacValue)
 }
 
-// createDefaultRecommendation crea una recomendación por defecto (NUEVO - MÉTODO PRIVADO)
+// createDefaultRecommendation crea una recomendación por defecto completa y contextualizada (ACTUALIZADO)
 func (s *measurementService) createDefaultRecommendation(ctx context.Context, muacCode string, muacValue float64) (*domain.Recommendation, error) {
 	var name, description string
 	var minValue, maxValue *float64
@@ -276,7 +276,15 @@ func (s *measurementService) createDefaultRecommendation(ctx context.Context, mu
 	switch muacCode {
 	case domain.MuacCodeRed:
 		name = "🚨 ALERTA ROJA - Acción Urgente Requerida"
-		description = "⚠️ Esta medición indica DESNUTRICIÓN AGUDA SEVERA (SAM). Requiere atención médica URGENTE."
+		description = "⚠️ Esta medición indica DESNUTRICIÓN AGUDA SEVERA (SAM). Tu niño o niña necesita atención médica URGENTE. No es tu culpa, pero sí es momento de actuar rápido.\n\n" +
+			"ACCIONES INMEDIATAS:\n" +
+			"1. 🏥 Acude HOY MISMO al establecimiento de salud más cercano\n" +
+			"2. 🚫 No retrases la consulta, incluso si el niño parece estar bien\n" +
+			"3. 💧 Mientras te trasladas: mantén hidratado con agua hervida, mates suaves\n" +
+			"4. 🍌 Ofrece alimentos fáciles: plátano sancochado, puré de yuca, mazamorra\n" +
+			"5. 📞 Si no puedes movilizarte: contacta al agente comunitario de salud\n" +
+			"6. 🔄 Repite medición solo DESPUÉS de consulta médica\n\n" +
+			"⚠️ Este resultado no sustituye diagnóstico médico. Es una herramienta de alerta familiar."
 		severeThreshold := domain.MuacThresholdSevere
 		maxValue = &severeThreshold
 		priority = domain.PriorityUrgent
@@ -284,7 +292,18 @@ func (s *measurementService) createDefaultRecommendation(ctx context.Context, mu
 
 	case domain.MuacCodeYellow:
 		name = "🟡 ALERTA AMARILLA - Zona de Riesgo Nutricional"
-		description = "🟡 El niño/a está en RIESGO NUTRICIONAL (MAM). Requiere mejoras en alimentación y seguimiento."
+		description = "🟡 Tu niño o niña está en RIESGO NUTRICIONAL (MAM). No es emergencia, pero es una señal importante. Es momento de fortalecer su alimentación.\n\n" +
+			"ACCIONES RECOMENDADAS:\n" +
+			"1. 🏥 Solicita evaluación en centro de salud en los próximos 5 días\n" +
+			"2. 🍳 Mejora alimentación con productos locales:\n" +
+			"   • Proteínas: huevos, pescado regional, sangrecita\n" +
+			"   • Frutas amazónicas: camu camu, aguaje, cocona\n" +
+			"   • Energía: plátano, quinua, lenteja, maní, maíz tierno\n" +
+			"3. 🍽️ Aumenta frecuencia a 4-5 comidas diarias\n" +
+			"4. 🚫 Evita ultraprocesados (galletas, gaseosas, embutidos)\n" +
+			"5. 📅 Nuevo control MUAC en 7 días\n" +
+			"6. 🌡️ Si hay fiebre, diarrea o pérdida de apetito: acude antes\n\n" +
+			"💪 Con amor, buena comida y atención, tu niño/a puede recuperarse."
 		severeThreshold := domain.MuacThresholdSevere
 		moderateThreshold := domain.MuacThresholdModerate
 		minValue = &severeThreshold
@@ -294,15 +313,50 @@ func (s *measurementService) createDefaultRecommendation(ctx context.Context, mu
 
 	case domain.MuacCodeGreen:
 		name = "✅ ZONA VERDE - Estado Nutricional Adecuado"
-		description = "✅ ¡Excelente! El niño/a tiene BUEN ESTADO NUTRICIONAL. Mantener cuidados actuales."
+		description = "✅ ¡Excelente! Tu niño o niña tiene BUEN ESTADO NUTRICIONAL. Sigue alimentándolo con cariño y atención para que continúe creciendo fuerte y sano.\n\n" +
+			"ACCIONES PARA MANTENER LA SALUD:\n" +
+			"1. 🥗 Mantén alimentación balanceada con productos locales:\n" +
+			"   • Frutas amazónicas: copoazú, piña, camu camu\n" +
+			"   • Proteínas: pescado, huevos, frejoles, hígado\n" +
+			"   • Energía: yuca, plátano, arroz, maíz\n" +
+			"   • Hierro/Vitamina A: sangrecita, zanahoria, sacha culantro\n" +
+			"2. 📅 Controles CRED según edad (cada 2-3 meses)\n" +
+			"3. 📏 Medición MUAC mensual o si baja el apetito\n" +
+			"4. 🤝 Comparte esta herramienta con otras familias\n\n" +
+			"🎉 ¡Felicitaciones por cuidar tan bien a tu niño/a!"
 		normalThreshold := domain.MuacThresholdNormal
 		minValue = &normalThreshold
 		priority = domain.PriorityNormal
 		colorCode = domain.ColorGreen
 
+	case domain.MuacCodeFollow:
+		name = "📋 Seguimiento Post-Intervención Nutricional"
+		description = "📋 Tu niño o niña está en proceso de RECUPERACIÓN NUTRICIONAL. Mantener cuidados especiales y seguimiento médico es fundamental.\n\n" +
+			"PROTOCOLO DE SEGUIMIENTO:\n" +
+			"1. 💊 Continuar plan alimentario establecido por el centro de salud\n" +
+			"2. 📅 Controles semanales obligatorios - NO faltar\n" +
+			"3. ⚖️ Monitoreo de peso y talla regularmente\n" +
+			"4. 🍳 Alimentación especial reforzada:\n" +
+			"   • Comidas pequeñas y frecuentes (cada 2-3 horas)\n" +
+			"   • Proteínas en cada comida: huevo, pescado, sangrecita\n" +
+			"   • Aceites vegetales para agregar energía\n" +
+			"   • Frutas ricas en vitaminas: aguaje, camu camu\n" +
+			"5. 👨‍👩‍👧‍👦 Apoyo familiar: todos participan en la recuperación\n" +
+			"6. 📱 Registro diario de alimentos consumidos\n" +
+			"7. 🚨 Alerta inmediata si empeoran síntomas\n\n" +
+			"⏰ La constancia en el seguimiento es clave para la recuperación completa."
+		priority = domain.PriorityAttention
+		colorCode = domain.ColorBlue
+
 	default:
 		name = "📋 Seguimiento General"
-		description = "📋 Medición registrada. Continuar con el protocolo de seguimiento establecido."
+		description = "📋 Medición registrada en el sistema MUAC. Continúa con el protocolo de seguimiento nutricional establecido.\n\n" +
+			"RECOMENDACIONES GENERALES:\n" +
+			"1. 🍽️ Mantén alimentación balanceada y variada\n" +
+			"2. 📏 Mediciones regulares según protocolo\n" +
+			"3. 🏥 Consultas médicas programadas\n" +
+			"4. 📊 Seguimiento del crecimiento y desarrollo\n\n" +
+			"💡 Para recomendaciones específicas, consulta con personal de salud."
 		priority = domain.PriorityNormal
 		colorCode = domain.ColorGray
 	}

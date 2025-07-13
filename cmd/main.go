@@ -101,7 +101,7 @@ func main() {
 	recommendationHandler := http.NewRecommendationHandler(recommendationService)
 	tagHandler := http.NewTagHandler(tagService)
 	measurementHandler := http.NewMeasurementHandler(measurementService)
-	patientHandler := http.NewPatientHandler(patientService, fileService)
+	patientHandler := http.NewPatientHandler(patientService, measurementService, fileService)
 	reportHandler := http.NewReportHandler(reportService)
 
 	// Configurar rutas
