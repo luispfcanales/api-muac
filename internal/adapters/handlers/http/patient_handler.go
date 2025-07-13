@@ -36,13 +36,13 @@ func (h *PatientHandler) RegisterRoutes(mux *http.ServeMux) {
 	// mux.HandleFunc("POST /api/patients", h.CreatePatient)
 	mux.HandleFunc("POST /api/patients/with-file", h.CreatePatientWithFile)
 	mux.HandleFunc("GET /api/patients/{id}", h.GetPatientByID)
-	mux.HandleFunc("PUT /api/patients/{id}", h.UpdatePatient)
+	mux.HandleFunc("PUT /api/patients/{id}", h.UpdatePatientWithFile)
 	mux.HandleFunc("DELETE /api/patients/{id}", h.DeletePatient)
 	mux.HandleFunc("GET /api/patients/dni/{dni}", h.GetPatientByDNI)
 	mux.HandleFunc("GET /api/patients/father/{fatherId}", h.GetPatientsByFatherID)
 	mux.HandleFunc("GET /api/patients/measurements/{id}", h.GetPatientMeasurements)
 	mux.HandleFunc("POST /api/patients/measurements/{id}", h.AddPatientMeasurement)
-	mux.HandleFunc("POST /api/patients/upload-dni/{id}", h.UploadPatientDNI)
+	// mux.HandleFunc("POST /api/patients/upload-dni/{id}", h.UploadPatientDNI)
 }
 
 // GetAllPatients godoc
@@ -308,70 +308,7 @@ func (h *PatientHandler) CreatePatientWithFile(w http.ResponseWriter, r *http.Re
 	})
 }
 
-// UploadPatientDNI sube o actualiza el archivo DNI de un paciente existente
-func (h *PatientHandler) UploadPatientDNI(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-	patientID := r.PathValue("id")
-
-	// Parsear ID del paciente
-	id, err := uuid.Parse(patientID)
-	if err != nil {
-		http.Error(w, "ID de paciente inválido", http.StatusBadRequest)
-		return
-	}
-
-	// Verificar que el paciente existe
-	patient, err := h.patientService.GetByID(ctx, id)
-	if err != nil {
-		http.Error(w, "Paciente no encontrado", http.StatusNotFound)
-		return
-	}
-
-	// Parsear multipart form
-	if err := r.ParseMultipartForm(10 << 20); err != nil {
-		http.Error(w, "Error al parsear formulario", http.StatusBadRequest)
-		return
-	}
-
-	// Obtener archivo
-	file, header, err := r.FormFile("dni_file")
-	if err != nil {
-		http.Error(w, "Error al obtener archivo", http.StatusBadRequest)
-		return
-	}
-	defer file.Close()
-
-	// Subir archivo
-	fileInfo, err := h.fileService.UploadFile(ctx, file, header, "patients/dni")
-	if err != nil {
-		http.Error(w, "Error al subir archivo: "+err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	// Actualizar paciente con nueva URL del DNI
-	patient.UrlDNI = fileInfo.URL
-
-	if err := h.patientService.Update(ctx, patient); err != nil {
-		http.Error(w, "Error al actualizar paciente: "+err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	// Responder con información del archivo subido
-	response := struct {
-		Message  string          `json:"message"`
-		FileInfo *ports.FileInfo `json:"file_info"`
-		Patient  *domain.Patient `json:"patient"`
-	}{
-		Message:  "Archivo DNI subido exitosamente",
-		FileInfo: fileInfo,
-		Patient:  patient,
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(response)
-}
-
-// UpdatePatient godoc
+// UpdatePatientWithFile godoc
 // @Summary Actualizar un paciente
 // @Description Actualiza un paciente existente con la información proporcionada
 // @Tags pacientes
@@ -384,69 +321,180 @@ func (h *PatientHandler) UploadPatientDNI(w http.ResponseWriter, r *http.Request
 // @Failure 404 {object} map[string]string "Paciente no encontrado"
 // @Failure 500 {object} map[string]string "Error interno del servidor"
 // @Router /api/patients/{id} [put]
-func (h *PatientHandler) UpdatePatient(w http.ResponseWriter, r *http.Request) {
+// UpdatePatientWithFile actualiza un paciente existente con sus datos y opcionalmente su archivo DNI
+func (h *PatientHandler) UpdatePatientWithFile(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
+	patientID := r.PathValue("id")
 
-	idStr := r.PathValue("id")
-	if idStr == "" {
-		http.Error(w, "ID de paciente no proporcionado", http.StatusBadRequest)
-		return
-	}
-
-	id, err := uuid.Parse(idStr)
+	// Parsear ID del paciente
+	id, err := uuid.Parse(patientID)
 	if err != nil {
-		http.Error(w, "ID inválido", http.StatusBadRequest)
+		http.Error(w, "ID de paciente inválido", http.StatusBadRequest)
 		return
 	}
 
-	var req struct {
-		Name         string  `json:"name"`
-		Lastname     string  `json:"lastname"`
-		Gender       string  `json:"gender"`
-		Age          float64 `json:"age"`
-		BirthDate    string  `json:"birth_date"`
-		ArmSize      string  `json:"arm_size"`
-		Weight       string  `json:"weight"`
-		Size         string  `json:"size"`
-		ConsentGiven bool    `json:"consent_given"`
-		Description  string  `json:"description"`
-	}
-
-	if err = json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, "Solicitud inválida", http.StatusBadRequest)
-		return
-	}
-
-	patient, err := h.patientService.GetByID(ctx, id)
+	// Verificar que el paciente existe
+	existingPatient, err := h.patientService.GetByID(ctx, id)
 	if err != nil {
-		if err == domain.ErrPatientNotFound {
-			http.Error(w, "Paciente no encontrado", http.StatusNotFound)
+		http.Error(w, "Paciente no encontrado", http.StatusNotFound)
+		return
+	}
+
+	// Parsear multipart form
+	if err := r.ParseMultipartForm(10 << 20); err != nil { // 10 MB
+		http.Error(w, "Error al parsear formulario", http.StatusBadRequest)
+		return
+	}
+
+	// Parsear y validar campos opcionales (solo actualizar si se proporcionan)
+	updatedPatient := *existingPatient // Copia del paciente existente
+
+	// Actualizar campos si se proporcionan
+	if name := r.FormValue("name"); name != "" {
+		updatedPatient.Name = name
+	}
+	if lastname := r.FormValue("lastname"); lastname != "" {
+		updatedPatient.Lastname = lastname
+	}
+	if dni := r.FormValue("dni"); dni != "" {
+		updatedPatient.DNI = dni
+	}
+	if gender := r.FormValue("gender"); gender != "" {
+		updatedPatient.Gender = gender
+	}
+	if birthDate := r.FormValue("birth_date"); birthDate != "" {
+		updatedPatient.BirthDate = birthDate
+	}
+	if armSize := r.FormValue("arm_size"); armSize != "" {
+		updatedPatient.ArmSize = armSize
+	}
+	if weight := r.FormValue("weight"); weight != "" {
+		updatedPatient.Weight = weight
+	}
+	if size := r.FormValue("size"); size != "" {
+		updatedPatient.Size = size
+	}
+	if description := r.FormValue("description"); description != "" {
+		updatedPatient.Description = description
+	}
+
+	// Actualizar age si se proporciona
+	if ageStr := r.FormValue("age"); ageStr != "" {
+		if age, err := strconv.ParseFloat(ageStr, 64); err == nil {
+			updatedPatient.Age = age
+		} else {
+			http.Error(w, "Edad debe ser un número válido", http.StatusBadRequest)
 			return
 		}
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+
+	// Actualizar consent_given si se proporciona
+	if consentStr := r.FormValue("consent_given"); consentStr != "" {
+		updatedPatient.ConsentGiven = consentStr == "true"
+	}
+
+	// Variable para rastrear el ID del nuevo archivo subido
+	var newUploadedFileID string
+	var oldFileIDToDelete string
+
+	// Procesar archivo DNI si se proporciona
+	if file, header, err := r.FormFile("dni_file"); err == nil {
+		defer file.Close()
+
+		// Si el paciente ya tenía un archivo DNI, extraer su ID para eliminarlo después
+		if existingPatient.UrlDNI != "" {
+			filename := filepath.Base(existingPatient.UrlDNI)
+			oldFileIDToDelete = strings.TrimSuffix(filename, filepath.Ext(filename))
+		}
+
+		// Subir nuevo archivo DNI
+		fileInfo, err := h.fileService.UploadFile(ctx, file, header, "patients/dni")
+		if err != nil {
+			http.Error(w, "Error al subir archivo DNI: "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		// Asignar nueva URL del DNI al paciente
+		updatedPatient.UrlDNI = fileInfo.URL
+
+		// Extraer ID del nuevo archivo para poder eliminarlo si hay error
+		filename := filepath.Base(fileInfo.URL)
+		newUploadedFileID = strings.TrimSuffix(filename, filepath.Ext(filename))
+
+		// Validar que el ID extraído es un UUID válido
+		if _, err := uuid.Parse(newUploadedFileID); err != nil {
+			log.Printf("[ Error ]: ID de archivo inválido extraído de URL %s -> %s", fileInfo.URL, newUploadedFileID)
+			// Intentar eliminar el archivo con el ID inválido
+			h.fileService.DeleteFileIfExists(ctx, newUploadedFileID)
+			http.Error(w, "Error interno al procesar archivo", http.StatusInternalServerError)
+			return
+		}
+
+		log.Printf("[ Info ]: Nuevo archivo subido exitosamente - ID: %s, URL: %s", newUploadedFileID, fileInfo.URL)
+	}
+
+	// Validar el paciente actualizado
+	if err := updatedPatient.Validate(); err != nil {
+		// Si hay un nuevo archivo subido, eliminarlo
+		if newUploadedFileID != "" {
+			if deleteErr := h.fileService.DeleteFileIfExists(ctx, newUploadedFileID); deleteErr != nil {
+				log.Printf("[ Error al eliminar nuevo archivo DNI tras validación fallida ]: %v", deleteErr)
+			} else {
+				log.Printf("[ Nuevo archivo DNI eliminado tras validación fallida ]: %s", newUploadedFileID)
+			}
+		}
+		http.Error(w, "Datos del paciente inválidos: "+err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	patient.Update(
-		req.Name,
-		req.Lastname,
-		req.Gender,
-		req.BirthDate,
-		req.ArmSize,
-		req.Weight,
-		req.Size,
-		req.Description,
-		req.Age,
-		req.ConsentGiven,
-	)
+	// Actualizar paciente en la base de datos
+	if err := h.patientService.Update(ctx, &updatedPatient); err != nil {
+		// Si hay un nuevo archivo subido y falla la actualización, eliminarlo
+		if newUploadedFileID != "" {
+			if deleteErr := h.fileService.DeleteFileIfExists(ctx, newUploadedFileID); deleteErr != nil {
+				log.Printf("[ Error al eliminar nuevo archivo DNI tras fallo en actualización ]: %v", deleteErr)
+			} else {
+				log.Printf("[ Nuevo archivo DNI eliminado exitosamente tras fallo en actualización ]: %s", newUploadedFileID)
+			}
+		}
 
-	if err := h.patientService.Update(ctx, patient); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		// Determinar el tipo de error para dar mejor feedback
+		errorMessage := err.Error()
+		if strings.Contains(strings.ToLower(errorMessage), "duplicate") ||
+			strings.Contains(strings.ToLower(errorMessage), "unique") ||
+			strings.Contains(strings.ToLower(errorMessage), "dni") {
+			http.Error(w, "El DNI ya está registrado en el sistema", http.StatusConflict)
+			return
+		}
+
+		http.Error(w, "Error al actualizar paciente: "+errorMessage, http.StatusInternalServerError)
 		return
 	}
 
+	// Si la actualización fue exitosa y había un archivo anterior, eliminarlo
+	if oldFileIDToDelete != "" && newUploadedFileID != "" {
+		if deleteErr := h.fileService.DeleteFileIfExists(ctx, oldFileIDToDelete); deleteErr != nil {
+			log.Printf("[ Warning ]: No se pudo eliminar archivo DNI anterior: %v", deleteErr)
+		} else {
+			log.Printf("[ Info ]: Archivo DNI anterior eliminado exitosamente: %s", oldFileIDToDelete)
+		}
+	}
+
+	// Obtener el paciente actualizado completo (con todas las relaciones)
+	finalPatient, err := h.patientService.GetByID(ctx, updatedPatient.ID)
+	if err != nil {
+		log.Printf("[ Warning ]: Paciente actualizado pero error al obtener datos completos: %v", err)
+		http.Error(w, "Paciente actualizado pero error al obtener datos completos", http.StatusInternalServerError)
+		return
+	}
+
+	// Respuesta exitosa
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(patient)
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"message": "Paciente actualizado exitosamente",
+		"patient": finalPatient,
+	})
 }
 
 // DeletePatient godoc
