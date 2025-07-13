@@ -5,6 +5,7 @@ import (
 	"errors"
 	"log"
 	"net/http"
+	"path/filepath"
 	"strconv"
 	"strings"
 
@@ -153,65 +154,10 @@ func (h *PatientHandler) GetPatientByDNI(w http.ResponseWriter, r *http.Request)
 // @Failure 400 {object} map[string]string "Solicitud inválida"
 // @Failure 500 {object} map[string]string "Error interno del servidor"
 // @Router /api/patients [post]
-func (h *PatientHandler) CreatePatient(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-
-	var req struct {
-		Name         string `json:"name"`
-		Lastname     string `json:"lastname"`
-		Gender       string `json:"gender"`
-		Age          int    `json:"age"`
-		DNI          string `json:"dni"`
-		BirthDate    string `json:"birth_date"`
-		ArmSize      string `json:"arm_size"`
-		Weight       string `json:"weight"`
-		Size         string `json:"size"`
-		Description  string `json:"description"`
-		ConsentGiven bool   `json:"consent_given"`
-		CreatedBy    string `json:"created_by"`
-	}
-
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, "Solicitud inválida", http.StatusBadRequest)
-		return
-	}
-
-	id, err := uuid.Parse(req.CreatedBy)
-	if err != nil {
-		http.Error(w, "ID inválido", http.StatusBadRequest)
-		return
-	}
-
-	patient := domain.NewPatient(
-		req.Name,
-		req.Lastname,
-		req.Gender,
-		req.BirthDate,
-		req.ArmSize,
-		req.Weight,
-		req.Size,
-		req.Description,
-		req.Age,
-		req.DNI,
-		req.ConsentGiven,
-		&id,
-	)
-
-	patient.Validate()
-
-	if err := h.patientService.Create(ctx, patient); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(patient)
-}
-
-// CreatePatientWithFile crea un nuevo paciente con archivo DNI
+//
+// CreatePatientWithFile crea un nuevo paciente con datos de formulario
+// CreatePatientWithFile crea un nuevo paciente con datos de formulario
 func (h *PatientHandler) CreatePatientWithFile(w http.ResponseWriter, r *http.Request) {
-	var patient *domain.Patient
 	ctx := r.Context()
 
 	// Parsear multipart form
@@ -220,78 +166,60 @@ func (h *PatientHandler) CreatePatientWithFile(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	// Verificar si se enviaron los datos como JSON en un campo del formulario
-	if patientData := r.FormValue("patient"); patientData != "" {
-		var req struct {
-			Name         string `json:"name"`
-			Lastname     string `json:"lastname"`
-			Gender       string `json:"gender"`
-			Age          int    `json:"age"`
-			DNI          string `json:"dni"`
-			BirthDate    string `json:"birth_date"`
-			ArmSize      string `json:"arm_size"`
-			Weight       string `json:"weight"`
-			Size         string `json:"size"`
-			Description  string `json:"description"`
-			ConsentGiven bool   `json:"consent_given"`
-			CreatedBy    string `json:"created_by"`
-		}
-
-		if err := json.Unmarshal([]byte(patientData), &req); err != nil {
-			http.Error(w, "Datos del paciente inválidos", http.StatusBadRequest)
-			return
-		}
-
-		id, err := uuid.Parse(req.CreatedBy)
-		if err != nil {
-			http.Error(w, "ID inválido", http.StatusBadRequest)
-			return
-		}
-
-		patient = domain.NewPatient(
-			req.Name,
-			req.Lastname,
-			req.Gender,
-			req.BirthDate,
-			req.ArmSize,
-			req.Weight,
-			req.Size,
-			req.Description,
-			req.Age,
-			req.DNI,
-			req.ConsentGiven,
-			&id,
-		)
-	} else {
-		// Obtener datos directamente de los campos del formulario
-		createdBy := r.FormValue("created_by")
-		id, err := uuid.Parse(createdBy)
-		if err != nil {
-			http.Error(w, "ID inválido", http.StatusBadRequest)
-			return
-		}
-
-		age, err := strconv.Atoi(r.FormValue("age"))
-		if err != nil {
-			http.Error(w, "Edad inválida", http.StatusBadRequest)
-			return
-		}
-
-		patient = domain.NewPatient(
-			r.FormValue("name"),
-			r.FormValue("lastname"),
-			r.FormValue("gender"),
-			r.FormValue("birth_date"),
-			r.FormValue("arm_size"),
-			r.FormValue("weight"),
-			r.FormValue("size"),
-			r.FormValue("description"),
-			age, // Age se puede parsear si es necesario
-			r.FormValue("dni"),
-			r.FormValue("consent_given") == "true",
-			&id,
-		)
+	// Validar y parsear created_by
+	createdBy := r.FormValue("created_by")
+	if createdBy == "" {
+		http.Error(w, "created_by es requerido", http.StatusBadRequest)
+		return
 	}
+
+	userID, err := uuid.Parse(createdBy)
+	if err != nil {
+		http.Error(w, "created_by debe ser un UUID válido", http.StatusBadRequest)
+		return
+	}
+
+	// Validar y parsear age
+	ageStr := r.FormValue("age")
+	if ageStr == "" {
+		http.Error(w, "age es requerido", http.StatusBadRequest)
+		return
+	}
+
+	age, err := strconv.ParseFloat(ageStr, 64)
+	if err != nil {
+		http.Error(w, "Edad debe ser un número válido", http.StatusBadRequest)
+		return
+	}
+
+	// Validar campos requeridos
+	name := r.FormValue("name")
+	lastname := r.FormValue("lastname")
+	dni := r.FormValue("dni")
+
+	if name == "" || lastname == "" || dni == "" {
+		http.Error(w, "name, lastname y dni son campos requeridos", http.StatusBadRequest)
+		return
+	}
+
+	// Crear paciente con datos del formulario
+	patient := domain.NewPatient(
+		name,
+		lastname,
+		r.FormValue("gender"),
+		r.FormValue("birth_date"),
+		r.FormValue("arm_size"),
+		r.FormValue("weight"),
+		r.FormValue("size"),
+		r.FormValue("description"),
+		age,
+		dni,
+		r.FormValue("consent_given") == "true",
+		&userID,
+	)
+
+	// Variable para rastrear el ID del archivo subido
+	var uploadedFileID string
 
 	// Procesar archivo DNI si se proporciona
 	if file, header, err := r.FormFile("dni_file"); err == nil {
@@ -306,26 +234,77 @@ func (h *PatientHandler) CreatePatientWithFile(w http.ResponseWriter, r *http.Re
 
 		// Asignar URL del DNI al paciente
 		patient.UrlDNI = fileInfo.URL
+
+		// Extraer ID del archivo para poder eliminarlo si hay error
+		// URL esperada: http://localhost:8003/files/patients/dni/b8e52703-959a-487e-af75-74e6d210fb01.jpg
+		filename := filepath.Base(fileInfo.URL)                               // Obtiene: b8e52703-959a-487e-af75-74e6d210fb01.jpg
+		uploadedFileID = strings.TrimSuffix(filename, filepath.Ext(filename)) // Obtiene: b8e52703-959a-487e-af75-74e6d210fb01
+
+		// Validar que el ID extraído es un UUID válido
+		if _, err := uuid.Parse(uploadedFileID); err != nil {
+			log.Printf("[ Error ]: ID de archivo inválido extraído de URL %s -> %s", fileInfo.URL, uploadedFileID)
+			// Intentar eliminar el archivo con el ID inválido de todos modos
+			h.fileService.DeleteFileIfExists(ctx, uploadedFileID)
+			http.Error(w, "Error interno al procesar archivo", http.StatusInternalServerError)
+			return
+		}
+
+		log.Printf("[ Info ]: Archivo subido exitosamente - ID: %s, URL: %s", uploadedFileID, fileInfo.URL)
 	}
 
-	// Crear paciente
+	// Validar el paciente
+	if err := patient.Validate(); err != nil {
+		// Si hay un archivo subido, eliminarlo
+		if uploadedFileID != "" {
+			if deleteErr := h.fileService.DeleteFileIfExists(ctx, uploadedFileID); deleteErr != nil {
+				log.Printf("[ Error al eliminar archivo DNI tras validación fallida ]: %v", deleteErr)
+			} else {
+				log.Printf("[ Archivo DNI eliminado tras validación fallida ]: %s", uploadedFileID)
+			}
+		}
+		http.Error(w, "Datos del paciente inválidos: "+err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	// Crear paciente en la base de datos
 	if err := h.patientService.Create(ctx, patient); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		// Si hay un archivo subido y falla la creación del paciente, eliminarlo
+		if uploadedFileID != "" {
+			if deleteErr := h.fileService.DeleteFileIfExists(ctx, uploadedFileID); deleteErr != nil {
+				log.Printf("[ Error al eliminar archivo DNI tras fallo en creación ]: %v", deleteErr)
+			} else {
+				log.Printf("[ Archivo DNI eliminado exitosamente tras fallo en creación ]: %s", uploadedFileID)
+			}
+		}
+
+		// Determinar el tipo de error para dar mejor feedback
+		errorMessage := err.Error()
+		if strings.Contains(strings.ToLower(errorMessage), "duplicate") ||
+			strings.Contains(strings.ToLower(errorMessage), "unique") ||
+			strings.Contains(strings.ToLower(errorMessage), "dni") {
+			http.Error(w, "El DNI ya está registrado en el sistema", http.StatusConflict)
+			return
+		}
+
+		http.Error(w, "Error al crear paciente: "+errorMessage, http.StatusInternalServerError)
 		return
 	}
 
-	//obtener el patient por id
-	patient, err := h.patientService.GetByID(ctx, patient.ID)
+	// Obtener el paciente completo por ID (con todas las relaciones)
+	createdPatient, err := h.patientService.GetByID(ctx, patient.ID)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		log.Printf("[ Warning ]: Paciente creado pero error al obtener datos completos: %v", err)
+		// No eliminar archivo aquí porque el paciente se creó exitosamente
+		http.Error(w, "Paciente creado pero error al obtener datos completos", http.StatusInternalServerError)
 		return
 	}
 
+	// Respuesta exitosa
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(map[string]interface{}{
-		"message": "Creado exitosamente",
-		"patient": patient,
+		"message": "Paciente creado exitosamente",
+		"patient": createdPatient,
 	})
 }
 
@@ -421,16 +400,16 @@ func (h *PatientHandler) UpdatePatient(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var req struct {
-		Name         string `json:"name"`
-		Lastname     string `json:"lastname"`
-		Gender       string `json:"gender"`
-		Age          int    `json:"age"`
-		BirthDate    string `json:"birth_date"`
-		ArmSize      string `json:"arm_size"`
-		Weight       string `json:"weight"`
-		Size         string `json:"size"`
-		ConsentGiven bool   `json:"consent_given"`
-		Description  string `json:"description"`
+		Name         string  `json:"name"`
+		Lastname     string  `json:"lastname"`
+		Gender       string  `json:"gender"`
+		Age          float64 `json:"age"`
+		BirthDate    string  `json:"birth_date"`
+		ArmSize      string  `json:"arm_size"`
+		Weight       string  `json:"weight"`
+		Size         string  `json:"size"`
+		ConsentGiven bool    `json:"consent_given"`
+		Description  string  `json:"description"`
 	}
 
 	if err = json.NewDecoder(r.Body).Decode(&req); err != nil {

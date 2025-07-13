@@ -102,10 +102,24 @@ func (fs *FileService) UploadFile(ctx context.Context, file multipart.File, head
 	return info, nil
 }
 
-// GetFile obtiene información de un archivo por su ID
+// GetFile obtiene información de un archivo por su ID - MEJORADO
 func (fs *FileService) GetFile(ctx context.Context, fileID string) (*ports.FileInfo, error) {
-	// Buscar en todas las carpetas posibles
-	folders := []string{"patients", "documents", "images", "uploads"}
+	// Estructura específica para tu caso: uploads/patients/dni/metadata/
+	metadataPath := filepath.Join(fs.uploadPath, "patients", "dni", "metadata", fmt.Sprintf("%s.json", fileID))
+
+	if info, err := fs.loadFileMetadata(metadataPath); err == nil {
+		return info, nil
+	}
+
+	// Si no se encuentra, buscar en otras ubicaciones posibles como fallback
+	folders := []string{
+		"patients/dni",
+		"patients/documents",
+		"patients/images",
+		"documents",
+		"images",
+		"uploads",
+	}
 
 	for _, folder := range folders {
 		metadataPath := filepath.Join(fs.uploadPath, folder, "metadata", fmt.Sprintf("%s.json", fileID))
@@ -114,7 +128,7 @@ func (fs *FileService) GetFile(ctx context.Context, fileID string) (*ports.FileI
 		}
 	}
 
-	return nil, fmt.Errorf("archivo no encontrado")
+	return nil, fmt.Errorf("archivo no encontrado: %s", fileID)
 }
 
 // GetFileContent obtiene el contenido de un archivo
@@ -132,23 +146,37 @@ func (fs *FileService) GetFileContent(ctx context.Context, fileID string) (io.Re
 	return file, nil
 }
 
-// DeleteFile elimina un archivo del servidor
+// DeleteFile elimina un archivo del servidor - MEJORADO
 func (fs *FileService) DeleteFile(ctx context.Context, fileID string) error {
+	// Obtener información del archivo
 	info, err := fs.GetFile(ctx, fileID)
 	if err != nil {
-		return err
+		return fmt.Errorf("archivo no encontrado para eliminar: %s", fileID)
 	}
 
 	// Eliminar archivo físico
-	if err := os.Remove(info.Path); err != nil {
-		return fmt.Errorf("error al eliminar archivo: %v", err)
+	if err := os.Remove(info.Path); err != nil && !os.IsNotExist(err) {
+		return fmt.Errorf("error al eliminar archivo físico %s: %v", info.Path, err)
 	}
 
-	// Eliminar metadata
-	folder := filepath.Dir(filepath.Dir(info.Path))
-	folder = filepath.Base(folder)
-	metadataPath := filepath.Join(fs.uploadPath, folder, "metadata", fmt.Sprintf("%s.json", fileID))
-	os.Remove(metadataPath)
+	// Construir ruta de metadata basada en la estructura conocida
+	// Para uploads/patients/dni/archivo.jpg -> uploads/patients/dni/metadata/uuid.json
+	var metadataPath string
+
+	// Detectar el tipo de archivo basado en la ruta
+	if filepath.Dir(info.Path) == filepath.Join(fs.uploadPath, "patients", "dni") {
+		metadataPath = filepath.Join(fs.uploadPath, "patients", "dni", "metadata", fmt.Sprintf("%s.json", fileID))
+	} else {
+		// Para otros tipos de archivos, intentar extraer la carpeta padre
+		parentDir := filepath.Dir(info.Path)
+		metadataPath = filepath.Join(parentDir, "metadata", fmt.Sprintf("%s.json", fileID))
+	}
+
+	// Eliminar metadata (no fallar si no existe)
+	if err := os.Remove(metadataPath); err != nil && !os.IsNotExist(err) {
+		// Log pero no fallar por metadata
+		fmt.Printf("Warning: no se pudo eliminar metadata %s: %v\n", metadataPath, err)
+	}
 
 	return nil
 }
@@ -242,6 +270,22 @@ func (fs *FileService) loadFileMetadata(metadataPath string) (*ports.FileInfo, e
 
 	return &info, nil
 }
+
+// FileExists verifica si un archivo existe - MÉTODO NUEVO
+func (fs *FileService) FileExists(ctx context.Context, fileID string) bool {
+	_, err := fs.GetFile(ctx, fileID)
+	return err == nil
+}
+
+// DeleteFileIfExists elimina un archivo si existe - MÉTODO NUEVO
+func (fs *FileService) DeleteFileIfExists(ctx context.Context, fileID string) error {
+	if !fs.FileExists(ctx, fileID) {
+		return nil // No hacer nada si el archivo no existe
+	}
+	return fs.DeleteFile(ctx, fileID)
+}
+
+//para generar el excel
 
 func (s *FileService) GenerateApoderadosReport(ctx context.Context, users []*domain.User) ([]byte, error) {
 	f := excelize.NewFile()

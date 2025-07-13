@@ -21,6 +21,7 @@ vendor/
 .DS_Store
 .env
 *.json
+!uploads/patients/dni/metadata/*.json
 *.pem
 muac.db
 muac-api

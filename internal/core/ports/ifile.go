@@ -34,6 +34,13 @@ type IFileService interface {
 	// DeleteFile elimina un archivo del servidor
 	DeleteFile(ctx context.Context, fileID string) error
 
+	// NUEVOS MÉTODOS AGREGADOS
+	// DeleteFileIfExists elimina un archivo si existe (no falla si no existe)
+	DeleteFileIfExists(ctx context.Context, fileID string) error
+
+	// FileExists verifica si un archivo existe
+	FileExists(ctx context.Context, fileID string) bool
+
 	// GetFilesByFolder obtiene todos los archivos de una carpeta
 	GetFilesByFolder(ctx context.Context, folder string) ([]*FileInfo, error)
 

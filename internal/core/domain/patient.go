@@ -12,7 +12,7 @@ type Patient struct {
 	Name         string    `json:"name" gorm:"type:varchar(100);not null"`
 	Lastname     string    `json:"lastname" gorm:"type:varchar(100);not null"`
 	Gender       string    `json:"gender" gorm:"type:varchar(50)"`
-	Age          int       `json:"age" gorm:"type:int"`
+	Age          float64   `json:"age" gorm:"type:float"`
 	DNI          string    `json:"dni" gorm:"column:dni;type:varchar(20);unique"`
 	UrlDNI       string    `json:"url_dni" gorm:"type:text"`
 	BirthDate    string    `json:"birth_date" gorm:"type:varchar(20)"`
@@ -38,7 +38,7 @@ func (Patient) TableName() string {
 // NewPatient crea una nueva instancia de Patient
 func NewPatient(
 	name, lastname, gender, birthDate, armSize, weight, size, description string,
-	age int,
+	age float64,
 	dni string,
 	consentGiven bool,
 	createdBy *uuid.UUID,
@@ -75,7 +75,7 @@ func (p *Patient) Validate() error {
 }
 
 // Update actualiza los campos del paciente
-func (p *Patient) Update(name, lastname, gender, birthDate, armSize, weight, size, description string, age int, consentGiven bool) {
+func (p *Patient) Update(name, lastname, gender, birthDate, armSize, weight, size, description string, age float64, consentGiven bool) {
 	p.Name = name
 	p.Lastname = lastname
 	p.Gender = gender

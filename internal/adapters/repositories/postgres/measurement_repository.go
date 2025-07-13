@@ -43,7 +43,7 @@ func (r *measurementRepository) GetByID(ctx context.Context, id uuid.UUID) (*dom
 		Preload("Recommendation").
 		Where("ID = ?", id).
 		First(&measurement)
-	
+
 	if result.Error != nil {
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 			return nil, domain.ErrMeasurementNotFound
@@ -63,7 +63,7 @@ func (r *measurementRepository) GetByPatientID(ctx context.Context, patientID uu
 		Preload("Recommendation").
 		Where("PATIENT_ID = ?", patientID).
 		Find(&measurements)
-	
+
 	if result.Error != nil {
 		return nil, fmt.Errorf("error al obtener mediciones por ID de paciente: %w", result.Error)
 	}
@@ -80,7 +80,7 @@ func (r *measurementRepository) GetByUserID(ctx context.Context, userID uuid.UUI
 		Preload("Recommendation").
 		Where("USER_ID = ?", userID).
 		Find(&measurements)
-	
+
 	if result.Error != nil {
 		return nil, fmt.Errorf("error al obtener mediciones por ID de usuario: %w", result.Error)
 	}
@@ -97,7 +97,7 @@ func (r *measurementRepository) GetByTagID(ctx context.Context, tagID uuid.UUID)
 		Preload("Recommendation").
 		Where("TAG_ID = ?", tagID).
 		Find(&measurements)
-	
+
 	if result.Error != nil {
 		return nil, fmt.Errorf("error al obtener mediciones por ID de etiqueta: %w", result.Error)
 	}
@@ -114,7 +114,7 @@ func (r *measurementRepository) GetByRecommendationID(ctx context.Context, recom
 		Preload("Recommendation").
 		Where("RECOMMENDATION_ID = ?", recommendationID).
 		Find(&measurements)
-	
+
 	if result.Error != nil {
 		return nil, fmt.Errorf("error al obtener mediciones por ID de recomendación: %w", result.Error)
 	}
@@ -131,26 +131,45 @@ func (r *measurementRepository) GetByDateRange(ctx context.Context, startDate, e
 		Preload("Recommendation").
 		Where("TIMESTAMP BETWEEN ? AND ?", startDate, endDate).
 		Find(&measurements)
-	
+
 	if result.Error != nil {
 		return nil, fmt.Errorf("error al obtener mediciones por rango de fechas: %w", result.Error)
 	}
 	return measurements, nil
 }
 
-// GetAll obtiene todas las mediciones
+// GetAll obtiene todas las mediciones con todas sus relaciones ordenadas
 func (r *measurementRepository) GetAll(ctx context.Context) ([]*domain.Measurement, error) {
 	var measurements []*domain.Measurement
+
 	result := r.db.WithContext(ctx).
+		// Relaciones principales de Measurement
 		Preload("Patient").
 		Preload("User").
 		Preload("Tag").
 		Preload("Recommendation").
+
+		// Relaciones anidadas del Patient
+		Preload("Patient.User").                        // Usuario que creó el paciente
+		Preload("Patient.User.Role").                   // Rol del usuario
+		Preload("Patient.User.Locality").               // Localidad del usuario
+		Preload("Patient.Measurements").                // Otras mediciones del paciente
+		Preload("Patient.Measurements.Tag").            // Tags de otras mediciones
+		Preload("Patient.Measurements.Recommendation"). // Recomendaciones de otras mediciones
+
+		// Relaciones del User (quien tomó la medición)
+		Preload("User.Role").     // Rol del usuario que midió
+		Preload("User.Locality"). // Localidad del usuario que midió
+		Preload("User.Patients"). // Pacientes asignados al usuario
+
+		// Ordenamiento: más recientes primero
+		Order("created_at DESC").
 		Find(&measurements)
-	
+
 	if result.Error != nil {
 		return nil, fmt.Errorf("error al obtener mediciones: %w", result.Error)
 	}
+
 	return measurements, nil
 }
 
