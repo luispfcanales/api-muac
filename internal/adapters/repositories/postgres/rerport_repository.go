@@ -229,7 +229,7 @@ func (r *reportRepository) GetRiskPatients(ctx context.Context, filters *domain.
 	var patients []struct {
 		PatientID    uuid.UUID
 		PatientName  string
-		Age          int
+		Age          float64
 		Gender       string
 		MuacValue    float64
 		MuacCode     string

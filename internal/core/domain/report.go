@@ -73,7 +73,7 @@ type RiskPatientsReport struct {
 type RiskPatient struct {
 	PatientID    uuid.UUID `json:"patient_id"`
 	PatientName  string    `json:"patient_name"`
-	Age          int       `json:"age"`
+	Age          float64   `json:"age"`
 	Gender       string    `json:"gender"`
 	MuacValue    float64   `json:"muac_value"`
 	MuacCode     string    `json:"muac_code"`
