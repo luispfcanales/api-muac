@@ -3,6 +3,7 @@ package http
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"log"
 	"net/http"
 	"path/filepath"
@@ -34,6 +35,7 @@ func NewPatientHandler(patientService ports.IPatientService, measurementService 
 func (h *PatientHandler) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /api/patients", h.GetAllPatients)
 	// mux.HandleFunc("POST /api/patients", h.CreatePatient)
+	mux.HandleFunc("GET /api/patients/patients-in-risk", h.GetPatientsInRisk)
 	mux.HandleFunc("POST /api/patients/with-file", h.CreatePatientWithFile)
 	mux.HandleFunc("GET /api/patients/{id}", h.GetPatientByID)
 	mux.HandleFunc("PUT /api/patients/{id}", h.UpdatePatientWithFile)
@@ -768,6 +770,87 @@ func (h *PatientHandler) AddPatientMeasurement(w http.ResponseWriter, r *http.Re
 	if err := json.NewEncoder(w).Encode(response); err != nil {
 		log.Printf("Error encoding response: %v", err)
 	}
+}
+
+// GetPatientsInRisk obtiene pacientes en riesgo
+func (h *PatientHandler) GetPatientsInRisk(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	filters, err := h.parseFilters(r)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	patients, err := h.patientService.GetPatientsInRisk(ctx, filters)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"message": "Pacientes en riesgo obtenidos exitosamente",
+		"count":   len(patients),
+		"data":    patients,
+	})
+}
+
+// parseFilters parsea los query parameters a filtros
+func (h *PatientHandler) parseFilters(r *http.Request) (*domain.ReportFilters, error) {
+	filters := &domain.ReportFilters{}
+
+	// Locality ID
+	if localityIDStr := r.URL.Query().Get("locality_id"); localityIDStr != "" {
+		localityID, err := uuid.Parse(localityIDStr)
+		if err != nil {
+			return nil, fmt.Errorf("locality_id inválido: %v", err)
+		}
+		filters.LocalityID = &localityID
+	}
+
+	// User ID
+	if userIDStr := r.URL.Query().Get("user_id"); userIDStr != "" {
+		userID, err := uuid.Parse(userIDStr)
+		if err != nil {
+			return nil, fmt.Errorf("user_id inválido: %v", err)
+		}
+		filters.UserID = &userID
+	}
+
+	// Days
+	if daysStr := r.URL.Query().Get("days"); daysStr != "" {
+		days, err := strconv.Atoi(daysStr)
+		if err != nil {
+			return nil, fmt.Errorf("days debe ser un número válido: %v", err)
+		}
+		if days < 0 {
+			return nil, fmt.Errorf("days no puede ser negativo")
+		}
+		if days > 365 {
+			return nil, fmt.Errorf("days no puede ser mayor a 365")
+		}
+		filters.Days = days
+	} else {
+		filters.Days = 30 // Por defecto últimos 30 días
+	}
+
+	// Limit
+	if limitStr := r.URL.Query().Get("limit"); limitStr != "" {
+		limit, err := strconv.Atoi(limitStr)
+		if err != nil {
+			return nil, fmt.Errorf("limit debe ser un número válido: %v", err)
+		}
+		if limit < 0 {
+			return nil, fmt.Errorf("limit no puede ser negativo")
+		}
+		if limit > 1000 {
+			return nil, fmt.Errorf("limit no puede ser mayor a 1000")
+		}
+		filters.Limit = limit
+	}
+
+	return filters, nil
 }
 
 // getMuacThresholdInfo proporciona información contextual sobre los umbrales MUAC

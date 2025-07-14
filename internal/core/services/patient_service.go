@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/google/uuid"
 	"github.com/luispfcanales/api-muac/internal/core/domain"
@@ -91,4 +92,15 @@ func (s *patientService) AddMeasurement(ctx context.Context, patientID uuid.UUID
 
 	// Guardar la medición en la base de datos usando el repositorio de mediciones
 	return s.measurementRepo.Create(ctx, measurement)
+}
+
+// GetPatientsInRisk obtiene pacientes en riesgo con validación
+func (s *patientService) GetPatientsInRisk(ctx context.Context, filters *domain.ReportFilters) ([]*domain.Patient, error) {
+
+	patients, err := s.patientRepo.GetPatientsInRisk(ctx, filters)
+	if err != nil {
+		return nil, fmt.Errorf("error al obtener pacientes en riesgo: %w", err)
+	}
+
+	return patients, nil
 }
