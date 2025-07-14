@@ -2,11 +2,8 @@ package http
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
-	"strconv"
-	"time"
 
 	"github.com/google/uuid"
 	"github.com/luispfcanales/api-muac/internal/core/domain"
@@ -130,14 +127,17 @@ func (h *UserHandler) GetApoderados(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Configurar headers para descarga
-	filename := fmt.Sprintf("reporte_apoderados_%s.xlsx", time.Now().Format("2006-01-02_15-04-05"))
-	w.Header().Set("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
-	w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=%s", filename))
-	w.Header().Set("Content-Length", strconv.Itoa(len(excelData)))
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(excelData)
 
-	// Escribir el archivo
-	w.Write(excelData)
+	// // Configurar headers para descarga
+	// filename := fmt.Sprintf("reporte_apoderados_%s.xlsx", time.Now().Format("2006-01-02_15-04-05"))
+	// w.Header().Set("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+	// w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=%s", filename))
+	// w.Header().Set("Content-Length", strconv.Itoa(len(excelData)))
+
+	// // Escribir el archivo
+	// w.Write(excelData)
 }
 
 // GetUserByID godoc

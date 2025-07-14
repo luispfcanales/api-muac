@@ -2,7 +2,6 @@ package services
 
 import (
 	"context"
-	"errors"
 
 	"github.com/google/uuid"
 	"github.com/luispfcanales/api-muac/internal/core/domain"
@@ -29,14 +28,11 @@ func (s *patientService) Create(ctx context.Context, patient *domain.Patient) er
 		return err
 	}
 	//validar que no se repita el dni con otro registro
-	p, err := s.patientRepo.GetByDNI(ctx, patient.DNI)
+	_, err := s.patientRepo.GetByDNI(ctx, patient.DNI)
 	if err != nil {
-		return err
+		return s.patientRepo.Create(ctx, patient)
 	}
-	if p.ID != uuid.Nil {
-		return errors.New("el DNI ya está registrado")
-	}
-	return s.patientRepo.Create(ctx, patient)
+	return domain.ErrPatientDNIAlreadyExists
 }
 
 // GetByID obtiene un paciente por su ID

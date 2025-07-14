@@ -14,9 +14,10 @@ var (
 	ErrLocalityNotFound      = errors.New("localidad no encontrada")
 
 	// Patient errors
-	ErrEmptyPatientName     = errors.New("el nombre del paciente no puede estar vacío")
-	ErrEmptyPatientLastName = errors.New("el apellido del paciente no puede estar vacío")
-	ErrPatientNotFound      = errors.New("paciente no encontrado")
+	ErrEmptyPatientName        = errors.New("el nombre del paciente no puede estar vacío")
+	ErrEmptyPatientLastName    = errors.New("el apellido del paciente no puede estar vacío")
+	ErrPatientDNIAlreadyExists = errors.New("el DNI del paciente ya está registrado")
+	ErrPatientNotFound         = errors.New("paciente no encontrado")
 
 	// Tag errors
 	ErrEmptyTagName = errors.New("el nombre de la etiqueta no puede estar vacío")
