@@ -31,6 +31,7 @@ func (h *ReportHandler) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /api/reports/recent-measurements", h.GetRecentMeasurements)
 	mux.HandleFunc("GET /api/reports/risk-patients", h.GetRiskPatients)
 	mux.HandleFunc("GET /api/reports/user-activity", h.GetUserActivity)
+	mux.HandleFunc("GET /api/reports/risk-patients-coordinates", h.GetRiskPatientsCoordinates)
 }
 
 // GetDashboard godoc
@@ -174,6 +175,27 @@ func (h *ReportHandler) GetRiskPatients(w http.ResponseWriter, r *http.Request) 
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(report)
+}
+
+// GetRiskPatientsCoordinates obtiene coordenadas para mapa de calor
+func (h *ReportHandler) GetRiskPatientsCoordinates(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	filters, err := h.parseFilters(r)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	coordinates, err := h.reportService.GetRiskPatientsCoordinates(ctx, filters)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Respuesta simple: solo el array de coordenadas
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(coordinates)
 }
 
 // GetUserActivity godoc

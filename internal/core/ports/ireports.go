@@ -23,6 +23,8 @@ type IReportRepository interface {
 
 	// Actividad de usuarios
 	GetUserActivity(ctx context.Context, filters *domain.ReportFilters) (*domain.UserActivityReport, error)
+
+	GetRiskPatientsCoordinates(ctx context.Context, filters *domain.ReportFilters) ([][]float64, error)
 }
 
 // IReportService define las operaciones del servicio para reportes
@@ -36,4 +38,6 @@ type IReportService interface {
 
 	// Validación
 	ValidateFilters(filters *domain.ReportFilters) error
+
+	GetRiskPatientsCoordinates(ctx context.Context, filters *domain.ReportFilters) ([][]float64, error)
 }

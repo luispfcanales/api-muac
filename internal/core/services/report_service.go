@@ -82,6 +82,20 @@ func (s *reportService) GetRiskPatientsReport(ctx context.Context, filters *doma
 	return report, nil
 }
 
+// GetRiskPatientsCoordinates obtiene coordenadas de pacientes en riesgo
+func (s *reportService) GetRiskPatientsCoordinates(ctx context.Context, filters *domain.ReportFilters) ([][]float64, error) {
+	if err := s.ValidateFilters(filters); err != nil {
+		return nil, err
+	}
+
+	coordinates, err := s.reportRepo.GetRiskPatientsCoordinates(ctx, filters)
+	if err != nil {
+		return nil, fmt.Errorf("error al obtener coordenadas de pacientes en riesgo: %w", err)
+	}
+
+	return coordinates, nil
+}
+
 // GetUserActivityReport obtiene la actividad de usuarios
 func (s *reportService) GetUserActivityReport(ctx context.Context, filters *domain.ReportFilters) (*domain.UserActivityReport, error) {
 	if err := s.ValidateFilters(filters); err != nil {

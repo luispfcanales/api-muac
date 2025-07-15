@@ -4,6 +4,7 @@ package postgres
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/google/uuid"
@@ -317,6 +318,70 @@ func (r *reportRepository) GetRiskPatients(ctx context.Context, filters *domain.
 		SevereCases:   severeCases,
 		ModerateCases: moderateCases,
 	}, nil
+}
+
+// GetRiskPatientsCoordinates obtiene solo las coordenadas de pacientes en riesgo para mapa de calor
+func (r *reportRepository) GetRiskPatientsCoordinates(ctx context.Context, filters *domain.ReportFilters) ([][]float64, error) {
+	var coordinates [][]float64
+
+	// Estructura temporal para la consulta
+	var results []struct {
+		Latitude  string `json:"latitude"`
+		Longitude string `json:"longitude"`
+	}
+
+	query := r.db.WithContext(ctx).
+		Select(`
+			l.latitude,
+			l.longitude
+		`).
+		Table("patients p").
+		Joins(`JOIN measurements m ON p.id = m.patient_id AND m.id = (
+			SELECT id FROM measurements m2 
+			WHERE m2.patient_id = p.id 
+			ORDER BY m2.created_at DESC 
+			LIMIT 1
+		)`).
+		Joins("JOIN users u ON p.user_id = u.id").
+		Joins("JOIN localities l ON u.locality_id = l.id").
+		Where("m.muac_value < ?", 12.5). // Solo pacientes en riesgo
+		Where("l.latitude IS NOT NULL"). // Solo localidades con coordenadas
+		Where("l.longitude IS NOT NULL").
+		Where("l.latitude != ''"). // Evitar strings vacíos
+		Where("l.longitude != ''")
+
+	// Aplicar filtros
+	if filters != nil {
+		if filters.LocalityID != nil {
+			query = query.Where("u.locality_id = ?", *filters.LocalityID)
+		}
+		if filters.UserID != nil {
+			query = query.Where("p.user_id = ?", *filters.UserID)
+		}
+		if filters.Days > 0 {
+			since := time.Now().AddDate(0, 0, -filters.Days)
+			query = query.Where("m.created_at >= ?", since)
+		}
+		if filters.Limit > 0 {
+			query = query.Limit(filters.Limit)
+		}
+	}
+
+	if err := query.Scan(&results).Error; err != nil {
+		return nil, fmt.Errorf("error al obtener coordenadas: %w", err)
+	}
+
+	// Convertir a formato [lat, lng]
+	for _, result := range results {
+		// Convertir strings a float64
+		if lat, err := strconv.ParseFloat(result.Latitude, 64); err == nil {
+			if lng, err := strconv.ParseFloat(result.Longitude, 64); err == nil {
+				coordinates = append(coordinates, []float64{lat, lng})
+			}
+		}
+	}
+
+	return coordinates, nil
 }
 
 // GetUserActivity obtiene la actividad de usuarios
