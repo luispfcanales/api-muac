@@ -60,6 +60,11 @@ func SeedDatabase(db *gorm.DB) error {
 		return fmt.Errorf("error creando usuario admin: %w", err)
 	}
 
+	if err := seedFAQs(tx); err != nil {
+		tx.Rollback()
+		return fmt.Errorf("error creando FAQs: %w", err)
+	}
+
 	// Confirmar transacción
 	if err := tx.Commit().Error; err != nil {
 		return fmt.Errorf("error confirmando transacción: %w", err)
@@ -315,6 +320,91 @@ func seedAdminUser(tx *gorm.DB) error {
 	return nil
 }
 
+// seedFAQs crea las preguntas frecuentes iniciales del sistema
+func seedFAQs(tx *gorm.DB) error {
+	log.Println("❓ Creando preguntas frecuentes (FAQs)...")
+
+	faqs := []domain.FAQ{
+		{
+			Question: "¿Qué significa la medida que ingreso en la app?",
+			Answer:   "La medida que ingresas es la circunferencia del brazo de tu niño o niña, en centímetros. Esta medida nos ayuda a saber si está en buen estado nutricional o si necesita atención médica.",
+		},
+		{
+			Question: "¿Cómo sé si usé bien la cinta MUAC?",
+			Answer:   "La cinta debe colocarse a la mitad del brazo izquierdo del niño, entre el hombro y el codo. No debe estar ni muy floja ni muy apretada. El número que se muestra en la ventana es el que debes ingresar en la app. Puedes repetir la medición si no estás seguro.",
+		},
+		{
+			Question: "¿Puedo usar la cinta con ropa puesta?",
+			Answer:   "No. Para que la medición sea correcta, el brazo del niño/a debe estar sin ropa (manga arremangada o brazo desnudo). La ropa puede alterar el resultado.",
+		},
+		{
+			Question: "¿Necesito tener internet para usar el app?",
+			Answer:   "No. El aplicativo está diseñado para funcionar sin conexión a internet. Solo necesitas tener cargado el teléfono. Algunas funciones como el mapa de centros de salud pueden necesitar GPS o conexión si no están precargadas.",
+		},
+		{
+			Question: "¿Puedo usar el app con cualquier niño/a?",
+			Answer:   "Sí, siempre que tenga entre 6 y 59 meses (de 0.5 a 5 años de edad). No se recomienda para bebés menores de 6 meses ni para niños mayores de 5 años.",
+		},
+		{
+			Question: "¿Qué pasa si me equivoco al ingresar el número?",
+			Answer:   "Puedes volver atrás y corregir la medición. El app solo guarda la última medición ingresada, así que puedes repetirla si es necesario.",
+		},
+		{
+			Question: "¿Qué significa si aparece Alerta Roja?",
+			Answer:   "Significa que tu niño/a podría estar con desnutrición severa. Es muy importante que lo lleves al centro de salud lo antes posible, aunque parezca que está bien. La desnutrición no siempre se nota de inmediato.",
+		},
+		{
+			Question: "¿Y si me sale Alerta Amarilla?",
+			Answer:   "Significa que hay riesgo de desnutrición. No es una emergencia, pero sí una señal de cuidado. Revisa su alimentación, y llévalo al centro de salud para un chequeo. Puedes volver a medir en 7 días.",
+		},
+		{
+			Question: "¿Y si sale Zona Verde? ¿Todo está bien?",
+			Answer:   "Sí, es una buena señal. Pero igual debes seguir con sus controles en el centro de salud y alimentarlo bien. Puedes repetir la medición una vez al mes o si lo ves enfermo o sin apetito.",
+		},
+		{
+			Question: "¿Cómo encuentro el centro de salud más cercano?",
+			Answer:   "El app puede mostrarte un listado o un mapa, usando GPS si está disponible. Si no tienes conexión, verás una lista precargada con los puestos más cercanos según tu comunidad.",
+		},
+		{
+			Question: "¿Qué hago si no puedo ir al centro de salud?",
+			Answer:   "Busca apoyo del teniente gobernador, promotor de salud o el centro poblado. Ellos pueden ayudarte a comunicarte o trasladarte.",
+		},
+		{
+			Question: "¿Puedo usar esta app para otros niños de la comunidad?",
+			Answer:   "Sí. Puedes usar la cinta y la app con cualquier niño de entre 6 y 59 meses. Solo asegúrate de no confundir las mediciones si lo haces con varios.",
+		},
+		{
+			Question: "¿El app guarda información personal del niño/a?",
+			Answer:   "No. El aplicativo no registra nombres, fotos ni datos personales. Solo guarda las mediciones y los resultados para que puedas consultarlos tú mismo.",
+		},
+		{
+			Question: "¿Quién puede ver los datos que ingreso?",
+			Answer:   "Solo tú. Nadie más tiene acceso a tu teléfono ni a lo que registres. Si en el futuro deseas compartir la información con el centro de salud, puedes mostrarla desde tu pantalla.",
+		},
+		{
+			Question: "¿Este app reemplaza al personal de salud?",
+			Answer:   "No. El app es una herramienta de apoyo para el cuidado en casa, pero no reemplaza al centro de salud ni a los profesionales. Siempre debes acudir si tienes dudas o si el niño/a está enfermo.",
+		},
+		{
+			Question: "¿Puedo hacer una nueva medición el mismo día?",
+			Answer:   "Sí. Si crees que te equivocaste o si el niño/a comió y crees que cambió, puedes repetir la medición. Lo importante es hacerlo siempre en el mismo brazo y bien colocado.",
+		},
+	}
+
+	// Crear FAQs con IDs generados
+	for i := range faqs {
+		faqs[i].ID = uuid.New()
+		faqs[i].CreatedAt = time.Now()
+	}
+
+	if err := tx.Create(&faqs).Error; err != nil {
+		return fmt.Errorf("error creando FAQs: %w", err)
+	}
+
+	log.Printf("✅ %d preguntas frecuentes creadas", len(faqs))
+	return nil
+}
+
 // ============= FUNCIONES DE DATOS ADICIONALES =============
 
 // seedAdditionalData agrega datos faltantes si los roles ya existen
@@ -329,11 +419,30 @@ func seedAdditionalData(db *gorm.DB) error {
 		return fmt.Errorf("error verificando recomendaciones: %w", err)
 	}
 
+	if err := checkAndCreateFAQs(db); err != nil {
+		return fmt.Errorf("error verificando FAQs: %w", err)
+	}
+
 	if err := updateExistingData(db); err != nil {
 		return fmt.Errorf("error actualizando datos existentes: %w", err)
 	}
 
 	log.Println("✅ Verificación de datos completada")
+	return nil
+}
+
+func checkAndCreateFAQs(db *gorm.DB) error {
+	var faqCount int64
+	if err := db.Model(&domain.FAQ{}).Count(&faqCount).Error; err != nil {
+		return err
+	}
+
+	if faqCount == 0 {
+		log.Println("❓ No se encontraron FAQs, creando preguntas frecuentes...")
+		return seedFAQs(db)
+	}
+
+	log.Println("✅ FAQs verificadas - OK")
 	return nil
 }
 
@@ -497,6 +606,7 @@ func logSeedingSummary(db *gorm.DB) {
 		Recommendations int64
 		Patients        int64
 		Measurements    int64
+		FAQs            int64
 	}
 
 	db.Model(&domain.User{}).Count(&counts.Users)
@@ -505,6 +615,7 @@ func logSeedingSummary(db *gorm.DB) {
 	db.Model(&domain.Recommendation{}).Count(&counts.Recommendations)
 	db.Model(&domain.Patient{}).Count(&counts.Patients)
 	db.Model(&domain.Measurement{}).Count(&counts.Measurements)
+	db.Model(&domain.FAQ{}).Count(&counts.FAQs)
 
 	log.Println("")
 	log.Println("🎉 ============= SISTEMA MUAC INICIALIZADO =============")
@@ -513,6 +624,7 @@ func logSeedingSummary(db *gorm.DB) {
 	log.Printf("   🔐 Roles: %d", counts.Roles)
 	log.Printf("   🏷️  Tags MUAC: %d", counts.Tags)
 	log.Printf("   💡 Recomendaciones: %d", counts.Recommendations)
+	log.Printf("   ❓ Preguntas frecuentes: %d", counts.FAQs)
 	log.Printf("   🧒 Pacientes: %d", counts.Patients)
 	log.Printf("   📏 Mediciones: %d", counts.Measurements)
 	log.Println("")
