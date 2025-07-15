@@ -34,8 +34,8 @@ func (s *faqService) GetByID(ctx context.Context, id uuid.UUID) (*domain.FAQ, er
 }
 
 // GetAll obtiene todas las FAQs
-func (s *faqService) GetAll(ctx context.Context) ([]*domain.FAQ, error) {
-	return s.faqRepo.GetAll(ctx)
+func (s *faqService) GetAllGroupedByCategory(ctx context.Context) ([]*domain.FAQGrouped, error) {
+	return s.faqRepo.GetAllGroupedByCategory(ctx)
 }
 
 // Update actualiza una FAQ existente

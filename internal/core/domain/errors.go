@@ -46,7 +46,8 @@ var (
 	ErrNotificationNotFound   = errors.New("notificación no encontrada")
 
 	// FAQ errors
-	ErrEmptyFAQQuestion = errors.New("la pregunta no puede estar vacía")
-	ErrEmptyFAQAnswer   = errors.New("la respuesta no puede estar vacía")
-	ErrFAQNotFound      = errors.New("FAQ no encontrada")
+	ErrEmptyFAQQuestion   = errors.New("la pregunta no puede estar vacía")
+	ErrEmptyFAQAnswer     = errors.New("la respuesta no puede estar vacía")
+	ErrFAQNotFound        = errors.New("FAQ no encontrada")
+	ErrInvalidFAQCategory = errors.New("categoría de FAQ no válida")
 )

@@ -11,11 +11,11 @@ import (
 
 // FAQHandler maneja las peticiones HTTP relacionadas con preguntas frecuentes
 type FAQHandler struct {
-	faqService ports.IFAQService
+	faqService ports.IFAQRepository
 }
 
 // NewFAQHandler crea una nueva instancia de FAQHandler
-func NewFAQHandler(faqService ports.IFAQService) *FAQHandler {
+func NewFAQHandler(faqService ports.IFAQRepository) *FAQHandler {
 	return &FAQHandler{
 		faqService: faqService,
 	}
@@ -42,7 +42,7 @@ func (h *FAQHandler) RegisterRoutes(mux *http.ServeMux) {
 func (h *FAQHandler) GetAllFAQs(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	faqs, err := h.faqService.GetAll(ctx)
+	faqs, err := h.faqService.GetAllGroupedByCategory(ctx)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -110,6 +110,7 @@ func (h *FAQHandler) CreateFAQ(w http.ResponseWriter, r *http.Request) {
 	var req struct {
 		Question string `json:"question"`
 		Answer   string `json:"answer"`
+		Category string `json:"category"`
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -117,7 +118,16 @@ func (h *FAQHandler) CreateFAQ(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	faq := domain.NewFAQ(req.Question, req.Answer)
+	faq, err := domain.NewFAQ(req.Question, req.Answer, req.Category)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	if err := faq.Validate(); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
 
 	if err := h.faqService.Create(ctx, faq); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -160,6 +170,7 @@ func (h *FAQHandler) UpdateFAQ(w http.ResponseWriter, r *http.Request) {
 	var req struct {
 		Question string `json:"question"`
 		Answer   string `json:"answer"`
+		Category string `json:"category"`
 	}
 
 	if err = json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -177,7 +188,10 @@ func (h *FAQHandler) UpdateFAQ(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	faq.Update(req.Question, req.Answer)
+	if err := faq.Validate(); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
 
 	if err := h.faqService.Update(ctx, faq); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)

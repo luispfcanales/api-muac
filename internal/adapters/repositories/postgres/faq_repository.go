@@ -45,14 +45,36 @@ func (r *faqRepository) GetByID(ctx context.Context, id uuid.UUID) (*domain.FAQ,
 	return &faq, nil
 }
 
-// GetAll obtiene todas las FAQs
-func (r *faqRepository) GetAll(ctx context.Context) ([]*domain.FAQ, error) {
+// GetAllGroupedByCategory obtiene todas las FAQs agrupadas por categoría y ordenadas por created_at
+func (r *faqRepository) GetAllGroupedByCategory(ctx context.Context) ([]*domain.FAQGrouped, error) {
+	// Obtenemos FAQs ya ordenadas por categoría y fecha de creación
 	var faqs []*domain.FAQ
-	result := r.db.WithContext(ctx).Find(&faqs)
+	result := r.db.WithContext(ctx).Order("category, created_at").Find(&faqs)
 	if result.Error != nil {
 		return nil, fmt.Errorf("error al obtener FAQs: %w", result.Error)
 	}
-	return faqs, nil
+
+	// Agrupamos usando un mapa
+	groupsMap := make(map[string][]*domain.FAQ)
+	for _, faq := range faqs {
+		groupsMap[faq.Category] = append(groupsMap[faq.Category], faq)
+	}
+
+	// Convertimos a slice ordenada
+	grouped := make([]*domain.FAQGrouped, 0, len(groupsMap))
+
+	// Ordenamos las categorías según ValidFAQCategories
+	for _, category := range domain.ValidFAQCategories {
+		if faqs, exists := groupsMap[category]; exists {
+			// No necesitamos ordenar porque ya vienen ordenadas de la consulta SQL
+			grouped = append(grouped, &domain.FAQGrouped{
+				Category: category,
+				FAQs:     faqs,
+			})
+		}
+	}
+
+	return grouped, nil
 }
 
 // Update actualiza una FAQ existente

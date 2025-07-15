@@ -11,7 +11,7 @@ import (
 type IFAQRepository interface {
 	Create(ctx context.Context, faq *domain.FAQ) error
 	GetByID(ctx context.Context, id uuid.UUID) (*domain.FAQ, error)
-	GetAll(ctx context.Context) ([]*domain.FAQ, error)
+	GetAllGroupedByCategory(ctx context.Context) ([]*domain.FAQGrouped, error)
 	Update(ctx context.Context, faq *domain.FAQ) error
 	Delete(ctx context.Context, id uuid.UUID) error
 }
@@ -20,7 +20,7 @@ type IFAQRepository interface {
 type IFAQService interface {
 	Create(ctx context.Context, faq *domain.FAQ) error
 	GetByID(ctx context.Context, id uuid.UUID) (*domain.FAQ, error)
-	GetAll(ctx context.Context) ([]*domain.FAQ, error)
+	GetAllGroupedByCategory(ctx context.Context) ([]*domain.FAQGrouped, error)
 	Update(ctx context.Context, faq *domain.FAQ) error
 	Delete(ctx context.Context, id uuid.UUID) error
 }
