@@ -1,66 +1,73 @@
-# Confericis Backend Makefile
+# Confericis Backend Makefile - Configuración para Ubuntu local y EC2
 
 # Variables
 BINARY_NAME=muac-api
 MAIN_FILE=./cmd/main.go
 GO_CMD=go
 BUILD_FLAGS=-ldflags="-s -w"
+
+# Configuración para EC2
 EC2_KEY=gopher.pem
 EC2_USER=ec2-user
 EC2_HOST=ec2-35-173-114-173.compute-1.amazonaws.com
 EC2_PATH=/home/ec2-user/dev/
 
-# Build para diferentes arquitecturas
-.PHONY: build-linux build-windows build-arm64 clean deploy run test help
+# Configuración para Ubuntu local
+LOCAL_USER=nutricion
+LOCAL_HOST=192.168.254.35
+LOCAL_PATH=/home/nutricion/dev/
 
-# Comando principal - compilar para Amazon Linux 2023 (x86_64)
-build-linux:
-	@echo "Compilando para Amazon Linux 2023..."
+# Build para diferentes sistemas
+.PHONY: build build-ubuntu build-linux build-arm64 clean deploy-local deploy-ec2 run test help
+
+# Compilación por defecto (Ubuntu local)
+build: build-ubuntu
+
+# Compilar para Ubuntu local
+build-ubuntu:
+	@echo "Compilando para Ubuntu local..."
 	GOOS=linux GOARCH=amd64 CGO_ENABLED=0 $(GO_CMD) build $(BUILD_FLAGS) -o $(BINARY_NAME) $(MAIN_FILE)
 	@echo "Compilación completada: $(BINARY_NAME)"
 
-# Compilar para ARM64 (Graviton instances)
+# Compilar para Amazon Linux (EC2)
+build-linux:
+	@echo "Compilando para Amazon Linux (EC2)..."
+	GOOS=linux GOARCH=amd64 CGO_ENABLED=0 $(GO_CMD) build $(BUILD_FLAGS) -o $(BINARY_NAME)-amazon $(MAIN_FILE)
+	@echo "Compilación completada: $(BINARY_NAME)-amazon"
+
+# Compilar para ARM64
 build-arm64:
-	@echo "Compilando para ARM64 Linux..."
+	@echo "Compilando para ARM64..."
 	GOOS=linux GOARCH=arm64 CGO_ENABLED=0 $(GO_CMD) build $(BUILD_FLAGS) -o $(BINARY_NAME)-arm64 $(MAIN_FILE)
 	@echo "Compilación completada: $(BINARY_NAME)-arm64"
 
 # Limpiar binarios
 clean:
 	@echo "Limpiando binarios..."
-	rm -f $(BINARY_NAME) $(BINARY_NAME).exe $(BINARY_NAME)-arm64
+	rm -f $(BINARY_NAME)* $(BINARY_NAME).exe
 	@echo "Limpieza completada"
 
-# Subir binario a EC2
-upload:
+# Despliegue local (Ubuntu)
+deploy-local: build-ubuntu
+	@echo "Moviendo binario a directorio de producción local..."
+	scp $(BINARY_NAME) $(LOCAL_USER)@$(LOCAL_HOST):$(LOCAL_PATH)
+	@echo "Despliegue local completado"
+
+# Despliegue en EC2
+deploy-ec2: build-linux
 	@echo "Subiendo binario a EC2..."
-	scp -i "$(EC2_KEY)" $(BINARY_NAME) $(EC2_USER)@$(EC2_HOST):$(EC2_PATH)
-	@echo "Binario subido exitosamente"
+	scp -i "$(EC2_KEY)" $(BINARY_NAME)-amazon $(EC2_USER)@$(EC2_HOST):$(EC2_PATH)$(BINARY_NAME)
+	@echo "Despliegue en EC2 completado"
 
-# Subir archivo específico - Uso: make upload-file FILE=archivo.txt
-upfile:
+# Subir archivo específico a servidor local
+upload-local:
 	@if [ -z "$(FILE)" ]; then \
-		echo "Error: Debes especificar el archivo con FILE=nombre_archivo"; \
-		echo "Ejemplo: make upload-file FILE=ecosystem.config.cjs"; \
+		echo "Error: Especifica el archivo con FILE=nombre_archivo"; \
 		exit 1; \
 	fi
-	@if [ ! -f "$(FILE)" ]; then \
-		echo "Error: El archivo $(FILE) no existe"; \
-		exit 1; \
-	fi
-	@echo "Subiendo archivo $(FILE) a EC2..."
-	scp -i "$(EC2_KEY)" "$(FILE)" $(EC2_USER)@$(EC2_HOST):$(EC2_PATH)
-	@echo "Archivo $(FILE) subido exitosamente a $(EC2_PATH)"
-
-
-delete-binary:
-	@echo "Eliminando binario compilado..."
-	rm $(BINARY_NAME)
-	@echo "Binario subido exitosamente"
-
-# Deployment completo (compilar + subir)
-deploy: build-linux upload
-	@echo "Deployment completado"
+	@echo "Subiendo $(FILE) a servidor local..."
+	scp "$(FILE)" $(LOCAL_USER)@$(LOCAL_HOST):$(LOCAL_PATH)
+	@echo "Archivo $(FILE) subido a $(LOCAL_PATH)"
 
 # Ejecutar localmente
 run:
@@ -69,54 +76,28 @@ run:
 
 # Verificar dependencias
 deps:
-	@echo "Descargando dependencias..."
-	$(GO_CMD) mod download
+	@echo "Actualizando dependencias..."
 	$(GO_CMD) mod tidy
+	$(GO_CMD) mod download
 
-# Desarrollo: watch y rebuild automático (requiere air)
-dev:
-	@echo "Iniciando modo desarrollo..."
-	air
-
-# Verificar info del proyecto
-info:
-	@echo "=== Información del Proyecto ==="
-	@echo "Go version: $$($(GO_CMD) version)"
-	@echo "GOOS: $$($(GO_CMD) env GOOS)"
-	@echo "GOARCH: $$($(GO_CMD) env GOARCH)"
-	@echo "Binario objetivo: $(BINARY_NAME)"
-	@echo "Servidor EC2: $(EC2_HOST)"
-
-# Conectar a EC2 (solo SSH)
 ssh:
 	@echo "Conectando a EC2..."
 	ssh -i "$(EC2_KEY)" $(EC2_USER)@$(EC2_HOST)
 
-# Ver logs remotos (ajustar según tu aplicación)
-logs:
-	@echo "Viendo logs remotos..."
-	ssh -i "$(EC2_KEY)" $(EC2_USER)@$(EC2_HOST) "tail -f /var/log/confericis.log"
-
-# Restart remoto (si usas systemd)
-restart:
-	@echo "Reiniciando servicio remoto..."
-	ssh -i "$(EC2_KEY)" $(EC2_USER)@$(EC2_HOST) "sudo systemctl restart confericis"
-
-# Ayuda
+# Ayuda actualizada
 help:
 	@echo "=== Comandos disponibles ==="
-	@echo "build-linux    - Compilar para Amazon Linux 2023"
-	@echo "build-windows  - Compilar para Windows"
-	@echo "build-arm64    - Compilar para ARM64 Linux"
-	@echo "deploy         - Compilar y subir a EC2"
-	@echo "upload         - Subir binario existente a EC2"
-	@echo "run-remote     - Ejecutar en EC2"
-	@echo "clean          - Limpiar binarios"
-	@echo "run            - Ejecutar localmente"
-	@echo "deps           - Actualizar dependencias"
-	@echo "ssh            - Conectar a EC2"
-	@echo "info           - Ver información del proyecto"
-	@echo "help           - Mostrar esta ayuda"
+	@echo "build         - Compilar para Ubuntu local (por defecto)"
+	@echo "build-ubuntu  - Compilar para Ubuntu local"
+	@echo "build-linux   - Compilar para Amazon Linux (EC2)"
+	@echo "build-arm64   - Compilar para ARM64"
+	@echo "deploy-local  - Desplegar en servidor Ubuntu local"
+	@echo "deploy-ec2    - Desplegar en EC2"
+	@echo "upload-local  - Subir archivo al servidor local (usar FILE=archivo)"
+	@echo "clean         - Limpiar binarios"
+	@echo "run           - Ejecutar localmente"
+	@echo "deps          - Actualizar dependencias"
+	@echo "help          - Mostrar esta ayuda"
 
 # Comando por defecto
-.DEFAULT_GOAL := build-linux
+.DEFAULT_GOAL := help
