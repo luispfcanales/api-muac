@@ -47,5 +47,6 @@ type IFileService interface {
 	// ValidateFile valida si un archivo es válido (tipo, tamaño, etc.)
 	ValidateFile(header *multipart.FileHeader) error
 
-	GenerateApoderadosReport(ctx context.Context, users []*domain.User) ([]byte, error)
+	// GenerateRiskPatientsReport genera un reporte de pacientes en riesgo
+	GenerateRiskPatientsReport(ctx context.Context, report *domain.RiskPatientsReport) ([]byte, error)
 }

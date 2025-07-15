@@ -12,13 +12,15 @@ import (
 
 // reportService implementa la lógica de negocio para reportes
 type reportService struct {
-	reportRepo ports.IReportRepository
+	reportRepo   ports.IReportRepository
+	excelService ports.IFileService
 }
 
 // NewReportService crea una nueva instancia de ReportService
-func NewReportService(reportRepo ports.IReportRepository) ports.IReportService {
+func NewReportService(reportRepo ports.IReportRepository, excelService ports.IFileService) ports.IReportService {
 	return &reportService{
-		reportRepo: reportRepo,
+		reportRepo:   reportRepo,
+		excelService: excelService,
 	}
 }
 
@@ -80,6 +82,29 @@ func (s *reportService) GetRiskPatientsReport(ctx context.Context, filters *doma
 
 	report.GeneratedAt = time.Now()
 	return report, nil
+}
+
+// GetRiskPatientsReportExcel obtiene pacientes en riesgo y genera reporte Excel
+func (s *reportService) GetRiskPatientsReportExcel(ctx context.Context, filters *domain.ReportFilters) ([]byte, error) {
+	if err := s.ValidateFilters(filters); err != nil {
+		return nil, err
+	}
+
+	// Obtener datos de pacientes en riesgo
+	report, err := s.reportRepo.GetRiskPatients(ctx, filters)
+	if err != nil {
+		return nil, fmt.Errorf("error al generar reporte de pacientes en riesgo: %w", err)
+	}
+
+	report.GeneratedAt = time.Now()
+
+	// Generar archivo Excel
+	excelData, err := s.excelService.GenerateRiskPatientsReport(ctx, report)
+	if err != nil {
+		return nil, fmt.Errorf("error al generar archivo Excel: %w", err)
+	}
+
+	return excelData, nil
 }
 
 // GetRiskPatientsCoordinates obtiene coordenadas de pacientes en riesgo

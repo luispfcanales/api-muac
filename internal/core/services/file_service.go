@@ -286,22 +286,30 @@ func (fs *FileService) DeleteFileIfExists(ctx context.Context, fileID string) er
 }
 
 //para generar el excel
+//----------------------------------------------------------------------------------------------
 
-func (s *FileService) GenerateApoderadosReport(ctx context.Context, users []*domain.User) ([]byte, error) {
+// ============= AGREGAR AL FILE SERVICE =============
+
+// GenerateRiskPatientsReport genera un reporte Excel de pacientes en riesgo
+func (s *FileService) GenerateRiskPatientsReport(ctx context.Context, report *domain.RiskPatientsReport) ([]byte, error) {
 	f := excelize.NewFile()
 	defer f.Close()
 
 	// Crear hojas
-	if err := s.createApoderadosSheet(f, users); err != nil {
-		return nil, fmt.Errorf("error creando hoja de apoderados: %w", err)
+	if err := s.createRiskSummarySheet(f, report); err != nil {
+		return nil, fmt.Errorf("error creando hoja resumen: %w", err)
 	}
 
-	if err := s.createPatientsSheet(f, users); err != nil {
-		return nil, fmt.Errorf("error creando hoja de pacientes: %w", err)
+	if err := s.createSevereCasesSheet(f, report.SevereCases); err != nil {
+		return nil, fmt.Errorf("error creando hoja casos severos: %w", err)
 	}
 
-	if err := s.createMeasurementsSheet(f, users); err != nil {
-		return nil, fmt.Errorf("error creando hoja de mediciones: %w", err)
+	if err := s.createModerateCasesSheet(f, report.ModerateCases); err != nil {
+		return nil, fmt.Errorf("error creando hoja casos moderados: %w", err)
+	}
+
+	if err := s.createAllRiskPatientsSheet(f, report); err != nil {
+		return nil, fmt.Errorf("error creando hoja todos los pacientes: %w", err)
 	}
 
 	// Eliminar la hoja por defecto
@@ -316,68 +324,196 @@ func (s *FileService) GenerateApoderadosReport(ctx context.Context, users []*dom
 	return buffer.Bytes(), nil
 }
 
-func (s *FileService) createApoderadosSheet(f *excelize.File, users []*domain.User) error {
-	sheetName := "Apoderados"
+// createRiskSummarySheet crea la hoja de resumen
+func (s *FileService) createRiskSummarySheet(f *excelize.File, report *domain.RiskPatientsReport) error {
+	sheetName := "Resumen"
 	index, err := f.NewSheet(sheetName)
 	if err != nil {
 		return err
 	}
 	f.SetActiveSheet(index)
 
+	// Estilo para títulos
+	titleStyle, _ := f.NewStyle(&excelize.Style{
+		Font:      &excelize.Font{Bold: true, Size: 14},
+		Fill:      excelize.Fill{Type: "pattern", Color: []string{"4472C4"}, Pattern: 1},
+		Alignment: &excelize.Alignment{Horizontal: "center"},
+	})
+
+	// Estilo para datos críticos
+	criticalStyle, _ := f.NewStyle(&excelize.Style{
+		Font:      &excelize.Font{Bold: true, Color: "FFFFFF"},
+		Fill:      excelize.Fill{Type: "pattern", Color: []string{"DC3545"}, Pattern: 1},
+		Alignment: &excelize.Alignment{Horizontal: "center"},
+	})
+
+	// Estilo para datos moderados
+	moderateStyle, _ := f.NewStyle(&excelize.Style{
+		Font:      &excelize.Font{Bold: true, Color: "000000"},
+		Fill:      excelize.Fill{Type: "pattern", Color: []string{"FFC107"}, Pattern: 1},
+		Alignment: &excelize.Alignment{Horizontal: "center"},
+	})
+
+	// Título principal
+	f.SetCellValue(sheetName, "A1", "REPORTE DE PACIENTES EN RIESGO NUTRICIONAL")
+	f.MergeCell(sheetName, "A1", "D1")
+	f.SetCellStyle(sheetName, "A1", "D1", titleStyle)
+
+	// Información del reporte
+	f.SetCellValue(sheetName, "A3", "Fecha de generación:")
+	f.SetCellValue(sheetName, "B3", report.GeneratedAt.Format("2006-01-02 15:04:05"))
+
+	// Resumen estadístico
+	f.SetCellValue(sheetName, "A5", "RESUMEN ESTADÍSTICO")
+	f.SetCellStyle(sheetName, "A5", "A5", titleStyle)
+
+	f.SetCellValue(sheetName, "A7", "Casos Severos (MUAC < 11.5 cm)")
+	f.SetCellValue(sheetName, "B7", len(report.SevereCases))
+	f.SetCellStyle(sheetName, "B7", "B7", criticalStyle)
+
+	f.SetCellValue(sheetName, "A8", "Casos Moderados (MUAC 11.5-12.4 cm)")
+	f.SetCellValue(sheetName, "B8", len(report.ModerateCases))
+	f.SetCellStyle(sheetName, "B8", "B8", moderateStyle)
+
+	f.SetCellValue(sheetName, "A9", "Total Pacientes en Riesgo")
+	f.SetCellValue(sheetName, "B9", len(report.SevereCases)+len(report.ModerateCases))
+
+	// Distribución por localidad
+	f.SetCellValue(sheetName, "A11", "DISTRIBUCIÓN POR LOCALIDAD")
+	f.SetCellStyle(sheetName, "A11", "A11", titleStyle)
+
+	// Contar por localidad
+	localityCount := make(map[string]int)
+	allPatients := append(report.SevereCases, report.ModerateCases...)
+	for _, patient := range allPatients {
+		localityCount[patient.LocalityName]++
+	}
+
+	row := 13
+	f.SetCellValue(sheetName, "A12", "Localidad")
+	f.SetCellValue(sheetName, "B12", "Pacientes")
+	f.SetCellStyle(sheetName, "A12", "B12", titleStyle)
+
+	for locality, count := range localityCount {
+		f.SetCellValue(sheetName, fmt.Sprintf("A%d", row), locality)
+		f.SetCellValue(sheetName, fmt.Sprintf("B%d", row), count)
+		row++
+	}
+
+	// Ajustar ancho de columnas
+	f.SetColWidth(sheetName, "A", "A", 25)
+	f.SetColWidth(sheetName, "B", "B", 15)
+
+	return nil
+}
+
+// createSevereCasesSheet crea la hoja de casos severos
+func (s *FileService) createSevereCasesSheet(f *excelize.File, severeCases []domain.RiskPatient) error {
+	sheetName := "Casos Severos"
+	_, err := f.NewSheet(sheetName)
+	if err != nil {
+		return err
+	}
+
 	// Headers
-	headers := []string{"ID", "Nombre", "Apellido", "Username", "Email", "DNI", "Teléfono", "Activo", "Rol", "Localidad", "Total Pacientes"}
+	headers := []string{"ID Paciente", "Nombre Paciente", "Edad", "Género", "Valor MUAC",
+		"Código MUAC", "Localidad", "Apoderado", "Última Medición", "Días Transcurridos"}
+
 	for i, header := range headers {
 		cell := fmt.Sprintf("%c1", 'A'+i)
 		f.SetCellValue(sheetName, cell, header)
 	}
 
-	// Estilo para headers
+	// Estilo para headers (crítico)
 	style, _ := f.NewStyle(&excelize.Style{
-		Font: &excelize.Font{Bold: true},
-		Fill: excelize.Fill{Type: "pattern", Color: []string{"CCCCCC"}, Pattern: 1},
+		Font: &excelize.Font{Bold: true, Color: "FFFFFF"},
+		Fill: excelize.Fill{Type: "pattern", Color: []string{"DC3545"}, Pattern: 1},
 	})
 	f.SetCellStyle(sheetName, "A1", fmt.Sprintf("%c1", 'A'+len(headers)-1), style)
 
 	// Datos
-	for i, user := range users {
+	for i, patient := range severeCases {
 		row := i + 2
-		f.SetCellValue(sheetName, fmt.Sprintf("A%d", row), user.ID.String())
-		f.SetCellValue(sheetName, fmt.Sprintf("B%d", row), user.Name)
-		f.SetCellValue(sheetName, fmt.Sprintf("C%d", row), user.LastName)
-		f.SetCellValue(sheetName, fmt.Sprintf("D%d", row), user.Username)
-		f.SetCellValue(sheetName, fmt.Sprintf("E%d", row), user.Email)
-		f.SetCellValue(sheetName, fmt.Sprintf("F%d", row), user.DNI)
-		f.SetCellValue(sheetName, fmt.Sprintf("G%d", row), user.Phone)
-		f.SetCellValue(sheetName, fmt.Sprintf("H%d", row), user.Active)
-		if user.Role.ID != uuid.Nil {
-			f.SetCellValue(sheetName, fmt.Sprintf("I%d", row), user.Role.Name)
-		}
-		if user.Locality != nil {
-			f.SetCellValue(sheetName, fmt.Sprintf("J%d", row), user.Locality.Name)
-		}
-		f.SetCellValue(sheetName, fmt.Sprintf("K%d", row), len(user.Patients))
+		f.SetCellValue(sheetName, fmt.Sprintf("A%d", row), patient.PatientID.String())
+		f.SetCellValue(sheetName, fmt.Sprintf("B%d", row), patient.PatientName)
+		f.SetCellValue(sheetName, fmt.Sprintf("C%d", row), patient.Age)
+		f.SetCellValue(sheetName, fmt.Sprintf("D%d", row), patient.Gender)
+		f.SetCellValue(sheetName, fmt.Sprintf("E%d", row), patient.MuacValue)
+		f.SetCellValue(sheetName, fmt.Sprintf("F%d", row), patient.MuacCode)
+		f.SetCellValue(sheetName, fmt.Sprintf("G%d", row), patient.LocalityName)
+		f.SetCellValue(sheetName, fmt.Sprintf("H%d", row), patient.UserName)
+		f.SetCellValue(sheetName, fmt.Sprintf("I%d", row), patient.LastMeasure.Format("2006-01-02 15:04:05"))
+		f.SetCellValue(sheetName, fmt.Sprintf("J%d", row), patient.DaysAgo)
 	}
 
 	// Ajustar ancho de columnas
-	columns := []string{"A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K"}
-	for _, col := range columns {
+	for i := 0; i < len(headers); i++ {
+		col := string(rune('A' + i))
 		f.SetColWidth(sheetName, col, col, 15)
 	}
 
 	return nil
 }
 
-func (s *FileService) createPatientsSheet(f *excelize.File, users []*domain.User) error {
-	sheetName := "Pacientes"
+// createModerateCasesSheet crea la hoja de casos moderados
+func (s *FileService) createModerateCasesSheet(f *excelize.File, moderateCases []domain.RiskPatient) error {
+	sheetName := "Casos Moderados"
 	_, err := f.NewSheet(sheetName)
 	if err != nil {
 		return err
 	}
 
 	// Headers
-	headers := []string{"Paciente ID", "Nombre", "Apellido", "Género", "Edad", "DNI", "Fecha Nacimiento",
-		"Talla Brazo", "Peso", "Talla", "Consentimiento", "Fecha Consentimiento", "Descripción",
-		"Apoderado", "Localidad", "Total Mediciones"}
+	headers := []string{"ID Paciente", "Nombre Paciente", "Edad", "Género", "Valor MUAC",
+		"Código MUAC", "Localidad", "Apoderado", "Última Medición", "Días Transcurridos"}
+
+	for i, header := range headers {
+		cell := fmt.Sprintf("%c1", 'A'+i)
+		f.SetCellValue(sheetName, cell, header)
+	}
+
+	// Estilo para headers (moderado)
+	style, _ := f.NewStyle(&excelize.Style{
+		Font: &excelize.Font{Bold: true, Color: "000000"},
+		Fill: excelize.Fill{Type: "pattern", Color: []string{"FFC107"}, Pattern: 1},
+	})
+	f.SetCellStyle(sheetName, "A1", fmt.Sprintf("%c1", 'A'+len(headers)-1), style)
+
+	// Datos
+	for i, patient := range moderateCases {
+		row := i + 2
+		f.SetCellValue(sheetName, fmt.Sprintf("A%d", row), patient.PatientID.String())
+		f.SetCellValue(sheetName, fmt.Sprintf("B%d", row), patient.PatientName)
+		f.SetCellValue(sheetName, fmt.Sprintf("C%d", row), patient.Age)
+		f.SetCellValue(sheetName, fmt.Sprintf("D%d", row), patient.Gender)
+		f.SetCellValue(sheetName, fmt.Sprintf("E%d", row), patient.MuacValue)
+		f.SetCellValue(sheetName, fmt.Sprintf("F%d", row), patient.MuacCode)
+		f.SetCellValue(sheetName, fmt.Sprintf("G%d", row), patient.LocalityName)
+		f.SetCellValue(sheetName, fmt.Sprintf("H%d", row), patient.UserName)
+		f.SetCellValue(sheetName, fmt.Sprintf("I%d", row), patient.LastMeasure.Format("2006-01-02 15:04:05"))
+		f.SetCellValue(sheetName, fmt.Sprintf("J%d", row), patient.DaysAgo)
+	}
+
+	// Ajustar ancho de columnas
+	for i := 0; i < len(headers); i++ {
+		col := string(rune('A' + i))
+		f.SetColWidth(sheetName, col, col, 15)
+	}
+
+	return nil
+}
+
+// createAllRiskPatientsSheet crea una hoja con todos los pacientes en riesgo
+func (s *FileService) createAllRiskPatientsSheet(f *excelize.File, report *domain.RiskPatientsReport) error {
+	sheetName := "Todos los Pacientes"
+	_, err := f.NewSheet(sheetName)
+	if err != nil {
+		return err
+	}
+
+	// Headers
+	headers := []string{"ID Paciente", "Nombre Paciente", "Edad", "Género", "Valor MUAC",
+		"Código MUAC", "Nivel Riesgo", "Localidad", "Apoderado", "Última Medición", "Días Transcurridos"}
 
 	for i, header := range headers {
 		cell := fmt.Sprintf("%c1", 'A'+i)
@@ -391,31 +527,54 @@ func (s *FileService) createPatientsSheet(f *excelize.File, users []*domain.User
 	})
 	f.SetCellStyle(sheetName, "A1", fmt.Sprintf("%c1", 'A'+len(headers)-1), style)
 
+	// Combinar datos y agregar tipo de riesgo
+	allPatients := []domain.RiskPatient{}
+
+	// Agregar casos severos
+	for _, patient := range report.SevereCases {
+		allPatients = append(allPatients, patient)
+	}
+
+	// Agregar casos moderados
+	for _, patient := range report.ModerateCases {
+		allPatients = append(allPatients, patient)
+	}
+
+	// Estilos para diferentes niveles de riesgo
+	criticalRowStyle, _ := f.NewStyle(&excelize.Style{
+		Fill: excelize.Fill{Type: "pattern", Color: []string{"FFEBEE"}, Pattern: 1},
+	})
+	moderateRowStyle, _ := f.NewStyle(&excelize.Style{
+		Fill: excelize.Fill{Type: "pattern", Color: []string{"FFF8E1"}, Pattern: 1},
+	})
+
 	// Datos
-	row := 2
-	for _, user := range users {
-		for _, patient := range user.Patients {
-			f.SetCellValue(sheetName, fmt.Sprintf("A%d", row), patient.ID.String())
-			f.SetCellValue(sheetName, fmt.Sprintf("B%d", row), patient.Name)
-			f.SetCellValue(sheetName, fmt.Sprintf("C%d", row), patient.Lastname)
-			f.SetCellValue(sheetName, fmt.Sprintf("D%d", row), patient.Gender)
-			f.SetCellValue(sheetName, fmt.Sprintf("E%d", row), patient.Age)
-			f.SetCellValue(sheetName, fmt.Sprintf("F%d", row), patient.DNI)
-			f.SetCellValue(sheetName, fmt.Sprintf("G%d", row), patient.BirthDate)
-			f.SetCellValue(sheetName, fmt.Sprintf("H%d", row), patient.ArmSize)
-			f.SetCellValue(sheetName, fmt.Sprintf("I%d", row), patient.Weight)
-			f.SetCellValue(sheetName, fmt.Sprintf("J%d", row), patient.Size)
-			f.SetCellValue(sheetName, fmt.Sprintf("K%d", row), patient.ConsentGiven)
-			if !patient.ConsentDate.IsZero() {
-				f.SetCellValue(sheetName, fmt.Sprintf("L%d", row), patient.ConsentDate.Format("2006-01-02"))
-			}
-			f.SetCellValue(sheetName, fmt.Sprintf("M%d", row), patient.Description)
-			f.SetCellValue(sheetName, fmt.Sprintf("N%d", row), user.Name+" "+user.LastName)
-			if user.Locality != nil {
-				f.SetCellValue(sheetName, fmt.Sprintf("O%d", row), user.Locality.Name)
-			}
-			f.SetCellValue(sheetName, fmt.Sprintf("P%d", row), len(patient.Measurements))
-			row++
+	for i, patient := range allPatients {
+		row := i + 2
+
+		// Determinar nivel de riesgo
+		riskLevel := "Moderado"
+		if patient.MuacValue < 11.5 {
+			riskLevel = "Severo"
+		}
+
+		f.SetCellValue(sheetName, fmt.Sprintf("A%d", row), patient.PatientID.String())
+		f.SetCellValue(sheetName, fmt.Sprintf("B%d", row), patient.PatientName)
+		f.SetCellValue(sheetName, fmt.Sprintf("C%d", row), patient.Age)
+		f.SetCellValue(sheetName, fmt.Sprintf("D%d", row), patient.Gender)
+		f.SetCellValue(sheetName, fmt.Sprintf("E%d", row), patient.MuacValue)
+		f.SetCellValue(sheetName, fmt.Sprintf("F%d", row), patient.MuacCode)
+		f.SetCellValue(sheetName, fmt.Sprintf("G%d", row), riskLevel)
+		f.SetCellValue(sheetName, fmt.Sprintf("H%d", row), patient.LocalityName)
+		f.SetCellValue(sheetName, fmt.Sprintf("I%d", row), patient.UserName)
+		f.SetCellValue(sheetName, fmt.Sprintf("J%d", row), patient.LastMeasure.Format("2006-01-02 15:04:05"))
+		f.SetCellValue(sheetName, fmt.Sprintf("K%d", row), patient.DaysAgo)
+
+		// Aplicar estilo según nivel de riesgo
+		if riskLevel == "Severo" {
+			f.SetCellStyle(sheetName, fmt.Sprintf("A%d", row), fmt.Sprintf("K%d", row), criticalRowStyle)
+		} else {
+			f.SetCellStyle(sheetName, fmt.Sprintf("A%d", row), fmt.Sprintf("K%d", row), moderateRowStyle)
 		}
 	}
 
@@ -423,67 +582,6 @@ func (s *FileService) createPatientsSheet(f *excelize.File, users []*domain.User
 	for i := 0; i < len(headers); i++ {
 		col := string(rune('A' + i))
 		f.SetColWidth(sheetName, col, col, 15)
-	}
-
-	return nil
-}
-
-func (s *FileService) createMeasurementsSheet(f *excelize.File, users []*domain.User) error {
-	sheetName := "Mediciones"
-	_, err := f.NewSheet(sheetName)
-	if err != nil {
-		return err
-	}
-
-	// Headers
-	headers := []string{"Medición ID", "Valor MUAC", "Descripción", "Fecha", "Paciente", "Apoderado",
-		"Localidad", "Tag", "Color Tag", "Prioridad Tag", "Recomendación", "Umbral", "Código MUAC"}
-
-	for i, header := range headers {
-		cell := fmt.Sprintf("%c1", 'A'+i)
-		f.SetCellValue(sheetName, cell, header)
-	}
-
-	// Estilo para headers
-	style, _ := f.NewStyle(&excelize.Style{
-		Font: &excelize.Font{Bold: true},
-		Fill: excelize.Fill{Type: "pattern", Color: []string{"CCCCCC"}, Pattern: 1},
-	})
-	f.SetCellStyle(sheetName, "A1", fmt.Sprintf("%c1", 'A'+len(headers)-1), style)
-
-	// Datos
-	row := 2
-	for _, user := range users {
-		for _, patient := range user.Patients {
-			for _, measurement := range patient.Measurements {
-				f.SetCellValue(sheetName, fmt.Sprintf("A%d", row), measurement.ID.String())
-				f.SetCellValue(sheetName, fmt.Sprintf("B%d", row), measurement.MuacValue)
-				f.SetCellValue(sheetName, fmt.Sprintf("C%d", row), measurement.Description)
-				f.SetCellValue(sheetName, fmt.Sprintf("D%d", row), measurement.CreatedAt.Format("2006-01-02 15:04:05"))
-				f.SetCellValue(sheetName, fmt.Sprintf("E%d", row), patient.Name+" "+patient.Lastname)
-				f.SetCellValue(sheetName, fmt.Sprintf("F%d", row), user.Name+" "+user.LastName)
-				if user.Locality != nil {
-					f.SetCellValue(sheetName, fmt.Sprintf("G%d", row), user.Locality.Name)
-				}
-				if measurement.Tag != nil {
-					f.SetCellValue(sheetName, fmt.Sprintf("H%d", row), measurement.Tag.Name)
-					f.SetCellValue(sheetName, fmt.Sprintf("I%d", row), measurement.Tag.Color)
-					f.SetCellValue(sheetName, fmt.Sprintf("J%d", row), measurement.Tag.Priority)
-				}
-				if measurement.Recommendation != nil {
-					f.SetCellValue(sheetName, fmt.Sprintf("K%d", row), measurement.Recommendation.Name)
-					f.SetCellValue(sheetName, fmt.Sprintf("L%d", row), measurement.Recommendation.RecommendationUmbral)
-					f.SetCellValue(sheetName, fmt.Sprintf("M%d", row), measurement.Recommendation.MuacCode)
-				}
-				row++
-			}
-		}
-	}
-
-	// Ajustar ancho de columnas
-	for i := 0; i < len(headers); i++ {
-		col := string(rune('A' + i))
-		f.SetColWidth(sheetName, col, col, 18)
 	}
 
 	return nil

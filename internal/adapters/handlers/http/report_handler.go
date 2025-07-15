@@ -4,8 +4,10 @@ package http
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/luispfcanales/api-muac/internal/core/domain"
@@ -15,12 +17,14 @@ import (
 // ReportHandler maneja las peticiones HTTP relacionadas con reportes
 type ReportHandler struct {
 	reportService ports.IReportService
+	excelService  ports.IFileService
 }
 
 // NewReportHandler crea una nueva instancia de ReportHandler
-func NewReportHandler(reportService ports.IReportService) *ReportHandler {
+func NewReportHandler(reportService ports.IReportService, excelService ports.IFileService) *ReportHandler {
 	return &ReportHandler{
 		reportService: reportService,
+		excelService:  excelService,
 	}
 }
 
@@ -32,6 +36,7 @@ func (h *ReportHandler) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /api/reports/risk-patients", h.GetRiskPatients)
 	mux.HandleFunc("GET /api/reports/user-activity", h.GetUserActivity)
 	mux.HandleFunc("GET /api/reports/risk-patients-coordinates", h.GetRiskPatientsCoordinates)
+	mux.HandleFunc("GET /api/reports/risk-patients/excel", h.GetRiskPatientsExcel)
 }
 
 // GetDashboard godoc
@@ -175,6 +180,42 @@ func (h *ReportHandler) GetRiskPatients(w http.ResponseWriter, r *http.Request) 
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(report)
+}
+
+// GetRiskPatientsExcel descarga reporte Excel de pacientes en riesgo
+func (h *ReportHandler) GetRiskPatientsExcel(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	filters, err := h.parseFilters(r)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	report, err := h.reportService.GetRiskPatientsReport(ctx, filters)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	// Generar archivo Excel
+	excelData, err := h.excelService.GenerateRiskPatientsReport(ctx, report)
+	if err != nil {
+		http.Error(w, "Error al generar reporte Excel: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Configurar headers para descarga
+	filename := fmt.Sprintf("pacientes_en_riesgo_%s.xlsx", time.Now().Format("2006-01-02_15-04-05"))
+
+	w.Header().Set("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+	w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=%s", filename))
+	w.Header().Set("Content-Length", fmt.Sprintf("%d", len(excelData)))
+
+	// Escribir archivo
+	if _, err := w.Write(excelData); err != nil {
+		log.Printf("Error al escribir archivo Excel: %v", err)
+		return
+	}
 }
 
 // GetRiskPatientsCoordinates obtiene coordenadas para mapa de calor

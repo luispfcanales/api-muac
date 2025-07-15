@@ -87,10 +87,10 @@ func main() {
 	tagService := services.NewTagService(tagRepo)
 	measurementService := services.NewMeasurementService(measurementRepo, tagRepo, recommendationRepo)
 	patientService := services.NewPatientService(patientRepo, measurementRepo)
-	reportService := services.NewReportService(reportRepo)
 
 	baseURL := fmt.Sprintf("http://localhost:%d", cfg.ServerPort)
 	fileService := services.NewFileService("uploads", baseURL)
+	reportService := services.NewReportService(reportRepo, fileService)
 
 	// Crear manejadores HTTP
 	roleHandler := http.NewRoleHandler(roleService)
@@ -102,7 +102,7 @@ func main() {
 	tagHandler := http.NewTagHandler(tagService)
 	measurementHandler := http.NewMeasurementHandler(measurementService)
 	patientHandler := http.NewPatientHandler(patientService, measurementService, fileService)
-	reportHandler := http.NewReportHandler(reportService)
+	reportHandler := http.NewReportHandler(reportService, fileService)
 
 	// Configurar rutas
 	mux := stdhttp.NewServeMux()
