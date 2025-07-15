@@ -17,7 +17,7 @@ type IPatientRepository interface {
 	Delete(ctx context.Context, id uuid.UUID) error
 	GetByFatherID(ctx context.Context, fatherID uuid.UUID) ([]*domain.Patient, error)
 	GetMeasurements(ctx context.Context, patientID uuid.UUID) ([]*domain.Measurement, error)
-	GetPatientsInRisk(ctx context.Context, filters *domain.ReportFilters) ([]*domain.Patient, error)
+	GetUsersWithRiskPatients(ctx context.Context, filters *domain.ReportFilters) ([]*domain.User, error)
 }
 
 // IPatientService define las operaciones del servicio para pacientes
@@ -31,5 +31,5 @@ type IPatientService interface {
 	GetByFatherID(ctx context.Context, fatherID uuid.UUID) ([]*domain.Patient, error)
 	GetMeasurements(ctx context.Context, patientID uuid.UUID) ([]*domain.Measurement, error)
 	AddMeasurement(ctx context.Context, patientID uuid.UUID, measurement *domain.Measurement) error
-	GetPatientsInRisk(ctx context.Context, filters *domain.ReportFilters) ([]*domain.Patient, error)
+	GetUsersWithRiskPatients(ctx context.Context, filters *domain.ReportFilters) ([]*domain.User, error)
 }

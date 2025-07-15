@@ -782,17 +782,23 @@ func (h *PatientHandler) GetPatientsInRisk(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	patients, err := h.patientService.GetPatientsInRisk(ctx, filters)
+	users, err := h.patientService.GetUsersWithRiskPatients(ctx, filters)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
+	totalPatients := 0
+	for _, user := range users {
+		totalPatients += len(user.Patients)
+	}
+
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]interface{}{
-		"message": "Pacientes en riesgo obtenidos exitosamente",
-		"count":   len(patients),
-		"data":    patients,
+		"message":        "Pacientes en riesgo obtenidos exitosamente",
+		"count":          len(users),
+		"patients_count": totalPatients,
+		"data":           users,
 	})
 }
 

@@ -94,13 +94,16 @@ func (s *patientService) AddMeasurement(ctx context.Context, patientID uuid.UUID
 	return s.measurementRepo.Create(ctx, measurement)
 }
 
-// GetPatientsInRisk obtiene pacientes en riesgo con validación
-func (s *patientService) GetPatientsInRisk(ctx context.Context, filters *domain.ReportFilters) ([]*domain.Patient, error) {
+// GetUsersWithRiskPatients obtiene usuarios con pacientes en riesgo
+func (s *patientService) GetUsersWithRiskPatients(ctx context.Context, filters *domain.ReportFilters) ([]*domain.User, error) {
+	// if err := s.ValidateFilters(filters); err != nil {
+	// 	return nil, err
+	// }
 
-	patients, err := s.patientRepo.GetPatientsInRisk(ctx, filters)
+	users, err := s.patientRepo.GetUsersWithRiskPatients(ctx, filters)
 	if err != nil {
-		return nil, fmt.Errorf("error al obtener pacientes en riesgo: %w", err)
+		return nil, fmt.Errorf("error al obtener usuarios con pacientes en riesgo: %w", err)
 	}
 
-	return patients, nil
+	return users, nil
 }

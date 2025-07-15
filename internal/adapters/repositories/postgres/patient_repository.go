@@ -128,81 +128,71 @@ func (r *patientRepository) GetMeasurements(ctx context.Context, patientID uuid.
 	return measurements, nil
 }
 
-// GetPatientsInRisk obtiene todos los pacientes en riesgo con todos sus datos + User
-func (r *patientRepository) GetPatientsInRisk(ctx context.Context, filters *domain.ReportFilters) ([]*domain.Patient, error) {
-	var patients []*domain.Patient
+// GetUsersWithRiskPatientsSimple - Versión corregida para UserID como puntero
+func (r *patientRepository) GetUsersWithRiskPatients(ctx context.Context, filters *domain.ReportFilters) ([]*domain.User, error) {
+	var users []*domain.User
 
-	// PASO 1: Obtener IDs de pacientes que están en riesgo según su última medición
-	var patientIDs []uuid.UUID
+	// PASO 1: Obtener todos los usuarios con sus pacientes y mediciones
+	query := r.db.WithContext(ctx).
+		Preload("Role").
+		Preload("Locality").
+		Preload("Patients").
+		Preload("Patients.Measurements", func(db *gorm.DB) *gorm.DB {
+			return db.Order("created_at DESC") // TODAS las mediciones, luego filtraremos en memoria
+		}).
+		Preload("Patients.Measurements.Tag").
+		Preload("Patients.Measurements.Recommendation")
 
-	subQuery := r.db.Table("measurements m1").
-		Select("m1.patient_id, MAX(m1.created_at) as max_created_at").
-		Group("m1.patient_id")
-
-	// Obtener solo los IDs de pacientes en riesgo
-	result := r.db.WithContext(ctx).
-		Table("patients p").
-		Select("DISTINCT p.id").
-		Joins("JOIN measurements m ON p.id = m.patient_id").
-		Joins("JOIN (?) latest ON m.patient_id = latest.patient_id AND m.created_at = latest.max_created_at", subQuery).
-		Where("m.muac_value < ?", 12.5)
-
-	// Aplicar filtros si existen
+	// Aplicar filtros de usuario
 	if filters != nil {
 		if filters.LocalityID != nil {
-			result = result.Joins("JOIN users u ON p.user_id = u.id").
-				Where("u.locality_id = ?", *filters.LocalityID)
+			query = query.Where("locality_id = ?", *filters.LocalityID)
 		}
-		if filters.Days > 0 {
-			since := time.Now().AddDate(0, 0, -filters.Days)
-			result = result.Where("m.created_at >= ?", since)
+		if filters.Limit > 0 {
+			query = query.Limit(filters.Limit * 2) // Multiplicar por 2 para asegurar suficientes resultados
 		}
 	}
 
-	if err := result.Pluck("id", &patientIDs).Error; err != nil {
-		return nil, fmt.Errorf("error al obtener IDs de pacientes en riesgo: %w", err)
+	var allUsers []*domain.User
+	if err := query.Find(&allUsers).Error; err != nil {
+		return nil, fmt.Errorf("error al obtener usuarios: %w", err)
 	}
 
-	// Si no hay pacientes en riesgo, retornar vacío
-	if len(patientIDs) == 0 {
-		return patients, nil
+	// PASO 2: Filtrar en memoria
+	for _, user := range allUsers {
+		var riskPatients []domain.Patient
+
+		for _, patient := range user.Patients {
+			if len(patient.Measurements) > 0 {
+				// Tomar solo la última medición
+				lastMeasurement := patient.Measurements[0]
+
+				// Aplicar filtro de días si existe
+				if filters != nil && filters.Days > 0 {
+					since := time.Now().AddDate(0, 0, -filters.Days)
+					if lastMeasurement.CreatedAt.Before(since) {
+						continue
+					}
+				}
+
+				// Verificar si está en riesgo
+				if lastMeasurement.MuacValue < 12.5 {
+					// Crear copia del paciente con solo la última medición
+					riskPatient := patient
+					riskPatient.Measurements = []domain.Measurement{lastMeasurement} // Solo la última medición
+					riskPatients = append(riskPatients, riskPatient)
+				}
+			}
+		}
+
+		// Solo agregar usuario si tiene pacientes en riesgo
+		if len(riskPatients) > 0 {
+			user.Patients = riskPatients
+			users = append(users, user)
+		}
 	}
 
-	// PASO 2: Obtener pacientes completos con sus mediciones + USER
-	query := r.db.WithContext(ctx).
-		Where("id IN ?", patientIDs).
-		Preload("Measurements", func(db *gorm.DB) *gorm.DB {
-			return db.Order("created_at DESC") // Todas las mediciones ordenadas por fecha
-		}).
-		Preload("Measurements.Tag").
-		Preload("Measurements.Recommendation").
-		Preload("User").         // ✅ Cargar información del usuario
-		Preload("User.Role").    // ✅ Cargar rol del usuario
-		Preload("User.Locality") // ✅ Cargar localidad del usuario
-
-	// Aplicar límite si existe
-	if filters != nil && filters.Limit > 0 {
-		query = query.Limit(filters.Limit)
-	}
-
-	// Ordenar por el valor MUAC de la última medición (los más críticos primero)
-	query = query.Joins(`
-		JOIN (
-			SELECT m.patient_id, m.muac_value 
-			FROM measurements m
-			JOIN (
-				SELECT patient_id, MAX(created_at) as max_created_at
-				FROM measurements
-				GROUP BY patient_id
-			) latest ON m.patient_id = latest.patient_id AND m.created_at = latest.max_created_at
-		) last_muac ON patients.id = last_muac.patient_id
-	`).Order("last_muac.muac_value ASC")
-
-	if err := query.Find(&patients).Error; err != nil {
-		return nil, fmt.Errorf("error al obtener pacientes completos: %w", err)
-	}
-
-	return patients, nil
+	return users, nil
 }
 
 // GetPatientsInRisk obtiene todos los pacientes en riesgo con todos sus datos - CORREGIDO
