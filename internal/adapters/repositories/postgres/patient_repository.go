@@ -128,7 +128,7 @@ func (r *patientRepository) GetMeasurements(ctx context.Context, patientID uuid.
 	return measurements, nil
 }
 
-// GetPatientsInRisk obtiene todos los pacientes en riesgo con todos sus datos - CORREGIDO
+// GetPatientsInRisk obtiene todos los pacientes en riesgo con todos sus datos + User
 func (r *patientRepository) GetPatientsInRisk(ctx context.Context, filters *domain.ReportFilters) ([]*domain.Patient, error) {
 	var patients []*domain.Patient
 
@@ -168,14 +168,17 @@ func (r *patientRepository) GetPatientsInRisk(ctx context.Context, filters *doma
 		return patients, nil
 	}
 
-	// PASO 2: Obtener pacientes completos con sus mediciones
+	// PASO 2: Obtener pacientes completos con sus mediciones + USER
 	query := r.db.WithContext(ctx).
 		Where("id IN ?", patientIDs).
 		Preload("Measurements", func(db *gorm.DB) *gorm.DB {
 			return db.Order("created_at DESC") // Todas las mediciones ordenadas por fecha
 		}).
 		Preload("Measurements.Tag").
-		Preload("Measurements.Recommendation")
+		Preload("Measurements.Recommendation").
+		Preload("User").         // ✅ Cargar información del usuario
+		Preload("User.Role").    // ✅ Cargar rol del usuario
+		Preload("User.Locality") // ✅ Cargar localidad del usuario
 
 	// Aplicar límite si existe
 	if filters != nil && filters.Limit > 0 {
@@ -183,7 +186,6 @@ func (r *patientRepository) GetPatientsInRisk(ctx context.Context, filters *doma
 	}
 
 	// Ordenar por el valor MUAC de la última medición (los más críticos primero)
-	// Para esto necesitamos un ORDER BY especial
 	query = query.Joins(`
 		JOIN (
 			SELECT m.patient_id, m.muac_value 
@@ -202,3 +204,78 @@ func (r *patientRepository) GetPatientsInRisk(ctx context.Context, filters *doma
 
 	return patients, nil
 }
+
+// GetPatientsInRisk obtiene todos los pacientes en riesgo con todos sus datos - CORREGIDO
+// func (r *patientRepository) GetPatientsInRisk(ctx context.Context, filters *domain.ReportFilters) ([]*domain.Patient, error) {
+// 	var patients []*domain.Patient
+
+// 	// PASO 1: Obtener IDs de pacientes que están en riesgo según su última medición
+// 	var patientIDs []uuid.UUID
+
+// 	subQuery := r.db.Table("measurements m1").
+// 		Select("m1.patient_id, MAX(m1.created_at) as max_created_at").
+// 		Group("m1.patient_id")
+
+// 	// Obtener solo los IDs de pacientes en riesgo
+// 	result := r.db.WithContext(ctx).
+// 		Table("patients p").
+// 		Select("DISTINCT p.id").
+// 		Joins("JOIN measurements m ON p.id = m.patient_id").
+// 		Joins("JOIN (?) latest ON m.patient_id = latest.patient_id AND m.created_at = latest.max_created_at", subQuery).
+// 		Where("m.muac_value < ?", 12.5)
+
+// 	// Aplicar filtros si existen
+// 	if filters != nil {
+// 		if filters.LocalityID != nil {
+// 			result = result.Joins("JOIN users u ON p.user_id = u.id").
+// 				Where("u.locality_id = ?", *filters.LocalityID)
+// 		}
+// 		if filters.Days > 0 {
+// 			since := time.Now().AddDate(0, 0, -filters.Days)
+// 			result = result.Where("m.created_at >= ?", since)
+// 		}
+// 	}
+
+// 	if err := result.Pluck("id", &patientIDs).Error; err != nil {
+// 		return nil, fmt.Errorf("error al obtener IDs de pacientes en riesgo: %w", err)
+// 	}
+
+// 	// Si no hay pacientes en riesgo, retornar vacío
+// 	if len(patientIDs) == 0 {
+// 		return patients, nil
+// 	}
+
+// 	// PASO 2: Obtener pacientes completos con sus mediciones
+// 	query := r.db.WithContext(ctx).
+// 		Where("id IN ?", patientIDs).
+// 		Preload("Measurements", func(db *gorm.DB) *gorm.DB {
+// 			return db.Order("created_at DESC") // Todas las mediciones ordenadas por fecha
+// 		}).
+// 		Preload("Measurements.Tag").
+// 		Preload("Measurements.Recommendation")
+
+// 	// Aplicar límite si existe
+// 	if filters != nil && filters.Limit > 0 {
+// 		query = query.Limit(filters.Limit)
+// 	}
+
+// 	// Ordenar por el valor MUAC de la última medición (los más críticos primero)
+// 	// Para esto necesitamos un ORDER BY especial
+// 	query = query.Joins(`
+// 		JOIN (
+// 			SELECT m.patient_id, m.muac_value
+// 			FROM measurements m
+// 			JOIN (
+// 				SELECT patient_id, MAX(created_at) as max_created_at
+// 				FROM measurements
+// 				GROUP BY patient_id
+// 			) latest ON m.patient_id = latest.patient_id AND m.created_at = latest.max_created_at
+// 		) last_muac ON patients.id = last_muac.patient_id
+// 	`).Order("last_muac.muac_value ASC")
+
+// 	if err := query.Find(&patients).Error; err != nil {
+// 		return nil, fmt.Errorf("error al obtener pacientes completos: %w", err)
+// 	}
+
+// 	return patients, nil
+// }
