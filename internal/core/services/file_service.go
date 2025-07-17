@@ -38,7 +38,7 @@ func NewFileService(uploadPath, baseURL string) ports.IFileService {
 
 	return &FileService{
 		uploadPath:   uploadPath,
-		baseURL:      baseURL,
+		baseURL:      baseURL,          // Asegúrate de pasar https://nutriradar.unamad.edu.pe aquí
 		maxSize:      10 * 1024 * 1024, // 10MB máximo
 		allowedTypes: allowedTypes,
 	}
@@ -82,7 +82,7 @@ func (fs *FileService) UploadFile(ctx context.Context, file multipart.File, head
 		return nil, fmt.Errorf("error al obtener información del archivo: %v", err)
 	}
 
-	// Crear FileInfo
+	// Crear FileInfo con la URL correcta
 	info := &ports.FileInfo{
 		ID:           fileID,
 		FileName:     fileName,
@@ -90,7 +90,7 @@ func (fs *FileService) UploadFile(ctx context.Context, file multipart.File, head
 		Size:         fileInfo.Size(),
 		ContentType:  header.Header.Get("Content-Type"),
 		Path:         filePath,
-		URL:          fmt.Sprintf("%s/files/%s/%s", fs.baseURL, folder, fileName),
+		URL:          fmt.Sprintf("%s/files/%s/%s", fs.baseURL, folder, fileName), // Aquí se usa baseURL
 		UploadedAt:   time.Now().Format(time.RFC3339),
 	}
 

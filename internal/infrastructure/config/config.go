@@ -33,6 +33,7 @@ type Config struct {
 	DBPassword string
 	DBName     string
 	ServerPort int
+	DNS        string
 }
 
 // LoadConfig carga la configuración desde variables de entorno
@@ -40,6 +41,7 @@ func LoadConfig() *Config {
 	dbPort, _ := strconv.Atoi(getEnv("DB_PORT", "5432"))
 	serverPort, _ := strconv.Atoi(getEnv("SERVER_PORT", "8003"))
 	dbType := DBType(getEnv("DB_TYPE", string(PostgreSQL)))
+	dns := getEnv("DNS", "http://localhost:"+strconv.Itoa(serverPort))
 
 	return &Config{
 		DBType:     dbType,
@@ -49,6 +51,7 @@ func LoadConfig() *Config {
 		DBPassword: getEnv("DB_PASSWORD", "unamad2024."),
 		DBName:     getEnv("DB_NAME", "muac"),
 		ServerPort: serverPort,
+		DNS:        dns,
 	}
 }
 

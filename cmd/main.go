@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	stdhttp "net/http"
 	"reflect"
@@ -88,8 +87,7 @@ func main() {
 	measurementService := services.NewMeasurementService(measurementRepo, tagRepo, recommendationRepo)
 	patientService := services.NewPatientService(patientRepo, measurementRepo)
 
-	baseURL := fmt.Sprintf("http://localhost:%d", cfg.ServerPort)
-	fileService := services.NewFileService("uploads", baseURL)
+	fileService := services.NewFileService("uploads", cfg.DNS)
 	reportService := services.NewReportService(reportRepo, fileService)
 
 	// Crear manejadores HTTP
