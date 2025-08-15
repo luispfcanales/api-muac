@@ -3,6 +3,7 @@ package http
 import (
 	"encoding/json"
 	"net/http"
+	"strconv"
 
 	"github.com/google/uuid"
 	"github.com/luispfcanales/api-muac/internal/core/domain"
@@ -29,6 +30,7 @@ func (h *LocalityHandler) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("PUT /api/localities/{id}", h.UpdateLocality)
 	mux.HandleFunc("DELETE /api/localities/{id}", h.DeleteLocality)
 	mux.HandleFunc("GET /api/localities/name/{name}", h.GetLocalityByName)
+	mux.HandleFunc("GET /api/localities/nearby", h.GetNearbyLocalities)
 }
 
 // GetAllLocalities godoc
@@ -265,4 +267,52 @@ func (h *LocalityHandler) GetLocalityByName(w http.ResponseWriter, r *http.Reque
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(locality)
+}
+
+func (h *LocalityHandler) GetNearbyLocalities(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	// Parsear parámetros
+	var request struct {
+		Latitude  string  `json:"latitude"`
+		Longitude string  `json:"longitude"`
+		RadiusKm  float64 `json:"radius_km"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	// Validar parámetros
+	if request.RadiusKm <= 0 {
+		request.RadiusKm = 10 // Radio por defecto de 10km
+	}
+	//parseamos las coordenadas
+	lat, err := strconv.ParseFloat(request.Latitude, 64)
+	if err != nil {
+		http.Error(w, "Invalid latitude", http.StatusBadRequest)
+		return
+	}
+	lng, err := strconv.ParseFloat(request.Longitude, 64)
+	if err != nil {
+		http.Error(w, "Invalid longitude", http.StatusBadRequest)
+		return
+	}
+
+	// Obtener localidades cercanas
+	localities, err := h.localityService.FindNearbyLocalities(
+		ctx,
+		lat,
+		lng,
+		request.RadiusKm,
+	)
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(localities)
 }

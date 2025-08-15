@@ -15,6 +15,7 @@ type ILocalityRepository interface {
 	Update(ctx context.Context, locality *domain.Locality) error
 	Delete(ctx context.Context, id uuid.UUID) error
 	GetByName(ctx context.Context, name string) (*domain.Locality, error)
+	FindNearby(ctx context.Context, lat, lng float64, radiusKm float64) ([]domain.Locality, error)
 }
 
 // ILocalityService define las operaciones del servicio para localidades
@@ -25,4 +26,5 @@ type ILocalityService interface {
 	Update(ctx context.Context, locality *domain.Locality) error
 	Delete(ctx context.Context, id uuid.UUID) error
 	GetByName(ctx context.Context, name string) (*domain.Locality, error)
+	FindNearbyLocalities(ctx context.Context, lat, lng float64, radiusKm float64) ([]domain.Locality, error)
 }

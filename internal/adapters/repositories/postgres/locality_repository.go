@@ -4,6 +4,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"math"
+	"sort"
+	"strconv"
 
 	"github.com/google/uuid"
 	"github.com/luispfcanales/api-muac/internal/core/domain"
@@ -90,4 +93,58 @@ func (r *localityRepository) Delete(ctx context.Context, id uuid.UUID) error {
 		return domain.ErrLocalityNotFound
 	}
 	return nil
+}
+
+func (r *localityRepository) FindNearby(ctx context.Context, lat, lng float64, radiusKm float64) ([]domain.Locality, error) {
+	var allLocalities []domain.Locality
+	var nearbyLocalities []domain.Locality
+
+	// Primero obtener todas las localidades
+	if err := r.db.WithContext(ctx).Find(&allLocalities).Error; err != nil {
+		return nil, fmt.Errorf("error fetching localities: %w", err)
+	}
+
+	// Filtrar en memoria
+	for _, loc := range allLocalities {
+		locLat, err := strconv.ParseFloat(loc.Latitude, 64)
+		if err != nil {
+			continue // O manejar el error como prefieras
+		}
+
+		locLng, err := strconv.ParseFloat(loc.Longitude, 64)
+		if err != nil {
+			continue // O manejar el error como prefieras
+		}
+
+		distance := haversine(lat, lng, locLat, locLng)
+		if distance <= radiusKm {
+			nearbyLocalities = append(nearbyLocalities, loc)
+		}
+	}
+
+	// Ordenar por distancia (opcional)
+	sort.Slice(nearbyLocalities, func(i, j int) bool {
+		latI, _ := strconv.ParseFloat(nearbyLocalities[i].Latitude, 64)
+		lngI, _ := strconv.ParseFloat(nearbyLocalities[i].Longitude, 64)
+		latJ, _ := strconv.ParseFloat(nearbyLocalities[j].Latitude, 64)
+		lngJ, _ := strconv.ParseFloat(nearbyLocalities[j].Longitude, 64)
+
+		distI := haversine(lat, lng, latI, lngI)
+		distJ := haversine(lat, lng, latJ, lngJ)
+		return distI < distJ
+	})
+
+	return nearbyLocalities, nil
+}
+
+// Función Haversine implementada en Go
+func haversine(lat1, lon1, lat2, lon2 float64) float64 {
+	const R = 6371 // Radio de la Tierra en km
+	dLat := (lat2 - lat1) * math.Pi / 180
+	dLon := (lon2 - lon1) * math.Pi / 180
+	a := math.Sin(dLat/2)*math.Sin(dLat/2) +
+		math.Cos(lat1*math.Pi/180)*math.Cos(lat2*math.Pi/180)*
+			math.Sin(dLon/2)*math.Sin(dLon/2)
+	c := 2 * math.Atan2(math.Sqrt(a), math.Sqrt(1-a))
+	return R * c
 }

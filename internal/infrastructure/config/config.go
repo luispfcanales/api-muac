@@ -44,12 +44,16 @@ func LoadConfig() *Config {
 	dns := getEnv("DNS", "http://localhost:"+strconv.Itoa(serverPort))
 
 	return &Config{
-		DBType:     dbType,
-		DBHost:     getEnv("DB_HOST", "35.173.114.173"),
-		DBPort:     dbPort,
-		DBUser:     getEnv("DB_USER", "unamadconfericis"),
-		DBPassword: getEnv("DB_PASSWORD", "unamad2024."),
-		DBName:     getEnv("DB_NAME", "muac"),
+		DBType: dbType,
+		//DBHost:     getEnv("DB_HOST", "35.173.114.173"),
+		DBHost: getEnv("DB_HOST", "192.168.254.35"),
+		DBPort: dbPort,
+		// DBUser:     getEnv("DB_USER", "unamadconfericis"),
+		// DBPassword: getEnv("DB_PASSWORD", "unamad2024."),
+		// DBName:     getEnv("DB_NAME", "muac"),
+		DBUser:     getEnv("DB_USER", "muac_user"),
+		DBPassword: getEnv("DB_PASSWORD", "muac2025."),
+		DBName:     getEnv("DB_NAME", "muac_db"),
 		ServerPort: serverPort,
 		DNS:        dns,
 	}

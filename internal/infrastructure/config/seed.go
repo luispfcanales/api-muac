@@ -65,6 +65,16 @@ func SeedDatabase(db *gorm.DB) error {
 		return fmt.Errorf("error creando FAQs: %w", err)
 	}
 
+	if err := seedTips(tx); err != nil {
+		tx.Rollback()
+		return fmt.Errorf("error creando Tips: %w", err)
+	}
+
+	if err := seedRecipes(tx); err != nil {
+		tx.Rollback()
+		return fmt.Errorf("error creando recetas: %w", err)
+	}
+
 	// Confirmar transacción
 	if err := tx.Commit().Error; err != nil {
 		return fmt.Errorf("error confirmando transacción: %w", err)
@@ -433,6 +443,113 @@ func seedFAQs(tx *gorm.DB) error {
 	return nil
 }
 
+// seedTips crea los consejos iniciales del sistema
+func seedTips(tx *gorm.DB) error {
+	log.Println("💡 Creando consejos (Tips)...")
+
+	tips := []domain.Tip{
+		{
+			Title:   "Lactancia materna",
+			Content: "🍼 Si el niño/niña aún lacta, continúe dándole leche materna a libre demanda.",
+		},
+		{
+			Title:   "Alimentos conocidos",
+			Content: "🍚 Use alimentos locales que ya haya comido antes y tolere bien.",
+		},
+		{
+			Title:   "Frecuencia de comidas",
+			Content: "🥣 3 comidas principales + 2 meriendas pequeñas al día, en porciones adecuadas para su edad.",
+		},
+		{
+			Title:   "Agua y seguridad alimentaria",
+			Content: "🚱 Use agua segura y alimentos bien lavados y cocidos.",
+		},
+		{
+			Title:   "Higiene",
+			Content: "🧼 Lávese bien las manos con agua y jabón antes de preparar o dar los alimentos.",
+		},
+		{
+			Title:   "Qué evitar",
+			Content: "🚫 No ofrecer alimentos ultraprocesados, bebidas azucaradas ni alimentos nuevos que no haya probado antes.",
+		},
+	}
+
+	// Crear Tips con IDs generados
+	for i := range tips {
+		tips[i].ID = uuid.New()
+		tips[i].CreatedAt = time.Now()
+		tips[i].UpdatedAt = time.Now()
+	}
+
+	if err := tx.Create(&tips).Error; err != nil {
+		return fmt.Errorf("error creando Tips: %w", err)
+	}
+
+	log.Printf("✅ %d consejos creados", len(tips))
+	return nil
+}
+
+func seedRecipes(tx *gorm.DB) error {
+	log.Println("🍳 Creando recetas recomendadas...")
+
+	recipes := []domain.Recipe{
+		// Para 6-12 meses (0.6-1 año)
+		{
+			Title:       "Puré de quinua y zapallo",
+			Content:     "🥣 Quinua cocida + zapallo sancochado + 1 cucharadita de aceite vegetal",
+			MinAgeYears: 0.6,
+			MaxAgeYears: 1.0,
+		},
+		{
+			Title:       "Papilla de plátano y huevo",
+			Content:     "🍌 Plátano sancochado y aplastado + yema de huevo cocida",
+			MinAgeYears: 0.6,
+			MaxAgeYears: 1.0,
+		},
+
+		// Para 1-2 años
+		{
+			Title:       "Sopa de lentejas con verduras",
+			Content:     "🥬 Lentejas bien cocidas + zanahoria + espinaca + un chorrito de aceite",
+			MinAgeYears: 1.0,
+			MaxAgeYears: 2.0,
+		},
+		{
+			Title:       "Arroz con pollo y verduras",
+			Content:     "🍗 Arroz bien cocido + pollo deshilachado sin huesos + verduras blandas",
+			MinAgeYears: 1.0,
+			MaxAgeYears: 2.0,
+		},
+
+		// Para 2-5 años
+		{
+			Title:       "Guiso de pescado con yuca",
+			Content:     "🐟 Pescado cocido + yuca sancochada + tomate y cebolla",
+			MinAgeYears: 2.0,
+			MaxAgeYears: 5.0,
+		},
+		{
+			Title:       "Tortilla de verduras",
+			Content:     "🍳 Huevo batido + verduras picadas y cocidas",
+			MinAgeYears: 2.0,
+			MaxAgeYears: 5.0,
+		},
+	}
+
+	for i := range recipes {
+		recipes[i].ID = uuid.New()
+		recipes[i].CreatedAt = time.Now()
+		recipes[i].UpdatedAt = time.Now()
+	}
+
+	if err := tx.Create(&recipes).Error; err != nil {
+		return fmt.Errorf("error creando recetas: %w", err)
+	}
+
+	log.Printf("✅ %d recetas creadas", len(recipes))
+	return nil
+}
+
 // ============= FUNCIONES DE DATOS ADICIONALES =============
 
 // seedAdditionalData agrega datos faltantes si los roles ya existen
@@ -449,6 +566,13 @@ func seedAdditionalData(db *gorm.DB) error {
 
 	if err := checkAndCreateFAQs(db); err != nil {
 		return fmt.Errorf("error verificando FAQs: %w", err)
+	}
+
+	if err := checkAndCreateTips(db); err != nil {
+		return fmt.Errorf("error verificando Tips: %w", err)
+	}
+	if err := checkAndCreateRecipes(db); err != nil {
+		return fmt.Errorf("error verificando recetas: %w", err)
 	}
 
 	if err := updateExistingData(db); err != nil {
@@ -471,6 +595,36 @@ func checkAndCreateFAQs(db *gorm.DB) error {
 	}
 
 	log.Println("✅ FAQs verificadas - OK")
+	return nil
+}
+
+func checkAndCreateTips(db *gorm.DB) error {
+	var TipCount int64
+	if err := db.Model(&domain.Tip{}).Count(&TipCount).Error; err != nil {
+		return err
+	}
+
+	if TipCount == 0 {
+		log.Println("❓ No se encontraron Tips, creando Tips...")
+		return seedTips(db)
+	}
+
+	log.Println("✅ Tips - OK")
+	return nil
+}
+
+func checkAndCreateRecipes(db *gorm.DB) error {
+	var RecipeCount int64
+	if err := db.Model(&domain.Recipe{}).Count(&RecipeCount).Error; err != nil {
+		return err
+	}
+
+	if RecipeCount == 0 {
+		log.Println("❓ No se encontraron Recipes, creando Recipes...")
+		return seedRecipes(db)
+	}
+
+	log.Println("✅ Recipes - OK")
 	return nil
 }
 

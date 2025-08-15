@@ -50,4 +50,7 @@ var (
 	ErrEmptyFAQAnswer     = errors.New("la respuesta no puede estar vacía")
 	ErrFAQNotFound        = errors.New("FAQ no encontrada")
 	ErrInvalidFAQCategory = errors.New("categoría de FAQ no válida")
+
+	//recipe errors
+	ErrInvalidAge = errors.New("edad inválida")
 )

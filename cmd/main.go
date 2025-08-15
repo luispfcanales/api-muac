@@ -46,6 +46,8 @@ func main() {
 		&domain.Measurement{},
 		&domain.Notification{},
 		&domain.FAQ{},
+		&domain.Tip{},
+		&domain.Recipe{},
 	}
 
 	// Migrar cada modelo y registrar en el log
@@ -75,6 +77,8 @@ func main() {
 	measurementRepo := postgres.NewMeasurementRepository(db)
 	patientRepo := postgres.NewPatientRepository(db)
 	reportRepo := postgres.NewReportRepository(db)
+	tipRepo := postgres.NewTipRepository(db)
+	recipeRepo := postgres.NewRecipeRepository(db)
 
 	// Crear servicios
 	roleService := services.NewRoleService(roleRepo)
@@ -89,6 +93,8 @@ func main() {
 
 	fileService := services.NewFileService("uploads", cfg.DNS)
 	reportService := services.NewReportService(reportRepo, fileService)
+	tipService := services.NewTipService(tipRepo)
+	recipeService := services.NewRecipeService(recipeRepo)
 
 	// Crear manejadores HTTP
 	roleHandler := http.NewRoleHandler(roleService)
@@ -101,6 +107,7 @@ func main() {
 	measurementHandler := http.NewMeasurementHandler(measurementService)
 	patientHandler := http.NewPatientHandler(patientService, measurementService, fileService)
 	reportHandler := http.NewReportHandler(reportService, fileService)
+	tipHandler := http.NewTipHandler(tipService, recipeService)
 
 	// Configurar rutas
 	mux := stdhttp.NewServeMux()
@@ -134,6 +141,7 @@ func main() {
 	measurementHandler.RegisterRoutes(mux)
 	patientHandler.RegisterRoutes(mux)
 	reportHandler.RegisterRoutes(mux)
+	tipHandler.RegisterRoutes(mux)
 
 	// Crear y iniciar servidor
 	srv := server.NewServer(cfg, mux)

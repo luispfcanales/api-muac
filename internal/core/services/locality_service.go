@@ -55,3 +55,8 @@ func (s *localityService) Update(ctx context.Context, locality *domain.Locality)
 func (s *localityService) Delete(ctx context.Context, id uuid.UUID) error {
 	return s.localityRepo.Delete(ctx, id)
 }
+
+// En tu archivo de servicio (locality_service.go)
+func (s *localityService) FindNearbyLocalities(ctx context.Context, lat, lng float64, radiusKm float64) ([]domain.Locality, error) {
+	return s.localityRepo.FindNearby(ctx, lat, lng, radiusKm)
+}
