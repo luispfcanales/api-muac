@@ -33,6 +33,20 @@ func (s *userService) Create(ctx context.Context, user *domain.User) error {
 		return err
 	}
 
+	if user.RoleID == uuid.Nil {
+		allroles, err := s.roleRepo.GetAll(ctx)
+		if err != nil {
+			return domain.ErrRoleNotFound
+		}
+
+		for _, r := range allroles {
+			if r.Name == "APODERADO" {
+				user.RoleID = r.ID
+				return s.userRepo.Create(ctx, user)
+			}
+		}
+	}
+
 	// Verificar que el rol existe
 	if user.RoleID != uuid.Nil {
 		_, err := s.roleRepo.GetByID(ctx, user.RoleID)

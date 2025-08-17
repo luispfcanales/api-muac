@@ -106,6 +106,9 @@ func (r *localityRepository) FindNearby(ctx context.Context, lat, lng float64, r
 
 	// Filtrar en memoria
 	for _, loc := range allLocalities {
+		if !loc.IsMedicalCenter {
+			continue // Saltar si no es centro médico
+		}
 		locLat, err := strconv.ParseFloat(loc.Latitude, 64)
 		if err != nil {
 			continue // O manejar el error como prefieras

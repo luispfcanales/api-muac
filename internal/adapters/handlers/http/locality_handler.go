@@ -313,6 +313,10 @@ func (h *LocalityHandler) GetNearbyLocalities(w http.ResponseWriter, r *http.Req
 		return
 	}
 
+	if localities == nil {
+		localities = []domain.Locality{}
+	}
+
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(localities)
 }

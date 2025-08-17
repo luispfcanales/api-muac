@@ -50,8 +50,10 @@ clean:
 # Despliegue local (Ubuntu)
 deploy-local: build-ubuntu
 	@echo "Moviendo binario a directorio de producción local..."
-	scp $(BINARY_NAME) $(LOCAL_USER)@$(LOCAL_HOST):$(LOCAL_PATH)
-	@echo "Despliegue local completado"
+	# scp $(BINARY_NAME) $(LOCAL_USER)@$(LOCAL_HOST):$(LOCAL_PATH)
+	# muestrame como quedaria ese comando aqui usando los valores no las Variables
+	@echo "scp muac-api nutricion@192.168.254.35:/home/nutricion/dev/"
+	@echo "------------------------------------------------------------------------"
 
 # Despliegue en EC2
 deploy-ec2: build-linux
