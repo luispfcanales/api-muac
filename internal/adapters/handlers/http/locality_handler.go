@@ -291,29 +291,29 @@ func (h *LocalityHandler) GetLocalityByName(w http.ResponseWriter, r *http.Reque
 func (h *LocalityHandler) GetNearbyLocalities(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	// Parsear parámetros
-	var request struct {
-		Latitude  string  `json:"latitude"`
-		Longitude string  `json:"longitude"`
-		RadiusKm  float64 `json:"radius_km"`
+	// Obtener parámetros de la URL
+	query := r.URL.Query()
+
+	latStr := query.Get("latitude")
+	lngStr := query.Get("longitude")
+	radiusStr := query.Get("radius_km")
+
+	// Valores por defecto
+	radius := 10.0
+	if r := radiusStr; r != "" {
+		if rFloat, err := strconv.ParseFloat(r, 64); err == nil && rFloat > 0 {
+			radius = rFloat
+		}
 	}
 
-	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
-		http.Error(w, "Invalid request body", http.StatusBadRequest)
-		return
-	}
-
-	// Validar parámetros
-	if request.RadiusKm <= 0 {
-		request.RadiusKm = 10 // Radio por defecto de 10km
-	}
-	//parseamos las coordenadas
-	lat, err := strconv.ParseFloat(request.Latitude, 64)
+	// Validar y parsear coordenadas
+	lat, err := strconv.ParseFloat(latStr, 64)
 	if err != nil {
 		http.Error(w, "Invalid latitude", http.StatusBadRequest)
 		return
 	}
-	lng, err := strconv.ParseFloat(request.Longitude, 64)
+
+	lng, err := strconv.ParseFloat(lngStr, 64)
 	if err != nil {
 		http.Error(w, "Invalid longitude", http.StatusBadRequest)
 		return
@@ -324,7 +324,7 @@ func (h *LocalityHandler) GetNearbyLocalities(w http.ResponseWriter, r *http.Req
 		ctx,
 		lat,
 		lng,
-		request.RadiusKm,
+		radius,
 	)
 
 	if err != nil {
