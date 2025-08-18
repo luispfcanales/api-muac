@@ -25,14 +25,16 @@ func (Locality) TableName() string {
 }
 
 // NewLocality crea una nueva instancia de Locality
-func NewLocality(name, latitude, longitude, description string) *Locality {
+func NewLocality(name, latitude, longitude, description, phone string, isMedical bool) *Locality {
 	return &Locality{
-		ID:          uuid.New(),
-		Name:        name,
-		Latitude:    latitude,
-		Longitude:   longitude,
-		Description: description,
-		CreatedAt:   time.Now(),
+		ID:                 uuid.New(),
+		Name:               name,
+		Latitude:           latitude,
+		Longitude:          longitude,
+		Description:        description,
+		PhoneMedicalCenter: phone,
+		IsMedicalCenter:    isMedical,
+		CreatedAt:          time.Now(),
 	}
 }
 
@@ -45,8 +47,32 @@ func (l *Locality) Validate() error {
 }
 
 // Update actualiza los campos de la localidad
-func (l *Locality) Update(name, location, description string) {
-	l.Name = name
-	l.Description = description
+// Update actualiza los campos de la localidad solo si los nuevos valores no están vacíos
+func (l *Locality) Update(name, latitude, longitude, description, phone string, isMedical *bool) {
+	if name != "" {
+		l.Name = name
+	}
+
+	if latitude != "" {
+		l.Latitude = latitude
+	}
+
+	if longitude != "" {
+		l.Longitude = longitude
+	}
+
+	if description != "" {
+		l.Description = description
+	}
+
+	if phone != "" {
+		l.PhoneMedicalCenter = phone
+	}
+
+	// Para el booleano, solo actualizamos si viene un valor no nil
+	if isMedical != nil {
+		l.IsMedicalCenter = *isMedical
+	}
+
 	l.UpdatedAt = time.Now()
 }

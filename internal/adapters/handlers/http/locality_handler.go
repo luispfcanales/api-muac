@@ -70,10 +70,12 @@ func (h *LocalityHandler) CreateLocality(w http.ResponseWriter, r *http.Request)
 	ctx := r.Context()
 
 	var req struct {
-		Name        string `json:"name"`
-		Latitude    string `json:"latitude"`
-		Longitude   string `json:"longitude"`
-		Description string `json:"description"`
+		Name            string `json:"name"`
+		Latitude        string `json:"latitude"`
+		Longitude       string `json:"longitude"`
+		Description     string `json:"description"`
+		Phone           string `json:"medical_phone"`
+		IsMedicalCenter bool   `json:"is_medical_center"`
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -81,7 +83,14 @@ func (h *LocalityHandler) CreateLocality(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	locality := domain.NewLocality(req.Name, req.Latitude, req.Longitude, req.Description)
+	locality := domain.NewLocality(
+		req.Name,
+		req.Latitude,
+		req.Longitude,
+		req.Description,
+		req.Phone,
+		req.IsMedicalCenter,
+	)
 
 	if err := h.localityService.Create(ctx, locality); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -163,9 +172,12 @@ func (h *LocalityHandler) UpdateLocality(w http.ResponseWriter, r *http.Request)
 	}
 
 	var req struct {
-		Name        string `json:"name"`
-		Location    string `json:"location"`
-		Description string `json:"description"`
+		Name            string `json:"name"`
+		Latitude        string `json:"latitude"`
+		Longitude       string `json:"longitude"`
+		Description     string `json:"description"`
+		Phone           string `json:"medical_phone"`
+		IsMedicalCenter *bool  `json:"is_medical_center"`
 	}
 
 	if err = json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -183,7 +195,14 @@ func (h *LocalityHandler) UpdateLocality(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	locality.Update(req.Name, req.Location, req.Description)
+	locality.Update(
+		req.Name,
+		req.Latitude,
+		req.Longitude,
+		req.Description,
+		req.Phone,
+		req.IsMedicalCenter,
+	)
 
 	if err := h.localityService.Update(ctx, locality); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
