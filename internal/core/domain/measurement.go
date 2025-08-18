@@ -21,6 +21,13 @@ type Measurement struct {
 	User             *User           `json:"user,omitempty" gorm:"foreignKey:UserID"`
 	Tag              *Tag            `json:"tag,omitempty" gorm:"foreignKey:TagID"`
 	Recommendation   *Recommendation `json:"recommendation" gorm:"foreignKey:RecommendationID"`
+
+	MeasurementAdvice MeasurementAdvice `json:"measurement_advice,omitempty" gorm:"-"`
+}
+
+type MeasurementAdvice struct {
+	Tips    []*Tip    `json:"tips"`
+	Recipes []*Recipe `json:"recipes"`
 }
 
 // TableName especifica el nombre de la tabla para GORM

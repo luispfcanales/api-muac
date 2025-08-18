@@ -81,6 +81,8 @@ func main() {
 	recipeRepo := postgres.NewRecipeRepository(db)
 
 	// Crear servicios
+	tipService := services.NewTipService(tipRepo)
+	recipeService := services.NewRecipeService(recipeRepo)
 	roleService := services.NewRoleService(roleRepo)
 	userService := services.NewUserService(userRepo, roleRepo)
 	notificationService := services.NewNotificationService(notificationRepo)
@@ -89,12 +91,15 @@ func main() {
 	recommendationService := services.NewRecommendationService(recommendationRepo)
 	tagService := services.NewTagService(tagRepo)
 	measurementService := services.NewMeasurementService(measurementRepo, tagRepo, recommendationRepo)
-	patientService := services.NewPatientService(patientRepo, measurementRepo)
+	patientService := services.NewPatientService(
+		patientRepo,
+		measurementRepo,
+		tipService,
+		recipeService,
+	)
 
 	fileService := services.NewFileService("uploads", cfg.DNS)
 	reportService := services.NewReportService(reportRepo, fileService)
-	tipService := services.NewTipService(tipRepo)
-	recipeService := services.NewRecipeService(recipeRepo)
 
 	// Crear manejadores HTTP
 	roleHandler := http.NewRoleHandler(roleService)

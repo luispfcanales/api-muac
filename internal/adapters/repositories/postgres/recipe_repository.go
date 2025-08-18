@@ -21,7 +21,7 @@ func NewRecipeRepository(db *gorm.DB) ports.IRecipeRepository {
 }
 
 // GetRecipesByAge obtiene todas las recetas por edad
-func (r *recipeRepository) GetRecipesByAge(ctx context.Context, age float32) ([]*domain.Recipe, error) {
+func (r *recipeRepository) GetRecipesByAge(ctx context.Context, age float64) ([]*domain.Recipe, error) {
 	var recipes []*domain.Recipe
 	err := r.db.WithContext(ctx).
 		Where("min_age_years <= ? AND max_age_years > ?", age, age).

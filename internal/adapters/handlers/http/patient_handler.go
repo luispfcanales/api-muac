@@ -125,6 +125,11 @@ func (h *PatientHandler) GetPatientByID(w http.ResponseWriter, r *http.Request) 
 func (h *PatientHandler) GetPatientByDNI(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
+	var Response struct {
+		Message string          `json:"message"`
+		Patient *domain.Patient `json:"patient,omitempty"`
+	}
+
 	dni := r.PathValue("dni")
 	if dni == "" {
 		http.Error(w, "DNI no proporcionado", http.StatusBadRequest)
@@ -134,15 +139,20 @@ func (h *PatientHandler) GetPatientByDNI(w http.ResponseWriter, r *http.Request)
 	patient, err := h.patientService.GetByDNI(ctx, dni)
 	if err != nil {
 		if err == domain.ErrPatientNotFound {
-			http.Error(w, "Paciente no encontrado", http.StatusNotFound)
+			Response.Message = domain.ErrPatientNotFound.Error()
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(Response)
 			return
 		}
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
+	Response.Message = "Paciente encontrado"
+	Response.Patient = patient
+
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(patient)
+	json.NewEncoder(w).Encode(Response)
 }
 
 // CreatePatient godoc

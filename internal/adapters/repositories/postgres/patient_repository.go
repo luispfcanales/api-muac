@@ -56,7 +56,13 @@ func (r *patientRepository) GetByID(ctx context.Context, id uuid.UUID) (*domain.
 // GetByDNI obtiene un paciente por su DNI
 func (r *patientRepository) GetByDNI(ctx context.Context, dni string) (*domain.Patient, error) {
 	var patient domain.Patient
-	result := r.db.WithContext(ctx).Where("DNI = ?", dni).First(&patient)
+	result := r.db.WithContext(ctx).
+		Preload("Measurements", func(db *gorm.DB) *gorm.DB {
+			return db.Order("created_at DESC")
+		}).
+		Preload("Measurements.Tag").
+		Preload("Measurements.Recommendation").
+		Where("DNI = ? and Consent_Given =  ?", dni, true).First(&patient)
 	if result.Error != nil {
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 			return nil, domain.ErrPatientNotFound

@@ -20,14 +20,14 @@ func NewRecipeService(recipeRepo ports.IRecipeRepository) ports.IRecipeService {
 }
 
 // ListRecipesByAge obtiene todas las recetas por edad
-func (s *recipeService) ListRecipesByAge(ctx context.Context, age float32) ([]*domain.Recipe, error) {
+func (s *recipeService) ListRecipesByAge(ctx context.Context, age float64) ([]*domain.Recipe, error) {
 	// Si la edad está fuera de los rangos válidos, retornar arreglo vacío
 	if age < 0.5 || age > 5.0 {
 		return []*domain.Recipe{}, nil
 	}
 
 	// Validar que la edad tenga formato válido (opcional, puedes quitarlo si no lo necesitas)
-	if float32(int(age*10))/10 != age {
+	if float64(int(age*10))/10 != age {
 		return []*domain.Recipe{}, nil
 	}
 

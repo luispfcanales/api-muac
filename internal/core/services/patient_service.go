@@ -13,13 +13,22 @@ import (
 type patientService struct {
 	patientRepo     ports.IPatientRepository
 	measurementRepo ports.IMeasurementRepository
+	tipService      ports.ITipService
+	recipeService   ports.IRecipeService
 }
 
 // NewPatientService crea una nueva instancia de PatientService
-func NewPatientService(patientRepo ports.IPatientRepository, measurementRepo ports.IMeasurementRepository) ports.IPatientService {
+func NewPatientService(
+	patientRepo ports.IPatientRepository,
+	measurementRepo ports.IMeasurementRepository,
+	tipService ports.ITipService,
+	recipeService ports.IRecipeService,
+) ports.IPatientService {
 	return &patientService{
 		patientRepo:     patientRepo,
 		measurementRepo: measurementRepo,
+		tipService:      tipService,
+		recipeService:   recipeService,
 	}
 }
 
@@ -43,7 +52,24 @@ func (s *patientService) GetByID(ctx context.Context, id uuid.UUID) (*domain.Pat
 
 // GetByDNI obtiene un paciente por su DNI
 func (s *patientService) GetByDNI(ctx context.Context, dni string) (*domain.Patient, error) {
-	return s.patientRepo.GetByDNI(ctx, dni)
+	patient, err := s.patientRepo.GetByDNI(ctx, dni)
+	if err != nil {
+		return nil, err
+	}
+
+	for i := range patient.Measurements {
+		// Obtener tips y recetas para esta medición
+
+		tips, _ := s.tipService.List(ctx, patient.Measurements[i].Tag.MuacCode)
+		recipes, _ := s.recipeService.ListRecipesByAge(ctx, patient.Age)
+
+		patient.Measurements[i].MeasurementAdvice = domain.MeasurementAdvice{
+			Tips:    tips,
+			Recipes: recipes,
+		}
+	}
+
+	return patient, nil
 }
 
 // GetAll obtiene todos los pacientes

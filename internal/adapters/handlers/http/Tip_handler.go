@@ -43,7 +43,7 @@ func (h *TipHandler) GetAllTipRecipes(w http.ResponseWriter, r *http.Request) {
 
 	var request struct {
 		MUACCode string  `json:"muac_code"`
-		Age      float32 `json:"age"`
+		Age      float64 `json:"age"`
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
