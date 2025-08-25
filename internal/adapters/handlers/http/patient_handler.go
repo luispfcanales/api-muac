@@ -173,7 +173,7 @@ func (h *PatientHandler) CreatePatientWithFile(w http.ResponseWriter, r *http.Re
 	ctx := r.Context()
 
 	// Parsear multipart form
-	if err := r.ParseMultipartForm(10 << 20); err != nil { // 10 MB
+	if err := r.ParseMultipartForm(70 << 20); err != nil { // 70 MB
 		http.Error(w, "Error al parsear formulario", http.StatusBadRequest)
 		return
 	}
