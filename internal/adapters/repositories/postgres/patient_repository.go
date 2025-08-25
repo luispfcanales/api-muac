@@ -95,15 +95,37 @@ func (r *patientRepository) Update(ctx context.Context, patient *domain.Patient)
 }
 
 // Delete elimina un paciente por su ID
+// func (r *patientRepository) Delete(ctx context.Context, id uuid.UUID) error {
+// 	result := r.db.WithContext(ctx).Delete(&domain.Patient{}, "ID = ?", id)
+// 	if result.Error != nil {
+// 		return fmt.Errorf("error al eliminar paciente: %w", result.Error)
+// 	}
+// 	if result.RowsAffected == 0 {
+// 		return domain.ErrPatientNotFound
+// 	}
+// 	return nil
+// }
+
+// Delete elimina un paciente por su ID junto con todas sus mediciones
 func (r *patientRepository) Delete(ctx context.Context, id uuid.UUID) error {
-	result := r.db.WithContext(ctx).Delete(&domain.Patient{}, "ID = ?", id)
-	if result.Error != nil {
-		return fmt.Errorf("error al eliminar paciente: %w", result.Error)
-	}
-	if result.RowsAffected == 0 {
-		return domain.ErrPatientNotFound
-	}
-	return nil
+	return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		// Primero eliminar todas las mediciones del paciente
+		result := tx.Where("patient_id = ?", id).Delete(&domain.Measurement{})
+		if result.Error != nil {
+			return fmt.Errorf("error al eliminar mediciones del paciente: %w", result.Error)
+		}
+
+		// Luego eliminar el paciente
+		result = tx.Delete(&domain.Patient{}, "ID = ?", id)
+		if result.Error != nil {
+			return fmt.Errorf("error al eliminar paciente: %w", result.Error)
+		}
+		if result.RowsAffected == 0 {
+			return domain.ErrPatientNotFound
+		}
+
+		return nil
+	})
 }
 
 // GetByFatherID obtiene los pacientes asociados a un padre específico
