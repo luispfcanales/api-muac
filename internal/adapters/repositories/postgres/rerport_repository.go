@@ -25,65 +25,65 @@ func NewReportRepository(db *gorm.DB) ports.IReportRepository {
 	}
 }
 
-// GetDashboardData obtiene los datos principales del dashboard
-func (r *reportRepository) GetDashboardData(ctx context.Context, filters *domain.ReportFilters) (*domain.DashboardReport, error) {
-	report := &domain.DashboardReport{}
+// // GetDashboardData obtiene los datos principales del dashboard
+// func (r *reportRepository) GetDashboardData(ctx context.Context, filters *domain.ReportFilters) (*domain.DashboardReport, error) {
+// 	report := &domain.DashboardReport{}
 
-	// Total de pacientes
-	patientQuery := r.db.WithContext(ctx)
-	if filters != nil && filters.Days > 0 {
-		since := time.Now().AddDate(0, 0, -filters.Days)
-		patientQuery = patientQuery.Where("patients.created_at >= ?", since)
-	}
+// 	// Total de pacientes
+// 	patientQuery := r.db.WithContext(ctx)
+// 	if filters != nil && filters.Days > 0 {
+// 		since := time.Now().AddDate(0, 0, -filters.Days)
+// 		patientQuery = patientQuery.Where("patients.created_at >= ?", since)
+// 	}
 
-	// Agregar filtro por localidad para pacientes
-	if filters != nil && filters.LocalityID != nil {
-		patientQuery = patientQuery.Joins("JOIN users u ON patients.user_id = u.id").
-			Where("u.locality_id = ?", *filters.LocalityID)
-	}
+// 	// Agregar filtro por localidad para pacientes
+// 	if filters != nil && filters.LocalityID != nil {
+// 		patientQuery = patientQuery.Joins("JOIN users u ON patients.user_id = u.id").
+// 			Where("u.locality_id = ?", *filters.LocalityID)
+// 	}
 
-	if err := patientQuery.Model(&domain.Patient{}).Count(&report.TotalPatients).Error; err != nil {
-		return nil, fmt.Errorf("error al contar pacientes: %w", err)
-	}
+// 	if err := patientQuery.Model(&domain.Patient{}).Count(&report.TotalPatients).Error; err != nil {
+// 		return nil, fmt.Errorf("error al contar pacientes: %w", err)
+// 	}
 
-	// Total de mediciones
-	measureQuery := r.db.WithContext(ctx)
-	if filters != nil && filters.Days > 0 {
-		since := time.Now().AddDate(0, 0, -filters.Days)
-		measureQuery = measureQuery.Where("measurements.created_at >= ?", since)
-	}
+// 	// Total de mediciones
+// 	measureQuery := r.db.WithContext(ctx)
+// 	if filters != nil && filters.Days > 0 {
+// 		since := time.Now().AddDate(0, 0, -filters.Days)
+// 		measureQuery = measureQuery.Where("measurements.created_at >= ?", since)
+// 	}
 
-	if filters != nil && filters.LocalityID != nil {
-		measureQuery = measureQuery.Joins("JOIN patients p ON measurements.patient_id = p.id").
-			Joins("JOIN users u ON p.user_id = u.id").
-			Where("u.locality_id = ?", *filters.LocalityID)
-	}
+// 	if filters != nil && filters.LocalityID != nil {
+// 		measureQuery = measureQuery.Joins("JOIN patients p ON measurements.patient_id = p.id").
+// 			Joins("JOIN users u ON p.user_id = u.id").
+// 			Where("u.locality_id = ?", *filters.LocalityID)
+// 	}
 
-	if err := measureQuery.Model(&domain.Measurement{}).Count(&report.TotalMeasurements).Error; err != nil {
-		return nil, fmt.Errorf("error al contar mediciones: %w", err)
-	}
+// 	if err := measureQuery.Model(&domain.Measurement{}).Count(&report.TotalMeasurements).Error; err != nil {
+// 		return nil, fmt.Errorf("error al contar mediciones: %w", err)
+// 	}
 
-	// Total de usuarios
-	userQuery := r.db.WithContext(ctx).Model(&domain.User{})
-	if filters != nil && filters.LocalityID != nil {
-		userQuery = userQuery.Where("locality_id = ?", *filters.LocalityID)
-	}
-	if err := userQuery.Count(&report.TotalUsers).Error; err != nil {
-		return nil, fmt.Errorf("error al contar usuarios: %w", err)
-	}
+// 	// Total de usuarios
+// 	userQuery := r.db.WithContext(ctx).Model(&domain.User{})
+// 	if filters != nil && filters.LocalityID != nil {
+// 		userQuery = userQuery.Where("locality_id = ?", *filters.LocalityID)
+// 	}
+// 	if err := userQuery.Count(&report.TotalUsers).Error; err != nil {
+// 		return nil, fmt.Errorf("error al contar usuarios: %w", err)
+// 	}
 
-	// Distribución por estado nutricional
-	distribution, err := r.getStatusDistribution(ctx, filters)
-	if err != nil {
-		return nil, fmt.Errorf("error al obtener distribución: %w", err)
-	}
-	report.StatusDistribution = *distribution
+// 	// Distribución por estado nutricional
+// 	distribution, err := r.getStatusDistribution(ctx, filters)
+// 	if err != nil {
+// 		return nil, fmt.Errorf("error al obtener distribución: %w", err)
+// 	}
+// 	report.StatusDistribution = *distribution
 
-	// Pacientes en riesgo (moderado + severo)
-	report.PatientsAtRisk = distribution.Moderate.Total + distribution.Severe.Total
+// 	// Pacientes en riesgo (moderado + severo)
+// 	report.PatientsAtRisk = distribution.Moderate.Total + distribution.Severe.Total
 
-	return report, nil
-}
+// 	return report, nil
+// }
 
 // GetPatientsByLocality obtiene pacientes agrupados por localidad
 func (r *reportRepository) GetPatientsByLocality(ctx context.Context, filters *domain.ReportFilters) (*domain.PatientsByLocalityReport, error) {
@@ -432,6 +432,54 @@ func (r *reportRepository) GetUserActivity(ctx context.Context, filters *domain.
 }
 
 // Funciones helper
+// GetDashboardData obtiene los datos principales del dashboard
+func (r *reportRepository) GetDashboardData(ctx context.Context, filters *domain.ReportFilters) (*domain.DashboardReport, error) {
+	report := &domain.DashboardReport{}
+
+	// Total de pacientes (todos los registrados)
+	patientQuery := r.db.WithContext(ctx).Model(&domain.Patient{})
+	if filters != nil && filters.LocalityID != nil {
+		patientQuery = patientQuery.Joins("JOIN users u ON patients.user_id = u.id").
+			Where("u.locality_id = ?", *filters.LocalityID)
+	}
+
+	if err := patientQuery.Count(&report.TotalPatients).Error; err != nil {
+		return nil, fmt.Errorf("error al contar pacientes: %w", err)
+	}
+
+	// Total de mediciones (suma de TODAS las mediciones de todos los pacientes)
+	measureQuery := r.db.WithContext(ctx).Model(&domain.Measurement{})
+	if filters != nil && filters.LocalityID != nil {
+		measureQuery = measureQuery.Joins("JOIN patients p ON measurements.patient_id = p.id").
+			Joins("JOIN users u ON p.user_id = u.id").
+			Where("u.locality_id = ?", *filters.LocalityID)
+	}
+
+	if err := measureQuery.Count(&report.TotalMeasurements).Error; err != nil {
+		return nil, fmt.Errorf("error al contar mediciones: %w", err)
+	}
+
+	// Total de usuarios
+	userQuery := r.db.WithContext(ctx).Model(&domain.User{})
+	if filters != nil && filters.LocalityID != nil {
+		userQuery = userQuery.Where("locality_id = ?", *filters.LocalityID)
+	}
+	if err := userQuery.Count(&report.TotalUsers).Error; err != nil {
+		return nil, fmt.Errorf("error al contar usuarios: %w", err)
+	}
+
+	// Distribución por estado nutricional - solo la ÚLTIMA medición de cada paciente
+	distribution, err := r.getStatusDistribution(ctx, filters)
+	if err != nil {
+		return nil, fmt.Errorf("error al obtener distribución: %w", err)
+	}
+	report.StatusDistribution = *distribution
+
+	// Pacientes en riesgo (moderado + severo) - basado en la última medición
+	report.PatientsAtRisk = distribution.Moderate.Total + distribution.Severe.Total
+
+	return report, nil
+}
 
 func (r *reportRepository) getStatusDistribution(ctx context.Context, filters *domain.ReportFilters) (*domain.StatusDistribution, error) {
 	var result struct {
@@ -441,30 +489,29 @@ func (r *reportRepository) getStatusDistribution(ctx context.Context, filters *d
 		Severe   int64
 	}
 
+	// Query para obtener la última medición de cada paciente y clasificarla
 	query := r.db.WithContext(ctx).
 		Select(`
-			COUNT(*) as total,
-			COUNT(CASE WHEN m.muac_value >= 12.5 THEN 1 END) as normal,
-			COUNT(CASE WHEN m.muac_value >= 11.5 AND m.muac_value < 12.5 THEN 1 END) as moderate,
-			COUNT(CASE WHEN m.muac_value < 11.5 THEN 1 END) as severe
+			COUNT(DISTINCT p.id) as total,
+			SUM(CASE WHEN latest_m.muac_value >= 12.5 THEN 1 ELSE 0 END) as normal,
+			SUM(CASE WHEN latest_m.muac_value >= 11.5 AND latest_m.muac_value < 12.5 THEN 1 ELSE 0 END) as moderate,
+			SUM(CASE WHEN latest_m.muac_value < 11.5 THEN 1 ELSE 0 END) as severe
 		`).
 		Table("patients p").
-		Joins(`JOIN measurements m ON p.id = m.patient_id AND m.id = (
-			SELECT id FROM measurements m2 
-			WHERE m2.patient_id = p.id 
-			ORDER BY m2.created_at DESC 
-			LIMIT 1
-		)`)
+		Joins(`
+			LEFT JOIN LATERAL (
+				SELECT muac_value 
+				FROM measurements m 
+				WHERE m.patient_id = p.id 
+				ORDER BY m.created_at DESC 
+				LIMIT 1
+			) latest_m ON true
+		`)
 
-	if filters != nil {
-		if filters.LocalityID != nil {
-			query = query.Joins("JOIN users u ON p.user_id = u.id").
-				Where("u.locality_id = ?", *filters.LocalityID)
-		}
-		if filters.Days > 0 {
-			since := time.Now().AddDate(0, 0, -filters.Days)
-			query = query.Where("m.created_at >= ?", since)
-		}
+	// Solo aplica filtro por localidad si existe
+	if filters != nil && filters.LocalityID != nil {
+		query = query.Joins("JOIN users u ON p.user_id = u.id").
+			Where("u.locality_id = ?", *filters.LocalityID)
 	}
 
 	if err := query.Scan(&result).Error; err != nil {
