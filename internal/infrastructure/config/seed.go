@@ -75,6 +75,11 @@ func SeedDatabase(db *gorm.DB) error {
 		return fmt.Errorf("error creando recetas: %w", err)
 	}
 
+	if err := seedMedicalCenters(tx); err != nil {
+		tx.Rollback()
+		return fmt.Errorf("error creando centros medicos: %w", err)
+	}
+
 	// Confirmar transacción
 	if err := tx.Commit().Error; err != nil {
 		return fmt.Errorf("error confirmando transacción: %w", err)
@@ -573,6 +578,9 @@ func seedAdditionalData(db *gorm.DB) error {
 	}
 	if err := checkAndCreateRecipes(db); err != nil {
 		return fmt.Errorf("error verificando recetas: %w", err)
+	}
+	if err := checkAndCreateMedicalCenter(db); err != nil {
+		return fmt.Errorf("error verificando centros medicos: %w", err)
 	}
 
 	if err := updateExistingData(db); err != nil {
