@@ -734,6 +734,15 @@ func seedMedicalCenters(tx *gorm.DB) error {
 			PhoneMedicalCenter: "938590100",
 			IsMedicalCenter:    true,
 		},
+		//para localidad aux de usuarios
+		{
+			Name:               "Otros",
+			Latitude:           "-11.11111",
+			Longitude:          "-11.11111",
+			Description:        "Localidad para otros usuarios (registro externo)",
+			PhoneMedicalCenter: "",
+			IsMedicalCenter:    false,
+		},
 	}
 
 	// Crear MedicalCenters con IDs generados
